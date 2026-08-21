@@ -4,6 +4,7 @@ var Types = require("../gametypes");
 var Logger = require('./logger');
 var fs = require('fs'),
     PNG = require('pngjs').PNG;
+var FIELD_BOUNDS = require('./mapFieldBounds');
 
 module.exports = Map = cls.Class.extend({
     init: function (id) {
@@ -13,6 +14,13 @@ module.exports = Map = cls.Class.extend({
         self.w = 0;
         self.h = 0;
         self.points = [];
+        // Limites do CAMPO VISIVEL (tela) em coordenadas do terreno. O PNG de
+        // colisao fica DENTRO de um campo maior (ground_size), deslocado por
+        // offset_x; a margem lateral tambem e' tela. Definido aqui no init para
+        // sobreviver ao clone feito por MapController.getMap().
+        var fb = FIELD_BOUNDS[id];
+        self.field_left = fb ? fb[0] : null;
+        self.field_right = fb ? fb[1] : null;
     },
 
     GetPoint: function () {

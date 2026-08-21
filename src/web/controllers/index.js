@@ -735,7 +735,7 @@ router.post("/ajaxLogin", function (req, res) {
     Buffer.byteLength(user, "utf8") < 2 ||
     Buffer.byteLength(user, "utf8") > 30
   ) {
-    res.send(JSON.stringify(["Nombre de Usuario incorrecto!"]));
+    res.send(JSON.stringify(["Nome de usuário incorreto!"]));
   } else {
     req.db.connection.getConnection().then((conn) => {
       conn
@@ -899,38 +899,38 @@ router.post("/ajaxRegister", function (req, res) {
   }
   var user = req.body.name;
   if (/\s/g.test(user) === true) {
-    res.send(JSON.stringify(["Nombre de usuario no puede contener espacios"]));
+    res.send(JSON.stringify(["O nome de usuário não pode conter espaços"]));
     return null;
   }
   if (ignoreCase.startsWith(user, " ")) {
-    res.send(JSON.stringify(["Nombre de usuario no puede contener espacios"]));
+    res.send(JSON.stringify(["O nome de usuário não pode conter espaços"]));
     return null;
   }
   if (ignoreCase.endsWith(user, " ")) {
-    res.send(JSON.stringify(["Nombre de usuario no puede contener espacios"]));
+    res.send(JSON.stringify(["O nome de usuário não pode conter espaços"]));
     return null;
   }
   /* =========Pin User========= */
   var CheckPinUser = req.body.pinuser;
   Logger.info("Pin User: " + CheckPinUser);
   if (/\s/g.test(CheckPinUser) === true) {
-    res.send(JSON.stringify(["Pin User no puede contener espacios"]));
+    res.send(JSON.stringify(["O Pin do usuário não pode conter espaços"]));
     return null;
   }
   if (ignoreCase.startsWith(CheckPinUser, " ")) {
-    res.send(JSON.stringify(["Pin User no puede contener espacios"]));
+    res.send(JSON.stringify(["O Pin do usuário não pode conter espaços"]));
     return null;
   }
   if (ignoreCase.endsWith(CheckPinUser, " ")) {
-    res.send(JSON.stringify(["Pin User no puede contener espacios"]));
+    res.send(JSON.stringify(["O Pin do usuário não pode conter espaços"]));
     return null;
   }
   if (isNaN(CheckPinUser)) {
-    res.send(JSON.stringify(["Pin User debe de ser un numero"]));
+    res.send(JSON.stringify(["O Pin do usuário deve ser um número"]));
     return null;
   }
   if (CheckPinUser.length <= 0 || CheckPinUser.length >= 5) {
-    res.send(JSON.stringify(["Pin User solo debe tener 4 digitos"]));
+    res.send(JSON.stringify(["O Pin do usuário deve ter apenas 4 dígitos"]));
     return null;
   }
   /* =========Pin User========= */
@@ -946,7 +946,7 @@ router.post("/ajaxRegister", function (req, res) {
   var validate = false;
   /*Logger.info('Email: '+email);
     if (/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.test(email)) {
-        res.send(JSON.stringify(["Por favor escriba correctamente su correo electr�nico."]));
+        res.send(JSON.stringify(["Por favor, escreva corretamente seu e-mail."]));
         return null;
     }*/
   /*if (Buffer.byteLength(gender, 'utf8') < 0 || (gender !== 'm' || gender !== 'f'))*/
@@ -955,7 +955,7 @@ router.post("/ajaxRegister", function (req, res) {
   else {
     res.send(
       JSON.stringify([
-        "Oops tuvimos un error de su registro, se le pide amablemente volverse a registrar :)",
+        "Ops, tivemos um erro no seu registro, pedimos gentilmente que se registre novamente :)",
       ])
     );
     return null;
@@ -967,7 +967,7 @@ router.post("/ajaxRegister", function (req, res) {
     Buffer.byteLength(user, "utf8") < 1 ||
     Buffer.byteLength(user, "utf8") > 30
   ) {
-    res.send(JSON.stringify(["Nombre de Usuario incorrecto!"]));
+    res.send(JSON.stringify(["Nome de usuário incorreto!"]));
   } else {
     req.db.connection.getConnection().then((conn) => {
       conn
@@ -1088,25 +1088,25 @@ router.post("/ajaxRegister", function (req, res) {
                               })
                               .catch(function (err) {
                                 Logger.error("" + err.stack);
-                                res.send(JSON.stringify(["Error Servidor"]));
+                                res.send(JSON.stringify(["Erro do Servidor"]));
                               });
                           })
                           .catch(function (err) {
                             Logger.error("" + err.stack);
-                            res.send(JSON.stringify(["Error Servidor"]));
+                            res.send(JSON.stringify(["Erro do Servidor"]));
                           });
                       })
                       .catch(function (err) {
                         Logger.error("" + err.stack);
-                        res.send(JSON.stringify(["Error Servidor"]));
+                        res.send(JSON.stringify(["Erro do Servidor"]));
                       });
                   })
                   .catch(function (err) {
-                    res.send(JSON.stringify(["Pruebe con otro Usuario"]));
+                    res.send(JSON.stringify(["Tente outro nome de usuário"]));
                   });
               })
               .catch(function (err) {
-                res.send(JSON.stringify(["Pruebe con otro Usuario"]));
+                res.send(JSON.stringify(["Tente outro nome de usuário"]));
               });
           }
         });

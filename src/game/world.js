@@ -286,6 +286,22 @@ jumps:[],
   update() {
     var self = this;
     if (this.shoots_count > 0) {
+      // Rede de segurança: se o loop da física rodar demais (projétil que nunca
+      // completa), força o fim do disparo para não travar o turno.
+      this.updateTicks = (this.updateTicks || 0) + 1;
+      if (this.updateTicks > 20000) {
+        this.updateTicks = 0;
+        var _acc0 = this.shoots[0] ? this.shoots[0].account : null;
+        var _sd = this.shoots_data.slice(0);
+        var _ch = this.chat;
+        this.shoots_count = 0;
+        this.shoots_complete = 0;
+        this.chat = [];
+        this.shoots_data = [];
+        this.recetBonos();
+        if (this.shoot_complete && _acc0) this.shoot_complete(_acc0, _sd, _ch);
+        return;
+      }
       var good_shot_message = false;
       for (var id in this.shoots) {
         var shoot = this.shoots[id];
@@ -710,6 +726,7 @@ jumps:[],
               shoot.isLightning;
             this.shoots_data[this.shoots_complete].no_rotate = shoot.no_rotate;
             this.shoots_data[this.shoots_complete].camera = shoot.camera;
+            this.shoots_data[this.shoots_complete].behind = shoot.behind;
             this.shoots_data[this.shoots_complete].s.push(shoot.image);
             this.shoots_data[this.shoots_complete].time = shoot.isthor
               ? 0
@@ -731,6 +748,7 @@ jumps:[],
       if (this.shoots_count <= this.shoots_complete) {
         this.shoots_count = 0;
         this.shoots_complete = 0;
+        this.updateTicks = 0;
         this.procesBonos({
           account: self.shoots[0].account,
           shoots_data: self.shoots_data.slice(0),
@@ -881,10 +899,19 @@ jumps:[],
       self.addGroundHole(shoot);
       shoot.groundCollide = true;
     } else if (
-      self.map.w < shoot.a.x ||
+      (self.map.field_right != null ? self.map.field_right : self.map.w) <
+        shoot.a.x ||
       self.map.h < shoot.a.y ||
-      shoot.time > shoot.killAt
+      shoot.a.x <
+        (self.map.field_left != null ? self.map.field_left : 0) ||
+      shoot.time > shoot.killAt * 2 ||
+      shoot.time > 12000
     ) {
+      // Destrói ao atingir o LIMITE DA TELA (campo visível): direita
+      // (field_right = ground_size - offset_x), esquerda (field_left = -offset_x)
+      // ou fundo (a.y > h). O terreno de colisão é menor e fica centralizado no
+      // campo, por isso o projétil viaja pela margem até a borda da tela.
+      // Mantido um teto de tempo (dobrado) como salvaguarda contra loop.
       shoot.isComplete = true;
       /*	console.log({
 				is:"check collision",
@@ -899,6 +926,8 @@ jumps:[],
   //Aqui empieza las balas de weathers
 
   checkWeatersCast(shoot) {
+    // O laser do Thor é um feixe reto: passa direto, não é afetado pelo clima (tornado, etc.).
+    if (shoot.isthor) return;
     this.game.weather.active.forEach((force) => {
       if (force.isCollide(shoot.a.x)) {
         for (const cast in force.cast) {
@@ -914,30 +943,69 @@ jumps:[],
     });
   }
   _castWeatherTornado(shoot, force, config) {
-    let side = shoot.a.x > force.px ? "R" : "L";
-    shoot.lastTornado = shoot.lastTornado ? shoot.lastTornado : null;
-
+    const v = shoot.getVelocityAtTime(shoot.time);
+    // 1º contato com ESTE tornado (entrando de fora OU lançado de dentro):
+    // captura a velocidade de entrada e já gera uma bala RETA (sem gravidade,
+    // mesma direção, sem flip) — o zigzag fica reto desde a entrada.
     if (shoot.lastTornado !== force.px) {
       shoot.lastTornado = force.px;
-      shoot.sideTornado = side;
-      shoot.countTornado = 2; // Ensure only one bounce
-    }
-
-    if (
-      !force.isCollide(shoot.a.x, -10) &&
-      shoot.sideTornado !== side &&
-      shoot.countTornado > 0
-    ) {
-      shoot.countTornado--;
+      shoot.countTornado = 2; // voltas neste tornado
+      shoot.tornadoVx = Math.abs(v.x);
+      shoot.tornadoVy = v.y;
+      shoot.tornadoWeight = shoot.weight;
+      shoot.tornadoFriccion = shoot.friccion;
       shoot.countMirror = 0;
       shoot.lastMirror = null;
-      config = {
+      const entryVx = v.x >= 0 ? shoot.tornadoVx : -shoot.tornadoVx; // mantém a direção
+      const entryConfig = {
         ...config,
-        sideTornado: side,
-        countTornado: shoot.countTornado,
+        countTornado: shoot.countTornado, // NÃO decrementa (não é quicada, é a entrada)
         lastTornado: shoot.lastTornado,
+        tornadoVx: shoot.tornadoVx,
+        tornadoVy: shoot.tornadoVy,
+        tornadoWeight: shoot.tornadoWeight,
+        tornadoFriccion: shoot.tornadoFriccion,
+        _nextVx: entryVx,
       };
-      this._castWeatherMirrorTornado(shoot, force, config);
+      this._castWeatherMirrorTornado(shoot, force, entryConfig);
+      return;
+    }
+    if (shoot.countTornado < 0) return; // já saiu
+
+    const movingRight = v.x >= 0;
+    const nearEdge = !force.isCollide(shoot.a.x, -6);
+    // Toca a borda movendo-se PRA FORA (captura inclusive tiros lançados de dentro):
+    const atRightEdge = movingRight && nearEdge && shoot.a.x >= force.px;
+    const atLeftEdge = !movingRight && nearEdge && shoot.a.x <= force.px;
+
+    if (atRightEdge || atLeftEdge) {
+      shoot.countMirror = 0;
+      shoot.lastMirror = null;
+      const baseCfg = {
+        ...config,
+        lastTornado: shoot.lastTornado,
+        tornadoVx: shoot.tornadoVx,
+        tornadoVy: shoot.tornadoVy,
+        tornadoWeight: shoot.tornadoWeight,
+        tornadoFriccion: shoot.tornadoFriccion,
+      };
+      if (shoot.countTornado > 0) {
+        // QUICADA: flip horizontal, reta (sem gravidade). O vertical vem da ENTRADA.
+        shoot.countTornado--;
+        const nextVx = atRightEdge ? -shoot.tornadoVx : shoot.tornadoVx;
+        this._castWeatherMirrorTornado(shoot, force, {
+          ...baseCfg, countTornado: shoot.countTornado, _exit: false, _nextVx: nextVx,
+          // Segmento entre a 1ª e a 2ª reflexão: renderiza ATRÁS do tornado.
+          behind: shoot.countTornado === 1,
+        });
+      } else {
+        // SAÍDA (count 0): mantém a direção (pra fora), restaura gravidade e encerra.
+        shoot.countTornado = -1;
+        const exitVx = atRightEdge ? shoot.tornadoVx : -shoot.tornadoVx;
+        this._castWeatherMirrorTornado(shoot, force, {
+          ...baseCfg, countTornado: -1, _exit: true, _nextVx: exitVx,
+        });
+      }
     }
   }
   _castWeatherMirrorTornado(shoot, force, config) {
@@ -946,20 +1014,30 @@ jumps:[],
     if (shoot.lastMirror !== force.px) {
         shoot.isComplete = true;
 
-        const v = shoot.getVelocityAtTime(shoot.time);
-        let reflectedAngle = (180 * Math.atan2(-v.y, -v.x)) / Math.PI;
+        // Velocidade da quicada = momentum/ângulo de ENTRADA (constante), não o atual.
+        const cur = shoot.getVelocityAtTime(shoot.time);
+        const nvx = typeof config._nextVx === "number" ? config._nextVx : -cur.x;
+        const nvy = typeof config.tornadoVy === "number" ? config.tornadoVy : cur.y;
+        const reflectedAngle = (180 * Math.atan2(-nvy, nvx)) / Math.PI;
+        const speed = Math.sqrt(nvx * nvx + nvy * nvy);
+        // Entrada e quicadas internas: SEM gravidade (segmentos retos).
+        // Só a SAÍDA (_exit) restaura gravidade/vento para retomar o arco lá fora.
+        const isExit = config._exit === true;
+        const w = typeof config.tornadoWeight === "number" ? config.tornadoWeight : shoot.weight;
+        const fr = typeof config.tornadoFriccion === "number" ? config.tornadoFriccion : shoot.friccion;
 
         shoot.config = {
             ...config,
             ...{
                 ang: reflectedAngle,
-                power: shoot.power,
+                power: speed,
                 damage: shoot.damage,
                 pala_bunge: shoot.pala_bunge,
                 image: shoot.image,
                 explode: shoot.explode,
-                weight: shoot.weight,
-                friccion: shoot.friccion,
+                weight: isExit ? w : 0,
+                friccion: isExit ? fr : 0,
+                camera: true, // câmera segue a bala pelo tornado até o fim do trajeto
                 lastMirror: force.px,
                 countMirror: shoot.countMirror + 1,
                 stime: shoot.stime + shoot.time * 2,
@@ -967,7 +1045,6 @@ jumps:[],
         };
         shoot.damage = null;
         shoot.explode = null;
-        //	console.log("is mirror",{shoot:shoot})
         if (shoot.config.countMirror < 10) this.addbulets(shoot);
         else {
             this.addGroundHole(shoot);

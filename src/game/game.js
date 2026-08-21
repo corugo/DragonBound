@@ -100,9 +100,9 @@ module.exports = class Game {
               acc.player.y = shoot[0].tele[2];
               acc.player.move();
             }
-            if (self.room.game_mode === Types.GAME_MODE.BOSS) {
+            if (Types.BOT_MODES.includes(self.room.game_mode)) {
               self.room.forBots(function (bot) {
-                if (bot.player.position === self.turn_player) {
+                if (bot.player.user_id === player.user_id) {
                   bot.turn();
                 }
               });
@@ -124,9 +124,9 @@ module.exports = class Game {
                 );
                 self.gameserver.pushToRoom(self.room.id, shoot_message);
                 self.historical.push(shoot_message);
-                if (self.room.game_mode === Types.GAME_MODE.BOSS) {
+                if (Types.BOT_MODES.includes(self.room.game_mode)) {
                   self.room.forBots(function (bot) {
-                    if (bot.player.position === self.turn_player) {
+                    if (bot.player.user_id === player2.user_id) {
                       bot.turn();
                     }
                   });
@@ -140,11 +140,10 @@ module.exports = class Game {
           }
         });
       } catch (e) {
-        //console.log(e);
         /*self.getNextTurn(actual_turn,function (player) {
 					self.turn_player = player.position;
 					self.gameserver.pushToRoom(self.room.id, new Message.gamePlay(acc, shoot, player, chat));
-					if (self.room.game_mode === Types.GAME_MODE.BOSS) {
+					if (Types.BOT_MODES.includes(self.room.game_mode)) {
 						self.room.forBots(function (bot) {
 							if (bot.player.position === self.turn_player) {
 								self.gameEnd_callback;
@@ -160,10 +159,33 @@ module.exports = class Game {
   start(callback) {
     var self = this;
     self.room.status = Types.ROOM_STATUS.PLAYING;
+    // Nos modos com bots (ex.: Aduka 4v4), spawns aleatórios pelo mapa todo, porém
+    // DISTINTOS (sem sobrepor jogadores) e sem separar por time.
+    var useDistinctSpawn = Types.BOT_MODES.includes(self.room.game_mode);
+    var spawnPool = [];
+    var si = 0;
+    if (useDistinctSpawn) {
+      spawnPool = (self.map.points || []).filter(function (p) {
+        return p && typeof p.x !== "undefined";
+      });
+      spawnPool = spawnPool.slice(2); // pula os 2 primeiros (bordas), igual ao GetPoint
+      for (var i = spawnPool.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = spawnPool[i];
+        spawnPool[i] = spawnPool[j];
+        spawnPool[j] = t;
+      }
+    }
     self.room.forPlayers(function (account) {
       if (account !== null) {
         let player = account.player;
-        var point = self.map.GetPoint();
+        var point;
+        if (useDistinctSpawn) {
+          point = spawnPool[si++];
+          if (!point || typeof point.x === "undefined") point = self.map.GetPoint();
+        } else {
+          point = self.map.GetPoint();
+        }
         if (typeof point !== "undefined" && typeof point.x !== "undefined") {
           player.x = point.x;
           player.y = point.y;
@@ -769,9 +791,9 @@ module.exports = class Game {
       if (typeof player !== "undefined") {
         self.turn_player = player.position;
         self.turns_pass++;
-        if (self.room.game_mode === Types.GAME_MODE.BOSS) {
+        if (Types.BOT_MODES.includes(self.room.game_mode)) {
           self.room.forBots(function (bot) {
-            if (bot.player.position === self.turn_player) {
+            if (bot.player.user_id === player.user_id) {
               bot.turn();
             }
           });

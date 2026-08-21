@@ -704,7 +704,10 @@ Types = {
     SAME: 2,
     SCORE: 3,
     TAG: 4,
+    ADUKA: 5,
   },
+  // Modos em que bots participam (render/turnos/placar). Usado no lugar de checar só BOSS.
+  BOT_MODES: [1, 5],
   RANDOMIZER: [0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 14, 15],
   GAME_ID: ["GM", "DN"],
   MAPS_PLAY: [

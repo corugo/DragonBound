@@ -32,7 +32,7 @@ const enviarCorreo = (email)=>{
 	   from: 'holamundito@gmail.com',
             to: email,
             subject: 'Password reset on dragonbound.net',
-            text: '[ES] Te hemos enviado un correo con las instrucciones de reseteo de tu contraseña al correo electrónico que nos has indicado.El correo tomará unas horas en ser enviado, por favor espere y revise su correo electrónico más tarde.'
+            text: '[PT] Enviamos um e-mail com as instruções de redefinição da sua senha para o endereço que você informou. O e-mail pode levar algumas horas para chegar, por favor aguarde e verifique seu e-mail mais tarde.'
 	};
 	let resp=false;
 

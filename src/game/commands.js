@@ -86,8 +86,8 @@ module.exports = class Commands {
       switch (data[0]) {
         case "/delete_avatars": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 1
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             self.gameserver.db
               .deleteAvatarByUserId(parseInt(data[1]))
@@ -99,8 +99,8 @@ module.exports = class Commands {
         }
         case "/reset_ranking_prix": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 1
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             self.gameserver.db
               .updateResetRankingPrix(parseInt(0))
@@ -111,7 +111,7 @@ module.exports = class Commands {
           break;
         }
         case "/my_time": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             self.account.send([
               0,
               "Time Server: " + self.account.player.gameserverevent,
@@ -123,11 +123,11 @@ module.exports = class Commands {
         }
         case "/mys_rooms": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 2 ||
-            self.account.player.user_id === 3 ||
-            self.account.player.user_id === 4 ||
-            self.account.player.user_id === 106
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             self.gameserver.forEachRooms(function (rom) {
               self.account.send([
@@ -151,7 +151,7 @@ module.exports = class Commands {
                         break;
                     }*/
         case "/user_tournament": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             self.gameserver.db
               .getUsersPrixByAllWinnersTest(
                 parseInt(data[1]),
@@ -162,7 +162,7 @@ module.exports = class Commands {
                 self.gameserver.pushBroadcastChat(
                   new Message.chatResponse(
                     self.account,
-                    "Jugador: " +
+                    "Jogador: " +
                       evento_berny.game_id +
                       " - UserID: " +
                       evento_berny.IdAcc +
@@ -177,11 +177,11 @@ module.exports = class Commands {
         }
         case "/map_room": {
           if (
-            self.account.player.user_id === 1 ||
+            self.account.player.rank === 31 ||
             self.account.player.rank === 26 ||
             self.account.player.rank === 31 ||
             self.account.player.rank === 27 ||
-            self.account.player.user_id === 106
+            self.account.player.rank === 31
           ) {
             if (self.account.room) {
               if (
@@ -199,9 +199,13 @@ module.exports = class Commands {
                 return null;
               } else {
                 self.account.room.map = parseInt(data[1]);
+                self.account.room.forced_map = parseInt(data[1]);
                 self.account.room.RoomUpdate(self.account);
                 self.account.room.forPlayers(function (account) {
-                  if (typeof account !== "undefined") {
+                  if (
+                    typeof account !== "undefined" &&
+                    typeof account.send === "function"
+                  ) {
                     account.send([
                       0,
                       "GM " +
@@ -226,8 +230,7 @@ module.exports = class Commands {
         }
         case "/enter_room": {
           if (
-            /*self.account.player.rank === 26 || self.account.player.rank === 27 || */ self
-              .account.player.user_id === 31
+            /*self.account.player.rank === 26 || self.account.player.rank === 27 || */ self.account.player.rank === 31
           ) {
             var enter_the_room = parseInt(data[1]);
             self.gameserver.getRoomById(enter_the_room, function (room) {
@@ -252,11 +255,11 @@ module.exports = class Commands {
         }
         case "/mobile_room": {
           if (
-            self.account.player.user_id === 1 ||
             self.account.player.rank === 31 ||
             self.account.player.rank === 31 ||
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 1
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             var mobile_room = parseInt(data[1]);
             self.account.room.forPlayers(function (account) {
@@ -281,11 +284,11 @@ module.exports = class Commands {
         }
         case "/room_title": {
           if (
-            self.account.player.user_id === 1 ||
+            self.account.player.rank === 31 ||
             self.account.player.rank === 26 ||
             self.account.player.rank === 27 ||
             self.account.player.rank === 31 ||
-            self.account.player.user_id === 1
+            self.account.player.rank === 31
           ) {
             var room_id = parseInt(data[1]);
             var room_title = data[2];
@@ -335,7 +338,7 @@ module.exports = class Commands {
           break;
         }
         case "/items": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             self.account.send([
               0,
               "Item1: " +
@@ -351,11 +354,11 @@ module.exports = class Commands {
           break;
         }
         case "/resetallthegame": {
-          if (self.account.player.user_id === 1) process.exit(1);
+          if (self.account.player.rank === 31) process.exit(1);
           break;
         }
         case "/prix_state": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             let state = parseInt(data[1]);
             if (state === 0) {
               let Time_Event = Date.now() + 60 * 1000 * 120;
@@ -440,7 +443,7 @@ module.exports = class Commands {
           break;
         }
         case "/length_server": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             self.gameserver.forEachAccount(function (account) {
               if (account !== null) {
                 self.account.send([
@@ -456,11 +459,11 @@ module.exports = class Commands {
         }
         case "/server": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 2 ||
-            self.account.player.user_id === 31 ||
-            self.account.player.user_id === 4 ||
-            self.account.player.user_id === 106
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             self.gameserver.forEachAccount(function (account) {
               if (account !== null) {
@@ -485,7 +488,7 @@ module.exports = class Commands {
           break;
         }
         case "/users_rooms": {
-          if (self.account.player.user_id === 31) {
+          if (self.account.player.rank === 31) {
             self.gameserver.forEachAccount(function (account) {
               if (account !== null) {
                 if (account.player.guild === data[1]) {
@@ -511,7 +514,7 @@ module.exports = class Commands {
           break;
         }
         case "/ips_users_rooms": {
-          if (self.account.player.user_id === 31) {
+          if (self.account.player.rank === 31) {
             self.gameserver.forEachAccount(function (account) {
               if (account !== null) {
                 if (account.player.computer_ip === data[1]) {
@@ -537,7 +540,7 @@ module.exports = class Commands {
           break;
         }
         case "/new_update": {
-          if (self.account.player.user_id === 31) {
+          if (self.account.player.rank === 31) {
             self.gameserver.forEachAccount(function (account) {
               if (
                 account !== null &&
@@ -555,7 +558,7 @@ module.exports = class Commands {
             self.account.player.rank === 26 ||
             self.account.player.rank === 27 ||
             self.account.player.user_id ===
-              1 /*self.account.player.user_id === 1*/
+              1 /*self.account.player.rank === 31*/
           ) {
             var enter_room = parseInt(data[1]);
             self.gameserver.getRoomById(enter_room, function (room) {
@@ -725,16 +728,16 @@ module.exports = class Commands {
           break;
         }
         case "/mobil": {
-          /*self.account.player.rank === 26 || self.account.player.rank === 31 || self.account.player.user_id === 13*/
+          /*self.account.player.rank === 26 || self.account.player.rank === 31 || self.account.player.rank === 31*/
           if (
             self.account.player.rank === 31 ||
             self.account.player.rank === 26 ||
             self.account.player.rank === 27 ||
             self.account.player.rank === 25 ||
-            self.account.player.user_id === 106
+            self.account.player.rank === 31
           ) {
             if (self.account.room) {
-              /*if (self.account.player.user_id === 27941) {
+              /*if (self.account.player.rank === 31) {
                                     self.account.send([0,'You are prohibited from using this command at the moment. Att: berny.','',6]);
                                     return null;
                                 }*/
@@ -756,7 +759,7 @@ module.exports = class Commands {
                           self.account.player.game_id +
                           " Ha usado el mobil " +
                           _mob +
-                          " en la sala " +
+                          " na sala " +
                           self.account.room.id
                       );
                       //self.gameserver.pushBroadcastChat(new Message.chatResponse(self.account, "The GM "+self.account.player.game_id+" has changed mobile in the room: "+self.account.room.id, Types.CHAT_TYPE.SYSTEM));
@@ -799,7 +802,7 @@ module.exports = class Commands {
                         self.account.player.game_id +
                         " Ha usado el mobil " +
                         _mob +
-                        " en la sala " +
+                        " na sala " +
                         self.account.room.id
                     );
                     //self.gameserver.pushBroadcastChat(new Message.chatResponse(self.account, "The GM "+self.account.player.game_id+" has changed mobile in the room: "+self.account.room.id, Types.CHAT_TYPE.SYSTEM));
@@ -830,7 +833,7 @@ module.exports = class Commands {
           break;
         }
         case "/prueba_prix": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             self.gameserver.onAccountConnect(function (account) {
               account.send([
                 Types.SERVER_OPCODE.hi,
@@ -845,7 +848,7 @@ module.exports = class Commands {
                 account.send([
                   17,
                   "El GM " + self.account.player.game_id + "!",
-                  "Te Ha Expulsado Del Servidor Por Alguna Extraña Razon! De Prueba :)",
+                  "Te expulsou do servidor por alguma razão estranha! De teste :)",
                 ]);
                 account.connection.close();
               }
@@ -896,16 +899,16 @@ module.exports = class Commands {
             .then(function (rows) {
               var gp_user = rows[0][0];
               if (
-                self.account.player.user_id === 1 ||
-                self.account.player.user_id === 2
+                self.account.player.rank === 31 ||
+                self.account.player.rank === 31
               ) {
                 if (
                   self.account.player.rank === 26 ||
-                  self.account.player.user_id === 1
+                  self.account.player.rank === 31
                 ) {
                   self.account.send([
                     0,
-                    "Tu Rango No Tiene Permitido Descontar GPs A Los De Nivel Superior.",
+                    "Seu nível não pode descontar GP de jogadores de nível superior.",
                     "",
                     6,
                   ]);
@@ -958,11 +961,11 @@ module.exports = class Commands {
         }
         case "/ad": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 2 ||
-            self.account.player.user_id === 3 ||
-            self.account.player.user_id === 4 ||
-            self.account.player.user_id === 106
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             let self2 = self.gameserver.getAccountById(parseInt(data[1]));
             self2.send([
@@ -973,7 +976,7 @@ module.exports = class Commands {
             Logger.info(
               "El GM " +
                 self.account.player.game_id +
-                " - Le envio al usuario: " +
+                " - Enviei ao jogador: " +
                 self2.player.game_id +
                 " [UserID: " +
                 self2.player.user_id +
@@ -985,12 +988,12 @@ module.exports = class Commands {
         }
         case "/ban_ip": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 2 ||
-            self.account.player.user_id === 13 ||
-            self.account.player.user_id === 4 ||
-            self.account.player.user_id === 128 ||
-            self.account.player.user_id === 3
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             var ComputerIP = data[1];
             self.gameserver.db.putComputerIPBanned(
@@ -1009,7 +1012,7 @@ module.exports = class Commands {
           break;
         }
         case "/sge": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             self.gameserver.evento200 = !0;
             Logger.info(
               "evento alterado a :" +
@@ -1028,8 +1031,8 @@ module.exports = class Commands {
         }
         case "/ege": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 3
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             self.gameserver.evento200 = !1;
             Logger.info(
@@ -1049,7 +1052,7 @@ module.exports = class Commands {
         }
         case "/event": {
           if (
-            self.account.player.user_id === 1 ||
+            self.account.player.rank === 31 ||
             self.account.player.rank === 31
           ) {
             let EvenTime = parseInt(data[1]);
@@ -1127,10 +1130,10 @@ module.exports = class Commands {
             self.account.player.rank === 26 ||
             self.account.player.rank === 27 ||
             self.account.player.rank === 31 ||
-            self.account.player.user_id === 31 ||
-            self.account.player.user_id === 20 ||
-            self.account.player.user_id === 106 ||
-            self.account.player.user_id === 128
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             let self2 = self.gameserver.getAccountById(parseInt(data[1]));
             let DateMuted = parseInt(data[2]);
@@ -1143,7 +1146,7 @@ module.exports = class Commands {
               if (self2.player.rank === 27 && self.account.player.rank < 26) {
                 self.account.send([
                   0,
-                  "No tienes Permitido Mutear A Rangos Superiores.",
+                  "Você não pode silenciar níveis superiores.",
                   "",
                   6,
                 ]);
@@ -1180,7 +1183,7 @@ module.exports = class Commands {
           break;
         }
         case "/dual": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             self.account.player.DUAL = 1;
             self.gameserver.pushBroadcastChat(
               new Message.chatResponse(
@@ -1194,7 +1197,7 @@ module.exports = class Commands {
           break;
         }
         case "/teleport": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             self.account.player.TELEPORT = 1;
             self.gameserver.pushBroadcastChat(
               new Message.chatResponse(
@@ -1221,7 +1224,7 @@ module.exports = class Commands {
                     function (err, result) {
                       self.account.send([
                         0,
-                        "El usuario " + data[1] + " fue cambiado de Country!!",
+                        "O jogador " + data[1] + " fue cambiado de Country!!",
                         "",
                         6,
                       ]);
@@ -1357,7 +1360,7 @@ module.exports = class Commands {
                     function (err, result) {
                       self.account.send([
                         0,
-                        "El usuario " + data[1] + " fue puesto GM!!",
+                        "O jogador " + data[1] + " fue puesto GM!!",
                         "",
                         6,
                       ]);
@@ -1407,7 +1410,7 @@ module.exports = class Commands {
                       data[1] +
                       "'",
                     function (err, result) {
-                      self.account.send([0, "Usuario desbaneado!!", "", 6]);
+                      self.account.send([0, "Jogador desbanido!!", "", 6]);
                     }
                   )
                   .then((rows) => {
@@ -1424,7 +1427,7 @@ module.exports = class Commands {
             self.account.player.rank === 27 ||
             self.account.player.rank === 31 ||
             self.account.player.user_id ===
-              20 /*self.account.player.user_id === 1*/
+              20 /*self.account.player.rank === 31*/
           ) {
             let init = data[0];
             Logger.info("init: " + init);
@@ -1442,7 +1445,7 @@ module.exports = class Commands {
               self.account.send([
                 17,
                 "Error",
-                "No Tienes Permitido Banear Un GM",
+                "Você não pode banir um GM",
               ]);
               return null;
             } else {
@@ -1454,7 +1457,7 @@ module.exports = class Commands {
                 ]);
                 self2.send([
                   17,
-                  "Estás Baneado",
+                  "Você está Banido",
                   "Por El GM: " +
                     self.account.player.game_id +
                     "<br><br>Motivo: " +
@@ -1490,7 +1493,7 @@ module.exports = class Commands {
                 ]);
                 self2.send([
                   17,
-                  "Estás Baneado",
+                  "Você está Banido",
                   "Por El GM: " +
                     self.account.player.game_id +
                     "<br><br>Motivo: " +
@@ -1522,13 +1525,13 @@ module.exports = class Commands {
         case "/pin_code": {
           //randomString
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 55 ||
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 4 ||
-            self.account.player.user_id === 106 ||
-            self.account.player.user_id === 128 ||
-            self.account.player.user_id === 3
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             var name = data[1];
             var monto = data[2];
@@ -1548,7 +1551,7 @@ module.exports = class Commands {
               if (monto <= 999 || monto >= 10000000) {
                 self.account.send([
                   0,
-                  "Monto Minimo: 10,000 & Maximo: 99,999",
+                  "Valor Mínimo: 10.000 & Máximo: 99.999",
                   "",
                   6,
                 ]);
@@ -1592,7 +1595,7 @@ module.exports = class Commands {
           break;
         }
         case "/gift_admins": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             var itm = [];
             let user_id = parseInt(data[1]);
             let self2 = self.gameserver.getAccountById(parseInt(user_id));
@@ -1647,7 +1650,7 @@ module.exports = class Commands {
         }
         case "/gift": {
           if (self.account.player.rank === 31) {
-            //Logger.normal("Activando Función");
+            //Logger.normal("Ativando Função");
             let user_id = parseInt(data[1]);
             let self2 = self.gameserver.getAccountById(parseInt(user_id));
             if (typeof self2 === "undefined") {
@@ -1671,7 +1674,7 @@ module.exports = class Commands {
               }
             }
             function ReloadAvatarRandom() {
-              //Logger.debug("Funcion Activada!!");
+              //Logger.debug("Função Ativada!!");
               var time_unix = Date.now();
               let init = data[0];
               Logger.info(
@@ -1723,12 +1726,12 @@ module.exports = class Commands {
                 self.account.sendMessage(
                   new Message.alertResponse(
                     "Hola " + self.account.player.game_id,
-                    "Esta Prohibido Que Te Envies Avatars Tu Mismo."
+                    "É proibido enviar avatares para si mesmo."
                   )
                 );
                 return null;
               }
-              /*if ("1569024466132" >= time_unix && self.account.player.user_id === 7) {
+              /*if ("1569024466132" >= time_unix && self.account.player.rank === 31) {
                                     self.account.send([0,'You are prohibited from using this command for a temporary period','',6]);
                                     return null;
                                 }*/
@@ -1807,13 +1810,13 @@ module.exports = class Commands {
                   .getBoy(parseInt(self2.player.user_id), parseInt(item_id))
                   .then(function (acc) {
                     ReloadAvatarRandom();
-                    //self.account.send([0,'El usuario ya tiene este avatar, activando nuevamente la funcion (AvatarRandom)','',12]);
-                    //Logger.normal("El usuario ya tiene este avatar, activando nuevamente la funcion (AvatarRandom)");
+                    //self.account.send([0,'O jogador já tem este avatar, activando nuevamente la funcion (AvatarRandom)','',12]);
+                    //Logger.normal("O jogador já tem este avatar, activando nuevamente la funcion (AvatarRandom)");
                     return null;
                   })
                   .catch(function (err) {
-                    //Logger.normal("Avatar Entregado con exito!");
-                    //self.account.send([0,'Avatar Entregado con exito!','',18]);
+                    //Logger.normal("Avatar entregue com sucesso!");
+                    //self.account.send([0,'Avatar entregue com sucesso!','',18]);
                     if (self2.player.gender === "f") tmpgender = 1;
                     var item_data = self.gameserver.avatars.getAvatar2(
                       item_id,
@@ -1919,7 +1922,7 @@ module.exports = class Commands {
               }
               if (
                 "1569024466132" >= time_unix &&
-                self.account.player.user_id === 7
+                self.account.player.rank === 31
               ) {
                 self.account.send([
                   0,
@@ -2027,12 +2030,12 @@ module.exports = class Commands {
             }
             // if (self.account.player.user_id === user_id) {
             //     Logger.info(self.account.player.game_id+", Ha Utilizado El Comando Para El Mismo.");
-            //     self.account.sendMessage(new Message.alertResponse("Hola "+self.account.player.game_id, "Esta Prohibido Que Te Envies Avatars Tu Mismo."));
+            //     self.account.sendMessage(new Message.alertResponse("Hola "+self.account.player.game_id, "É proibido enviar avatares para si mesmo."));
             //     return null;
             // }
             if (
               "1569024466132" >= time_unix &&
-              self.account.player.user_id === 7
+              self.account.player.rank === 31
             ) {
               self.account.send([
                 0,
@@ -2088,7 +2091,7 @@ module.exports = class Commands {
                       self,
                       "Avatar: " +
                         name_ava_gift +
-                        ", Fue Entregado Al Usuario: ID: " +
+                        ", Foi Entregue Ao Jogador: ID: " +
                         user_id +
                         " - Name: " +
                         gift_data.game_id,
@@ -2124,8 +2127,8 @@ module.exports = class Commands {
         }
 
         case "/admin_gift": {
-          if (self.account.player.user_id === 1) {
-            //Logger.normal("Activando Función");
+          if (self.account.player.rank === 31) {
+            //Logger.normal("Ativando Função");
             let user_id = parseInt(data[1]);
             let self2 = self.gameserver.getAccountById(parseInt(user_id));
             var time_unix = Date.now();
@@ -2168,11 +2171,11 @@ module.exports = class Commands {
                 .then(function (acc) {
                   self.account.send([
                     0,
-                    "El usuario ya tiene este avatar",
+                    "O jogador já tem este avatar",
                     "",
                     12,
                   ]);
-                  //Logger.normal("El usuario ya tiene este avatar, activando nuevamente la funcion (AvatarRandom)");
+                  //Logger.normal("O jogador já tem este avatar, activando nuevamente la funcion (AvatarRandom)");
                   return null;
                 })
                 .catch(function (err) {
@@ -2181,8 +2184,8 @@ module.exports = class Commands {
                     item_id,
                     tmpgender
                   );
-                  //Logger.normal("Avatar Entregado con exito!");
-                  //self.account.send([0,'Avatar Entregado con exito!','',18]);
+                  //Logger.normal("Avatar entregue com sucesso!");
+                  //self.account.send([0,'Avatar entregue com sucesso!','',18]);
                   self.gameserver.db
                     .getUserByIdAcc(user_id)
                     .then(function (acc) {
@@ -2219,7 +2222,7 @@ module.exports = class Commands {
                           ),
                         ]
                       ).then((data) => {
-                        //self.account.sendMessage(new Message.chatResponse(self, "Avatar: "+name_ava_gift+", Fue Entregado Al Usuario: ID: "+user_id+" - Name: "+gift_data.game_id, Types.CHAT_TYPE.SYSTEM));
+                        //self.account.sendMessage(new Message.chatResponse(self, "Avatar: "+name_ava_gift+", Foi Entregue Ao Jogador: ID: "+user_id+" - Name: "+gift_data.game_id, Types.CHAT_TYPE.SYSTEM));
                         self.gameserver.pushBroadcastChat(
                           new Message.chatResponse(
                             self,
@@ -2261,8 +2264,8 @@ module.exports = class Commands {
 
         case "/All_Winners": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 2
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             self.gameserver.pushBroadcast(
               new Message.chatResponse(
@@ -3339,7 +3342,7 @@ module.exports = class Commands {
           break;
         }
         case "/All_Winners2": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             self.gameserver.pushBroadcast(
               new Message.chatResponse(
                 self.account,
@@ -3455,7 +3458,7 @@ module.exports = class Commands {
           break;
         }
         case "/prix": {
-          if (self.account.player.user_id === 31) {
+          if (self.account.player.rank === 31) {
             let init = data[0];
             Logger.info("init: " + init);
             /*================================================================================================================*/
@@ -4023,8 +4026,8 @@ module.exports = class Commands {
         }
         case "/recarga": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 1
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             var user_id = data[1];
             var cash = parseInt(data[2]);
@@ -4197,7 +4200,7 @@ module.exports = class Commands {
                 );
               }
               self.gameserver.db.updateCashChargeById(user_id);
-              self.account.send([0, "Cash Enviado Con Exito :)", "", 6]);
+              self.account.send([0, "Cash enviado com sucesso :)", "", 6]);
               self2.player.cash += cash;
               self2.sendMessage(new Message.loginResponse(self2));
             }
@@ -4205,7 +4208,7 @@ module.exports = class Commands {
           if (self.account.player.rank === 26) {
             self.account.send([
               0,
-              "Tu Rango No Esta Permitido, Para Que Puedas Utilizar Este Comando.",
+              "Seu nível não tem permissão para usar este comando.",
               "",
               6,
             ]);
@@ -4215,9 +4218,9 @@ module.exports = class Commands {
         }
         case "/cash_broma": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 2 ||
-            self.account.player.user_id === 3
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             self.gameserver.forEachAccount(function (account) {
               if (account !== null) {
@@ -4338,7 +4341,7 @@ module.exports = class Commands {
               self.gameserver.pushBroadcastChat(
                 new Message.chatResponse(
                   self,
-                  "❌👁 Los jugadores ya NO pueden ver esta sala. ",
+                  "❌👁 Os jogadores NÃO podem mais ver esta sala. ",
                   Types.CHAT_TYPE.SYSTEM
                 ),
                 self.account.room
@@ -4359,7 +4362,7 @@ module.exports = class Commands {
               self.gameserver.pushBroadcastChat(
                 new Message.chatResponse(
                   self,
-                  "✔🎤 Los espectadores pueden interactuar con los jugadores de la sala. ",
+                  "✔🎤 Os espectadores podem interagir com os jogadores da sala. ",
                   Types.CHAT_TYPE.SYSTEM
                 ),
                 self.account.room
@@ -4372,7 +4375,7 @@ module.exports = class Commands {
               self.gameserver.pushBroadcastChat(
                 new Message.chatResponse(
                   self,
-                  "❌🎤 Los espectadores pueden interactuar SÓLO con otros espectadores. ",
+                  "❌🎤 Os espectadores podem interagir SOMENTE com outros espectadores. ",
                   Types.CHAT_TYPE.SYSTEM
                 ),
                 self.account.room
@@ -4410,7 +4413,7 @@ module.exports = class Commands {
                       self.gameserver.pushBroadcastChat(
                         new Message.chatResponse(
                           self,
-                          "Master de la sala se transfirió a " +
+                          "O domínio da sala foi transferido para " +
                             self2.player.game_id,
                           Types.CHAT_TYPE.SYSTEM
                         ),
@@ -4427,7 +4430,7 @@ module.exports = class Commands {
                     {
                         let photo_url = data[1];
                         if (typeof (photo_url) === 'undefined' || photo_url === '' || photo_url === ' ') {
-                            self.account.sendMessage(new Message.alertResponse("Hola "+self.account.player.game_id, "Debes De Colocar La Url De Tu Imagen.<br><br>Web Recomendada Para Generarle Una Url Para Tu Imagen: <a href='https://imgur.com/' target='_blank'>Imgur</a>"));
+                            self.account.sendMessage(new Message.alertResponse("Hola "+self.account.player.game_id, "Você precisa colocar a URL da sua imagem.<br><br>Site recomendado para gerar uma URL para sua imagem: <a href='https://imgur.com/' target='_blank'>Imgur</a>"));
                             return null;
                         }
                         let acc_id = self.account.player.game_id;
@@ -4446,7 +4449,7 @@ module.exports = class Commands {
                     {
                         let bg_url = data[1];
                         if (typeof (bg_url) === 'undefined' || bg_url === '' || bg_url === ' ') {
-                            self.account.sendMessage(new Message.alertResponse("Hola "+self.account.player.game_id, "Debes De Colocar La Url De Tu Imagen.<br><br>Web Recomendada Para Generarle Una Url Para Tu Imagen: <a href='https://imgur.com/' target='_blank'>Imgur</a>"));
+                            self.account.sendMessage(new Message.alertResponse("Hola "+self.account.player.game_id, "Você precisa colocar a URL da sua imagem.<br><br>Site recomendado para gerar uma URL para sua imagem: <a href='https://imgur.com/' target='_blank'>Imgur</a>"));
                             return null;
                         }
                         let id_acc = self.account.player.game_id;
@@ -4467,7 +4470,7 @@ module.exports = class Commands {
             self.account.player.rank === 26 ||
             self.account.player.rank === 27 ||
             self.account.player.rank === 31 ||
-            self.account.player.user_id === 13
+            self.account.player.rank === 31
           ) {
             let init = data[0];
             let user_name = junteall(msj);
@@ -4487,7 +4490,7 @@ module.exports = class Commands {
                 self.gameserver.pushBroadcastChat(
                   new Message.chatResponse(
                     self.account,
-                    "Jugador: " +
+                    "Jogador: " +
                       junteall(msj) +
                       " - Expelled By The GM: " +
                       self.account.player.game_id,
@@ -4495,7 +4498,7 @@ module.exports = class Commands {
                   )
                 );
                 self.gameserver.chathistory.push([
-                  "Jugador: " +
+                  "Jogador: " +
                     junteall(msj) +
                     " - Expelled By The GM: " +
                     self.account.player.game_id,
@@ -4504,11 +4507,11 @@ module.exports = class Commands {
                   self.account.player.guild,
                 ]);
               }
-              //self.account.sendMessage(new Message.alertResponse("Hola "+self.account.player.game_id, "Has Botado Del Servidor Al Usuario: "+user_name+", Exitosamente"));
+              //self.account.sendMessage(new Message.alertResponse("Hola "+self.account.player.game_id, "Você expulsou do servidor o jogador: "+user_name+", com sucesso"));
               self.account.sendMessage(
                 new Message.chatResponse(
                   self,
-                  "Usuario: " + user_name + ", Expulsado Del Servidor.",
+                  "Jogador: " + user_name + ", Expulso do Servidor.",
                   Types.CHAT_TYPE.SYSTEM
                 )
               );
@@ -4518,7 +4521,7 @@ module.exports = class Commands {
               self2.sendMessage(
                 new Message.alertResponse(
                   "Hola " + botar_user.game_id,
-                  "Has Sido Expulsado Del Servidor Por X Motivos, Por El GM " +
+                  "Você foi expulso do servidor por algum motivo, pelo GM " +
                     self.account.player.game_id
                 )
               );
@@ -4621,7 +4624,7 @@ module.exports = class Commands {
           if (
             self.account.player.rank === 26 ||
             self.account.player.rank === 27 ||
-            self.account.player.user_id === 31
+            self.account.player.rank === 31
           ) {
             self.gameserver.db
               .getIpBannedById(junteall(msj))
@@ -4782,8 +4785,8 @@ module.exports = class Commands {
           if (
             self.account.player.rank === 26 ||
             self.account.player.rank === 31 ||
-            self.account.player.user_id === 13 ||
-            self.account.player.user_id === 20
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             if (data[1] !== null && data[1].length > 0) {
               var mensaje = JSON.stringify([
@@ -4817,7 +4820,7 @@ module.exports = class Commands {
                 self.gameserver.pushBroadcastChat(
                   new Message.chatResponse(
                     self.account,
-                    "Jugador: " +
+                    "Jogador: " +
                       junteall(msj) +
                       "  UserID: " +
                       evento_berny.IdAcc +
@@ -4831,7 +4834,7 @@ module.exports = class Commands {
           break;
         }
         case "/chat_gift": {
-          if (self.account.player.user_id === 31) {
+          if (self.account.player.rank === 31) {
             if (data[1] !== null && data[1].length > 0)
               self.gameserver.pushBroadcast(
                 new Message.chatResponse(
@@ -4846,11 +4849,11 @@ module.exports = class Commands {
 
         case "/chat_love": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 2 ||
-            self.account.player.user_id === 3 ||
-            self.account.player.user_id === 4 ||
-            self.account.player.user_id === 106
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             if (data[1] !== null && data[1].length > 0)
               self.gameserver.pushBroadcast(
@@ -4888,7 +4891,7 @@ module.exports = class Commands {
               }
               if (
                 "1569024466132" >= time_unix &&
-                self.account.player.user_id === 7
+                self.account.player.rank === 31
               ) {
                 self.account.send([
                   0,
@@ -5029,8 +5032,7 @@ module.exports = class Commands {
         }
         case "/power": {
           if (
-            /*self.account.player.rank === 26 || self.account.player.rank === 31 || */ self
-              .account.player.user_id === 13 &&
+            /*self.account.player.rank === 26 || self.account.player.rank === 31 || */ self.account.player.rank === 31 &&
             typeof self.account.room !== "undefined"
           ) {
             self.account.room.power = 1;
@@ -5048,12 +5050,12 @@ module.exports = class Commands {
         }
         case "/on4": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 3 ||
-            self.account.player.user_id === 13 ||
-            self.account.player.user_id === 4 ||
-            self.account.player.user_id === 106 ||
-            (self.account.player.user_id === 128 &&
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            (self.account.player.rank === 31 &&
               typeof self.account.room !== "undefined")
           ) {
             self.account.room.max_players = 8;
@@ -5072,12 +5074,12 @@ module.exports = class Commands {
         }
         case "/on3": {
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 2 ||
-            self.account.player.user_id === 13 ||
-            self.account.player.user_id === 4 ||
-            self.account.player.user_id === 3 ||
-            (self.account.player.user_id === 128 &&
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            (self.account.player.rank === 31 &&
               typeof self.account.room !== "undefined")
           ) {
             self.account.room.max_players = 6;
@@ -5099,9 +5101,9 @@ module.exports = class Commands {
             self.account.player.rank === 26 ||
             self.account.player.rank === 31 ||
             self.account.player.rank === 31 ||
-            self.account.player.user_id === 4 ||
-            self.account.player.user_id === 106 ||
-            (self.account.player.user_id === 128 &&
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            (self.account.player.rank === 31 &&
               typeof self.account.room !== "undefined")
           ) {
             self.account.room.max_players = 4;
@@ -5122,10 +5124,10 @@ module.exports = class Commands {
           if (
             self.account.player.rank === 26 ||
             self.account.player.rank === 31 ||
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 4 ||
-            self.account.player.user_id === 3 ||
-            (self.account.player.user_id === 128 &&
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            (self.account.player.rank === 31 &&
               typeof self.account.room !== "undefined")
           ) {
             self.account.room.max_players = 2;
@@ -5146,10 +5148,10 @@ module.exports = class Commands {
           if (
             self.account.player.rank === 26 ||
             self.account.player.rank === 31 ||
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 20 ||
-            self.account.player.user_id === 106 ||
-            (self.account.player.user_id === 128 &&
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31 ||
+            (self.account.player.rank === 31 &&
               typeof self.account.room !== "undefined")
           ) {
             self.account.room.max_players = 0;
@@ -5177,18 +5179,143 @@ module.exports = class Commands {
           break;
         }
         case "/end_game": {
-          if (self.account.player.user_id === 1)
+          if (self.account.player.rank === 31)
             self.account.room.game.checkDead();
+          break;
+        }
+
+        case "/debug": {
+          // Só admin (rank 31). Inicia no mapa dado com 1 bot passivo (não atira, só passa).
+          if (
+            self.account.player.rank === 31 &&
+            typeof self.account.room !== "undefined" &&
+            self.account.room !== null
+          ) {
+            var roomDbg = self.account.room;
+            self.account.player.is_master = 1;
+            self.account.player.is_ready = 1;
+            var mapDbg = parseInt(data[1]);
+            if (isNaN(mapDbg) || mapDbg < 0) mapDbg = 0;
+            roomDbg.game_mode = Types.GAME_MODE.BOSS;
+            roomDbg.forced_map = mapDbg;
+            self.account.onCreateBot({
+              positionOfBot: 1,
+              bot_id: 0,
+              team: 1,
+              passive: true,
+            });
+            var dbgWeather = ("" + (data[2] || "")).toLowerCase();
+            roomDbg.updatePosition().then(function () {
+              self.gameserver.pushToRoom(roomDbg.id, new Message.roomState(roomDbg));
+              self.gameserver.pushToRoom(
+                roomDbg.id,
+                new Message.roomPlayers(roomDbg),
+                null
+              );
+              roomDbg.gameStart(self.account);
+              // 2º arg "tornado": força tornado em todos os turnos.
+              if (
+                dbgWeather === "tornado" &&
+                roomDbg.game &&
+                roomDbg.game.weather
+              ) {
+                roomDbg.game.weather.forceTornado();
+              }
+            });
+            self.account.send([
+              0,
+              "Debug: mapa " + mapDbg + (dbgWeather === "tornado" ? " + tornado sempre" : "") + " com 1 bot passivo. Iniciando...",
+              "",
+              6,
+            ]);
+          }
+          break;
+        }
+
+        case "/aduka": {
+          if (
+            self.account.player.rank === 31 &&
+            typeof self.account.room !== "undefined" &&
+            self.account.room !== null
+          ) {
+            var room = self.account.room;
+            self.account.player.is_master = 1;
+            room.game_mode = Types.GAME_MODE.ADUKA;
+            room.forced_map = 9; // Meta Mine
+            // Só T2 (S2), Dual e SS: desabilita S1, Teleport e Dual+.
+            room.is_s1_disabled = 1;
+            room.is_tele_disabled = 1;
+            room.is_dual_plus_disabled = 1;
+            // Força humanos: Aduka + 3 Duals + prontos; conta humanos por time.
+            var humansA = 0;
+            var humansB = 0;
+            room.forPlayers(function (acc) {
+              if (
+                acc &&
+                acc.player &&
+                acc.player.is_bot !== 1 &&
+                acc.player.is_bot !== true
+              ) {
+                acc.player.mobile = Types.MOBILE.ADUKA;
+                acc.player.item1 = 0;
+                acc.player.item2 = 0;
+                acc.player.item3 = 0;
+                acc.player.is_ready = 1;
+                if (acc.player.team === 0) humansA++;
+                else humansB++;
+              }
+            });
+            // Pool de bots distintos e embaralhados (dificuldade aleatória).
+            var pool = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+            for (var i = pool.length - 1; i > 0; i--) {
+              var j = Math.floor(Math.random() * (i + 1));
+              var tmp = pool[i];
+              pool[i] = pool[j];
+              pool[j] = tmp;
+            }
+            var pi = 0;
+            var needA = 4 - humansA;
+            var needB = 4 - humansB;
+            for (var ka = 0; ka < needA && pi < pool.length; ka++) {
+              self.account.onCreateBot({
+                positionOfBot: 0,
+                bot_id: pool[pi++],
+                team: 0,
+              });
+            }
+            for (var kb = 0; kb < needB && pi < pool.length; kb++) {
+              self.account.onCreateBot({
+                positionOfBot: 1,
+                bot_id: pool[pi++],
+                team: 1,
+              });
+            }
+            room.updatePosition().then(function () {
+              self.gameserver.pushToRoom(room.id, new Message.roomState(room));
+              self.gameserver.pushToRoom(
+                room.id,
+                new Message.roomPlayers(room),
+                null
+              );
+              room.gameStart(self.account);
+            });
+            self.account.send([
+              0,
+              "Modo Aduka: 4v4 com bots, todos de Aduka, mapa Meta Mine. Iniciando...",
+              "",
+              6,
+            ]);
+          }
           break;
         }
 
         case "/start": {
           if (
-            self.account.player.user_id === 1 &&
+            self.account.player.rank === 31 &&
             typeof self.account.room !== "undefined"
           ) {
             if (typeof self.account.room.game !== "undefined") {
-              self.account.room.gameStart(self);
+              self.account.room.gameStart(self.account);
             }
           }
           break;
@@ -5225,7 +5352,7 @@ module.exports = class Commands {
                       console.log(result);
                       self.account.send([
                         0,
-                        "La contraseña del Usuario " +
+                        "A senha do jogador " +
                           data[1] +
                           " es ==> " +
                           JSON.stringify(result) +
@@ -5262,7 +5389,7 @@ module.exports = class Commands {
         case "/ayuda": {
           if (
             self.account.player.rank === 26 ||
-            self.account.player.user_id === 1
+            self.account.player.rank === 31
           ) {
             self.account.send([
               0,
@@ -5304,8 +5431,8 @@ module.exports = class Commands {
             ]);
           }
           if (
-            self.account.player.user_id === 1 ||
-            self.account.player.user_id === 2
+            self.account.player.rank === 31 ||
+            self.account.player.rank === 31
           ) {
             self.account.send([
               0,
@@ -5321,7 +5448,7 @@ module.exports = class Commands {
                 '"Titulo"' +
                 "<br>/map_room MapID<br>/users_ip IP<br>/mobil IdMobil<br>/ad UserID " +
                 '"Text"' +
-                "<br>/password_cuenta Name<br>/country Name [NombreDelPaís]<br>/gold UserId Monto<br>/kickgm Name<br>/desbanear Name",
+                "<br>/password_cuenta Nome<br>/country Nome [NomeDoPaís]<br>/gold UserId Valor<br>/kickgm Nome<br>/desbanear Nome",
               "",
               6,
             ]);
@@ -5329,7 +5456,7 @@ module.exports = class Commands {
           break;
         }
         case "/reset": {
-          if (self.account.player.user_id === 1) {
+          if (self.account.player.rank === 31) {
             self.gameserver.pushBroadcast(
               new Message.chatResponse(
                 self,

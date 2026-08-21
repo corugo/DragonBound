@@ -465,7 +465,7 @@ router.post("/guild/:guild_name/shop", function (req, res) {
                                                     });
                                                 } else {
                                                   Logger.info(
-                                                    "El usuario: " +
+                                                    "O jogador: " +
                                                       guild_info +
                                                       " No esta en este mismo Guild"
                                                   );

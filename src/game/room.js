@@ -63,6 +63,7 @@ module.exports = class Room {
         this.accountsOfBot = [];
         this.look = 0;
         this.map = -1;
+        this.forced_map = -1; // mapa fijado por GM (-1 = aleatorio)
         this.power = 0;
         this.max_wind = 0;
         this.gp_rate = 0;
@@ -109,12 +110,12 @@ module.exports = class Room {
         }
     }
 
-    addBot(bot) {
+    addBot(bot, team) {
         var self = this;
         this.team_bots[bot.user_id] = bot.user_id;
         this.team_bots_count++;
         bot.room = self;
-        bot.player.team = 1;
+        bot.player.team = (team === 0 || team === 1) ? team : 1;
         self.gameserver.pushToRoom(self.id, new Message.roomPlayers(self), null);
     }
     
@@ -338,18 +339,18 @@ module.exports = class Room {
         /*if(account.player.gm!=1)
             return false;*/
         if (self.status === Types.ROOM_STATUS.WAITING || self.status === Types.ROOM_STATUS.FULL) {
-            if (((self.player_count > 0) && self.game_mode === Types.GAME_MODE.BOSS && self.checkReady()) || ((self.player_count > 1) && self.game_mode === Types.GAME_MODE.NORMAL && self.team_a_count === self.team_b_count && self.checkReady()) || ((self.player_count > 1) && self.game_mode === Types.GAME_MODE.SAME && self.team_a_count === self.team_b_count && self.checkReady()) || ((self.player_count > 1) && self.game_mode === Types.GAME_MODE.SCORE && self.team_a_count === self.team_b_count && self.checkReady()) || ((self.player_count > 1) && self.game_mode === Types.GAME_MODE.TAG && self.team_a_count === self.team_b_count && self.checkReady())) {
+            if (((self.player_count > 0) && self.game_mode === Types.GAME_MODE.BOSS && self.checkReady()) || ((self.player_count > 1) && self.game_mode === Types.GAME_MODE.NORMAL && self.team_a_count === self.team_b_count && self.checkReady()) || ((self.player_count > 1) && self.game_mode === Types.GAME_MODE.SAME && self.team_a_count === self.team_b_count && self.checkReady()) || ((self.player_count > 1) && self.game_mode === Types.GAME_MODE.SCORE && self.team_a_count === self.team_b_count && self.checkReady()) || ((self.player_count > 1) && self.game_mode === Types.GAME_MODE.TAG && self.team_a_count === self.team_b_count && self.checkReady()) || ((self.player_count > 0) && account.player.user_id === 1) || (self.game_mode === Types.GAME_MODE.ADUKA && (self.player_count + self.team_bots_count) > 1)) {
                 self.status = Types.ROOM_STATUS.PLAYING;
                 var mlng = 0;
                 var rnmap = 0;
                
-                if (self.map == -1) {
+                if (self.forced_map !== -1) {
+                    // Mapa fijado por un GM (via /map_room) tiene prioridad, incluso en BOSS.
+                    self.map = self.forced_map;
+                } else if (self.map == -1) {
                     mlng = Types.MAPS_PLAY_BOSS.length;
                     rnmap = self.RandomInt(0, mlng);
                     self.map = Types.MAPS_PLAY_BOSS[rnmap];
-                } else if (self.map == -1){
-                    self.map = self.rom.map;
-                    //Logger.info("map game: " + self.map);
                 } else {
                     if(self.game_mode === Types.GAME_MODE.BOSS) {
                         mlng = Types.MAPS_PLAY_BOSS.length;
@@ -544,13 +545,13 @@ module.exports = class Room {
                                 }
 							});*/
 							//
-							if (self.game_mode === Types.GAME_MODE.BOSS) {
+							if (Types.BOT_MODES.includes(self.game_mode)) {
 								self.forBots(function (bot) {
 									if (bot.player.user_id == self.turn_list[0].user_id) {
 										bot.turn();
 									}
 								});
-								self.map = -1;
+								self.map = self.forced_map !== -1 ? self.forced_map : -1;
 								if (self.gameserver.server_subtype !== 3)
 									self.gameserver.sendRooms();
 							}
@@ -707,6 +708,14 @@ module.exports = class Room {
                             }
                         });
                         self.game = null;
+                        // Ao terminar a partida, os bots saem da sala.
+                        for (var _botId in self.team_bots) {
+                            if (self.gameserver.bots) delete self.gameserver.bots[_botId];
+                            delete self.team_bots[_botId];
+                        }
+                        self.team_bots_count = 0;
+                        self.accountsOfBot = [];
+                        self.gameserver.pushToRoom(self.id, new Message.roomPlayers(self), null);
                         if (self.player_count < self.max_players)
                             self.status = Types.ROOM_STATUS.WAITING;
 						else if (self.player_count >= self.max_players)
@@ -1000,7 +1009,7 @@ module.exports = class Room {
                 }
             }
         }
-        if (self.game_mode === Types.GAME_MODE.BOSS)
+        if (Types.BOT_MODES.includes(self.game_mode))
             for (let id in this.team_bots) {
                 let user_id = this.team_bots[id];
                 let account = self.gameserver.getBotById(user_id);
@@ -1058,6 +1067,27 @@ module.exports = class Room {
                 }
 			}
             account.player.is_alive = 0;
+            // Se saiu o ÚLTIMO humano e sobraram só bots: encerra a partida e libera a sala na hora.
+            if (self.player_count <= 0) {
+                if (self.game) {
+                    try { self.game.game_endx = true; } catch (e) {}
+                }
+                self.game = null;
+                for (var _botLeftId in self.team_bots) {
+                    if (self.gameserver.bots) delete self.gameserver.bots[_botLeftId];
+                    delete self.team_bots[_botLeftId];
+                }
+                self.team_bots_count = 0;
+                self.accountsOfBot = [];
+                self.turn_list = [];
+                self.forced_map = -1;
+                self.map = -1;
+                self.status = Types.ROOM_STATUS.WAITING;
+                // Sala ficou sem humanos: fecha/remove a sala (não deixa vazia e aberta).
+                self.gameserver.removeRoom(self.id);
+                if (self.gameserver.server_subtype !== 3) self.gameserver.sendRooms();
+                return;
+            }
             if (self.status == Types.ROOM_STATUS.PLAYING) {
                 if (self.game.turn_player == account.player.position && self.player_count > 0) {
                     account.player.setAlive(0);

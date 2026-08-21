@@ -30,6 +30,15 @@ module.exports = class {
 			this._executeCast();
 		}
 	}
+	// DEBUG: força TORNADO em todos os turnos (preenche a lista inteira e recasta agora).
+	forceTornado(){
+		const t = {...Types.WEATHERS._base, ...Types.WEATHERS.list.tornado}
+		for (let i = 0; i < this.#list.length; i++) this.#list[i] = t
+		this.client.list = this.#list.map(w => w.id)
+		this._clearPreviousWeather()
+		this._updateCurrent()
+		this._executeCast()
+	}
 	_clearPreviousWeather(){
 		this.active = []
 		this.client.active = []

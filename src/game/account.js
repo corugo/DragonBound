@@ -159,7 +159,7 @@ module.exports = class Account {
                   var ban_inf = dbplaytt[0][0];
                   self.send([
                     17,
-                    "Estás Baneado",
+                    "Você está Banido",
                     "Motivo: " + ban_inf.razon + "<br><br>Hasta: undefined",
                   ]);
                   console.log("login incomplete 1 ", opcode);
@@ -167,7 +167,7 @@ module.exports = class Account {
                 });
             } else if (data.error_mysql || data.error_querry) {
               self.sendMessage(
-                new Message.alertResponse(":)", "Error Servidor!")
+                new Message.alertResponse(":)", "Erro do Servidor!")
               );
               console.log("login incomplete 2 ", opcode);
               self.connection.close();
@@ -660,7 +660,7 @@ module.exports = class Account {
                   /*if (1559602800000 >= Date.now()) {
 										self.send([17,"¡PROMOCIÓN!",'Promoción de cash por tiempo limitado, aprovecha esta gran oferta y recibe 2 RANGOS ESPECIALES + 170,000 de cash. <a style="color:#fbf9f9;text-shadow: 0px 0px 2px #ff980099, 0px 0px 3px #ff830057, 0px 0px 7px #ff98005e, 0px 0px 5px #ff9b0066, 0px 0px 8px #ff980059, 0px 0px 8px #ff8f0070;" href="/cash" target="_blank">¡RECARGA YA! - ¡Click Aqui!</a>']);
 									}*/
-                  //self.send([17,"¡ALERTA!",'El servidor se encuentra en mantenimiento durante unas horas, le recomendamos no jugar por el momento, gracias por su comprension']);
+                  //self.send([17,"¡ALERTA!",'O servidor está em manutenção por algumas horas, recomendamos não jogar por enquanto, obrigado pela compreensão']);
                 }
               );
             }
@@ -727,7 +727,7 @@ module.exports = class Account {
                         } else if (self.location_type === Types.LOCATION.ROOM) {
                             
                                 //Logger.log('Chat DBB: '+message);
-                                console.log("chat enviendo a la sala");
+                                console.log("chat enviado para a sala");
                                 
                             }
                         }
@@ -772,7 +772,7 @@ module.exports = class Account {
           );
           return null;
         } /*else if (self.gameserver.name === 'Prix' && this.player.gm === 0 && self.player.server_tournament_state === 0) {
-						self.sendMessage(new Message.alertResponse("Hola "+this.player.game_id, "El Chat en el Lobby esta prohibido para los usuarios."));
+						self.sendMessage(new Message.alertResponse("Hola "+this.player.game_id, "O chat no Lobby está proibido para os jogadores."));
 						return null;
 					}*/ else if (_msj.length > 150) {
         } else if (self.player.megaphones > 0) {
@@ -903,7 +903,7 @@ module.exports = class Account {
                 new Message.pChatResponse(
                   accountback,
                   "Offline",
-                  " PM será entregado cuando el usuario inicie sesión."
+                  " A mensagem privada será entregue quando o jogador entrar."
                 )
               );
               if (self.gameserver.pending_messages[_id] == undefined)
@@ -1530,7 +1530,7 @@ module.exports = class Account {
           });
           var room_random =
             data_room[Math.floor(Math.random() * data_room.length)];
-          //Logger.info("Mi Sala Random es: "+room_random);
+          //Logger.info("Minha Sala Aleatória é: "+room_random);
           self.gameserver.getRoomById(parseInt(room_random), function (room) {
             if (room) {
               if (
@@ -2194,7 +2194,7 @@ module.exports = class Account {
           self.sendMessage(
             new Message.alertResponse(
               "Lo sentimos",
-              "Esta opción del Guild esta bloqueada durante el torneo. Inténtalo mas tarde."
+              "Esta opção do Clã está bloqueada durante o torneio. Tente mais tarde."
             )
           );
           return null;
@@ -2271,7 +2271,7 @@ module.exports = class Account {
           self.sendMessage(
             new Message.alertResponse(
               "Lo sentimos",
-              "Esta opción del Guild esta bloqueada durante el torneo. Inténtalo mas tarde."
+              "Esta opção do Clã está bloqueada durante o torneio. Tente mais tarde."
             )
           );
           return null;
@@ -2367,7 +2367,7 @@ module.exports = class Account {
           self.sendMessage(
             new Message.alertResponse(
               "Lo sentimos",
-              "Esta opción del Guild esta bloqueada durante el torneo. Inténtalo mas tarde."
+              "Esta opção do Clã está bloqueada durante o torneio. Tente mais tarde."
             )
           );
           return null;
@@ -2424,12 +2424,12 @@ module.exports = class Account {
         } else if (_strtype === "next") {
           self.player.channel_rango = self.player.channel_rango + 6;
           if (self.player.channel_rango > 20) self.player.channel_rango = 0;
-          //Logger.normal("Channel Rango Room #1: "+self.player.channel_rango);
+          //Logger.normal("Canal Nível Sala #1: "+self.player.channel_rango);
           self.gameserver.sendRoomsType(self, self.player.channel_rango, null);
         } else if (_strtype === "prev") {
           self.player.channel_rango = self.player.channel_rango - 6;
           if (self.player.channel_rango < 0) self.player.channel_rango = 0;
-          //Logger.normal("Channel Rango Room #2: "+self.player.channel_rango);
+          //Logger.normal("Canal Nível Sala #2: "+self.player.channel_rango);
           self.gameserver.sendRoomsType(self, self.player.channel_rango, null);
         }
         break;
@@ -2449,13 +2449,13 @@ module.exports = class Account {
 						self.player.channel_rango = self.player.channel_rango + 6;
 						if (self.player.channel_rango > 20)
 							self.player.channel_rango = 0;
-						//Logger.normal("Channel Rango Room #1: "+self.player.channel_rango);
+						//Logger.normal("Canal Nível Sala #1: "+self.player.channel_rango);
 						self.gameserver.sendRoomsTypeJc(self, self.player.channel_rango, _strtype);
 					} else if (_strtype === "prev") {
 						self.player.channel_rango = self.player.channel_rango - 6;
 						if (self.player.channel_rango < 0)
 							self.player.channel_rango = 0;
-						//Logger.normal("Channel Rango Room #2: "+self.player.channel_rango);
+						//Logger.normal("Canal Nível Sala #2: "+self.player.channel_rango);
 						self.gameserver.sendRoomsTypeJc(self, self.player.channel_rango, _strtype);
 					}
 					break;
@@ -3334,7 +3334,7 @@ module.exports = class Account {
                             5,
                           ]);
                           data_game_server.push([
-                            " Tienes " +
+                            " Você tem " +
                               accounttp.player.gm_probability +
                               " ganadas seguidas = 200% GP & Gold! Event probabilidad x" +
                               accounttp.player.gm_probability,
@@ -3793,7 +3793,7 @@ module.exports = class Account {
                       self.send([
                         17,
                         "¡Locked!",
-                        "No tienes permitido realizar esta función.",
+                        "Você não tem permissão para realizar esta função.",
                       ]);
                     } else {
                       self.player.random_mobil = 0;
@@ -4217,6 +4217,10 @@ module.exports = class Account {
         //Logger.info("Items Seleccionados: " + message);
         //Arreglar Problema De Items
         var GameItems = message[1];
+        // Modo Aduka: todos recebem 3 Duals (item 0), ignorando a seleção do cliente.
+        if (self.room && self.room.game_mode === Types.GAME_MODE.ADUKA) {
+          GameItems = [0, -1, 0, -1, 0, -1];
+        }
         self.player.item1 = GameItems[0];
         self.player.item2 = GameItems[2];
         self.player.item3 = GameItems[4];
@@ -4845,7 +4849,7 @@ module.exports = class Account {
                         ' [ExItem]"' +
                         " para terminar con " +
                         self.player.relationship_with_name +
-                        ", ahora estás soltero(a) de nuevo, Mejor suerte en tu próxima relación, hay muchos peces en el mar... :(",
+                        ", agora você está solteiro(a) de novo. Boa sorte no próximo relacionamento, há muitos peixes no mar... :(",
                       Types.CHAT_TYPE.SYSTEM
                     ),
                     self.room
@@ -5130,7 +5134,7 @@ module.exports = class Account {
       self.sendMessage(
         new Message.alertResponse(
           "Hola " + this.player.game_id,
-          "El Chat en el Lobby esta prohibido para los usuarios."
+          "O chat no Lobby está proibido para os jogadores."
         )
       );
       return null;
@@ -5488,7 +5492,7 @@ module.exports = class Account {
     self.player.is_alive = 0;
     self.room.game.checkDead();
   }
-  onCreateBot({ positionOfBot, bot_id }) {
+  onCreateBot({ positionOfBot, bot_id, team, passive }) {
     var self = this;
     let id = bot_id;
     let bot_data = {
@@ -5510,19 +5514,30 @@ module.exports = class Account {
       aforeground: 0,
       is_bot: true,
     };
-    let botUserId = 1e300 + id;
+    // ID único por bot. 1e300 + id colide (float não distingue), então usa um contador global.
+    self.gameserver.botSeq = (self.gameserver.botSeq || 100000) + 1;
+    let botUserId = self.gameserver.botSeq;
     var plx = new Player(bot_data);
     plx.is_bot = 1;
     plx.is_ready = 1;
-    plx.mobile = Types.COMPUTER_PLAYER[bot_id].mobile;
+    // No modo Aduka todo mundo (inclusive bots) usa Aduka; senão usa o mobile do preset.
+    plx.mobile =
+      self.room && self.room.game_mode === Types.GAME_MODE.ADUKA
+        ? Types.MOBILE.ADUKA
+        : Types.COMPUTER_PLAYER[bot_id].mobile;
+    // 3 Duals para o bot (item 0 = Dual)
+    plx.item1 = 0;
+    plx.item2 = 0;
+    plx.item3 = 0;
     plx.scores_lose = 1;
     plx.position = positionOfBot;
     plx.user_id = botUserId;
     let acc = new Bot(plx);
     acc.user_id = botUserId;
     acc.gameserver = self.gameserver;
+    acc.passive = passive === true; // bot de debug: não atira, só passa a vez
     self.gameserver.bots[acc.user_id] = acc;
-    self.room.addBot(acc);
+    self.room.addBot(acc, team);
     let data_bot = {
       position: positionOfBot,
       id: bot_id,
