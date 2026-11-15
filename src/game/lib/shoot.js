@@ -83,6 +83,17 @@ module.exports = class Shoot {
       self[param] = data[param];
     }
     self.current_angle = self.ang;
+    // `walk` tem dois papeis no gametypes: `walk: true` marca um projetil que
+    // ANDA pelo chao; um objeto/lista e' a config dos andadores que o tiro cria
+    // ao cair (addAtEnd "walk": Raon S2/SS e Frog). Antes a config fazia o
+    // proprio projetil tentar andar no 1o tick (map nulo) e o turno travava.
+    if (this.walk === true) {
+      this.walking = true;
+      this.walk = [];
+    } else {
+      this.walking = false;
+      if (this.walk && !Array.isArray(this.walk)) this.walk = [this.walk];
+    }
     con.account = "";
     //console.log(con);
     if (this.ang == "auto") this.autoAngle();
@@ -136,6 +147,20 @@ module.exports = class Shoot {
       this.weight = eq.weight;
       this.v = new Vector2(this.ang, this.power);
       this.boomerSS = pj.mov === "boomer" && this.type === 2;
+      // Kalsiddon: a divisao em teleguiados e' do world; os filhos antigos do
+      // DragonBound (addAtMaxT "bulets") saem.
+      if (this.gbFlight.kals && Array.isArray(this.addAtMaxT))
+        this.addAtMaxT = this.addAtMaxT.filter((k) => k !== "bulets");
+      // Cratera do original (characterdata, "Hard Impact" 0x447ae0): elipse de
+      // raio y = A/2 e raio x = (A/2)*B/100. So onde o DragonBound ja cava com o
+      // proprio projetil; nos demais o buraco vem de um efeito filho.
+      const cratera = (GBPhysics.MOBILES[gb.nome].cratera || [])[this.type];
+      if (
+        cratera && cratera[0] > 0 && cratera[1] > 0 &&
+        Array.isArray(this.pala_bunge) && this.pala_bunge[0] > 0 && this.pala_bunge[1] > 0
+      ) {
+        this.pala_bunge = [cratera[0], cratera[1]];
+      }
       // O cliente desenha pelo path; orbita/onda do DragonBound desligadas.
       this.orbit = undefined;
       this.addOrbit = undefined;
@@ -148,7 +173,14 @@ module.exports = class Shoot {
       this.killAt = Math.abs(this.stime * 2 - this.getMaxT() - 200);
       console.log({ is: "killAt", killAt: this.killAt });
     }
-    if (this.wind_power != 0 && !this.gbFlight) this.setWindEfect();
+    // Teleguiado do Kalsiddon (filho, neto ou carregador do SS)
+    if (this.homing) {
+      this.homingFlight = new GBPhysics.Homing(this.homing);
+      this.v = new Vector2(0, 0);
+      this.friccion = 0;
+      this.weight = 0;
+    }
+    if (this.wind_power != 0 && !this.gbFlight && !this.homingFlight) this.setWindEfect();
     if (this.power == "auto") this.positionToForce({ x: this.x1, y: this.y1 });
 
     this.box = new Box(new Vector(this.x0, this.y0), 8, 10, 0);
@@ -207,11 +239,133 @@ module.exports = class Shoot {
 
   update() {
     this.time++;
-    if (this.walk) this.a = this.GetPosForWalking();
+    if (this.walking) this.updateWalking();
     else this.a = this.getPosAtTime();
   }
 
+  // Andador: 1 px a cada WALK_TICKS ticks do servidor (2 ms de cliente por
+  // tick -> 50 px/s, o mesmo passo de um jogador). Grava o trajeto para o
+  // cliente a cada 20 ms: [x, y, direcao] (0 = esquerda, 1 = direita).
+  updateWalking() {
+    const WALK_TICKS = 10;
+    if (!this.a) {
+      this.a = { x: this.x0, y: this.y0 };
+      this.walkPath = [];
+    }
+    if (this.crawl) return this.updateCrawling();
+    if (this.time % WALK_TICKS === 0 && !this.walkEnd) {
+      const p = this.crawl ? this.GetPosForCrawling() : this.GetPosForWalking();
+      if (p.fall_and_die) this.walkEnd = "fall";
+      else if (p.stuck) this.walkEnd = "stuck";
+      else {
+        this.a = { x: p.x, y: p.y };
+        this.walk_dist++;
+      }
+    }
+    if (this.time % 10 === 0) this.walkPath.push(this.a.x, this.a.y, this.walkCode());
+  }
+
+  // Ritmo do OAmoeba [2] 0x453a80, por tick do original (24 do servidor):
+  // anda 5 px (2 px com alguem a 24 px), gira 20 graus e explode aos 30
+  // ticks. Parada contra uma parede ela fica no lugar ate o tempo acabar.
+  updateCrawling() {
+    const TICK = 24;
+    this.crawlAcc = (this.crawlAcc || 0) + (this.nearPlayer ? 2 : 5) / TICK;
+    while (this.crawlAcc >= 1 && !this.walkEnd) {
+      this.crawlAcc -= 1;
+      const p = this.GetPosForCrawling();
+      if (p.fall_and_die) this.walkEnd = "fall";
+      else if (!p.stuck) {
+        this.a = { x: p.x, y: p.y };
+        this.walk_dist++;
+      }
+    }
+    this.crawlRot = (this.crawlRot || 0) + ((this.crawl === "cw" ? 1 : -1) * 20) / TICK;
+    if (!this.walkEnd && this.time >= 30 * TICK) this.walkEnd = "tempo";
+    if (this.time % 10 === 0) this.walkPath.push(this.a.x, this.a.y, this.walkCode());
+  }
+
+  // Frog: rola grudado no terreno (chao, parede e teto) com a regra da mao
+  // na parede. Anti-horario ("ccw") = parede a esquerda do movimento: anda
+  // para a esquerda no chao e para a direita no teto; horario ("cw") e' o
+  // espelho. Sem nada encostado (no ar), cai 1 px por passo.
+  GetPosForCrawling() {
+    const m = this.map;
+    const D = [[1, 0], [0, 1], [-1, 0], [0, -1]]; // dir, baixo, esq, cima (horario na tela)
+    const solido = (x, y) => x >= 0 && x < m.w && y >= 0 && y < m.h && m.IsPixel(x, y);
+    const livre = (x, y) => x >= 0 && x < m.w && y < m.h && !solido(x, y);
+    const x = this.a.x, y = this.a.y;
+    if (this.crawlDir === undefined) this.crawlDir = this.crawl === "ccw" ? 2 : 0;
+    let encostado = false;
+    for (let dx = -1; dx <= 1 && !encostado; dx++)
+      for (let dy = -1; dy <= 1; dy++) if ((dx || dy) && solido(x + dx, y + dy)) { encostado = true; break; }
+    if (!encostado) {
+      if (y + 1 >= m.h) return { x: x, y: m.h + 100, fall_and_die: !0 };
+      return { x: x, y: y + 1 };
+    }
+    const vira = this.crawl === "ccw" ? -1 : 1; // primeiro tenta virar para o lado da parede
+    for (const k of [vira, 0, -vira, 2]) {
+      const nd = (this.crawlDir + k + 4) % 4;
+      const nx = x + D[nd][0], ny = y + D[nd][1];
+      // a borda do mapa encerra o caminho (explode ali)
+      if (nx < 0 || nx >= m.w) return { x: x, y: y, stuck: !0 };
+      if (livre(nx, ny)) {
+        this.crawlDir = nd;
+        if (nx < 0 || nx >= m.w) return { x: x, y: y, stuck: !0 };
+        return { x: nx, y: ny };
+      }
+    }
+    return { x: x, y: y, stuck: !0 };
+  }
+
+  // Terceiro valor do path do andador. Sprites marcados como andador no
+  // cliente (robo/mina do Raon) leem a direcao (0 esq, 1 dir); os do Frog
+  // rolam: o valor e' o angulo do sprite, girando com a distancia andada.
+  walkCode() {
+    const lado = this.dir === "LEFT" ? -1 : 1;
+    if (this.rolar) {
+      // horario = angulo crescendo na tela (rotacao positiva do sprite)
+      if (this.crawl) return Math.round(this.crawlRot || 0) % 360;
+      return Math.round(lado * this.walk_dist * 4) % 360;
+    }
+    return lado < 0 ? 0 : 1;
+  }
+
+  // Teleguiado: integra tick a tick perseguindo a posicao ATUAL do pai.
+  homingAvanca(tick) {
+    const hf = this.homingFlight;
+    while (hf.pts.length - 1 < tick && !this.homingEnd) {
+      const p = this.homingParent;
+      const alvo = p && p.a ? { x: p.a.x, y: p.a.y } : { x: Math.floor(hf.s.x / 256), y: Math.floor(hf.s.y / 256) };
+      if (hf.step(alvo)) this.homingEnd = "encontro";
+      else if (hf.pts.length > 600) this.homingEnd = "tempo";
+    }
+  }
+  homingPos(t) {
+    const hf = this.homingFlight;
+    const f = Math.max(0, t) / 24;
+    const i = Math.floor(f);
+    this.homingAvanca(i + 1);
+    const a = hf.pts[Math.min(i, hf.pts.length - 1)];
+    const b = hf.pts[Math.min(i + 1, hf.pts.length - 1)];
+    const u = f - i;
+    return { x: Math.floor((a.x + (b.x - a.x) * u) / 256), y: Math.floor((a.y + (b.y - a.y) * u) / 256) };
+  }
+  homingPath(durationTicks) {
+    const out = [];
+    const n = Math.ceil(durationTicks / 10) + 1;
+    let prev = this.homingPos(0);
+    for (let k = 0; k <= n; k++) {
+      const p = this.homingPos(k * 10);
+      const ang = Math.round((Math.atan2(p.y - prev.y, p.x - prev.x) * 180) / Math.PI);
+      out.push(p.x, p.y, ang);
+      prev = p;
+    }
+    return out;
+  }
+
   getPosAtTime(time = null) {
+    if (this.homingFlight) return this.homingPos(time ? time : this.time);
     if (this.gbFlight)
       return this.gbFlight.posAt(time ? time : this.time);
     let a = (time ? time : this.time) / 485;
@@ -222,6 +376,11 @@ module.exports = class Shoot {
   }
 
   getVelocityAtTime(time = null) {
+    if (this.homingFlight) {
+      const t = time ? time : this.time;
+      const a = this.homingPos(t), b = this.homingPos(t + 24);
+      return { x: Math.round(((b.x - a.x) * 485) / 24), y: Math.round(((b.y - a.y) * 485) / 24) };
+    }
     if (this.gbFlight)
       return this.gbFlight.velAt(time ? time : this.time);
     let a = (time ? time : this.time) / 485;
@@ -241,11 +400,12 @@ module.exports = class Shoot {
     //   a, b, c
     if (!this.a) this.a = { x: this.x0, y: this.y0 };
 
+    let c;
     let pop = this.dir == "LEFT" ? this.a.x - 1 : this.a.x + 1;
     if (0 > pop || pop >= this.map.w)
       return {
-        x: a,
-        y: this.ay,
+        x: this.a.x,
+        y: this.a.y,
         stuck: !0,
       };
     if (this.map.IsPixel(pop, this.a.y)) {
@@ -256,7 +416,7 @@ module.exports = class Shoot {
             y: c,
           };
       return {
-        x: a,
+        x: this.a.x,
         y: this.a.y,
         stuck: !0,
       };

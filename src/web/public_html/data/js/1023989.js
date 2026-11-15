@@ -25573,12 +25573,16 @@
         BOOMER: 15,
         ELECTRICO: 16,
         GRUB: 17,
-        DRAGON2: 22,
+        // Alinhado aos ids do servidor (gametypes.js MOBILE). Antes Dragon,
+        // Randomizer, Frog e Kalsiddon tinham outros numeros aqui: escolher o
+        // Kalsiddon mandava 20 (Randomizer no servidor) e o Dragon (18 no
+        // servidor) nao existia no cliente. Maya nao existe no servidor.
+        DRAGON2: 18,
         RAON: 19,
-        RANDOMIZER: 23,
-        FROG: 26,
-        KALSIDDON: 20,
-        MAYA: 21,
+        RANDOMIZER: 20,
+        FROG: 21,
+        KALSIDDON: 22,
+        MAYA: 28,
         TIBURON: 24,
         PHOENIX: 25,
         BEE: 27,
@@ -25597,6 +25601,8 @@
         MOBILE.TURTLE,
         MOBILE.BOOMER,
         MOBILE.RAON,
+        MOBILE.FROG,
+        MOBILE.KALSIDDON,
         MOBILE.RANDOM,
       ];
 
@@ -37037,6 +37043,20 @@
             for (h = 0; h < f.players.length; h++) f.players[h].Fall();
             f.UpdateTurnList();
           }
+          // Minas do Raon S2: o servidor avisa quando uma mina pousa
+          // (mines_add: [id, x, y, dir]) e quando ela explode (mines_remove).
+          if (a.mines_remove)
+            for (h = 0; h < a.mines_remove.length; h++)
+              f.RemoveMine(a.mines_remove[h]);
+          if (a.mines_add)
+            for (h = 0; h < a.mines_add.length; h++)
+              f.CreateMine(
+                a.mines_add[h][0],
+                a.mines_add[h][1],
+                a.mines_add[h][2],
+                a.mines_add[h][3],
+                a.mines_add[h][2]
+              );
           if (a.tele)
             for (h = 0; h < a.tele.length; h += 5) {
               var b = a.tele[h + 1],
@@ -37072,7 +37092,7 @@
             ));
         }
       }, b.GetTimeLeft());
-      if (a.img == BULLETS.RAON1 && !a.no_sound)
+      if (a.img == BULLETS.RAON1)
         for (h = 1; 8 > h; h++)
           (b = {
             img: a.img,
@@ -38056,6 +38076,7 @@
                 var h =
                   !e &&
                   !b.shots[f].orbit &&
+                  !b.shots[f].no_camera &&
                   !b.shots[f].is_lightning &&
                   !b.shots[f].thor;
                 h && (e = !0);

@@ -3730,8 +3730,8 @@ Types.MOBILES = [
     ],
     graphics: [[47, 46, 24, 41]],
     //falta definir
-    minang: 30,
-    maxang: 110, //60
+    minang: 20, // original: 20-55 (characterdata campos 3-20)
+    maxang: 55,
     aim: [
       [54, 33],
       [54, 33],

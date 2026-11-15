@@ -1,5 +1,11 @@
 //Player fall and die
 var Types = require("./gametypes");
+var GBPhysics = require("./lib/gbPhysics");
+// Raio de detonacao da mina do Raon: campo 9 do bloco do S2 no
+// characterdata (8 px), lido pela ORayonMine [2] 0x495850. Na pratica so
+// detona quem passa por cima. Os 90 px do cliente (RAON_MINE_WALK_DIST) sao so
+// a distancia em que ela "acorda" na animacao.
+const MINE_RADIUS = 8;
 var Logger = require("./lib/logger");
 var Message = require("./lib/message");
 var Shoot = require("./lib/shoot");
@@ -66,6 +72,9 @@ module.exports = class World {
     this.shoots_complete = 0;
     this.shoots_data = [];
     this.map = game.map;
+    // Minas do Raon S2 (ORayonMine): ficam no mapa entre os turnos.
+    this.mines = [];
+    this.mineSeq = 0;
     this.chat = [];
     this.shoot_complete = null;
 
@@ -308,6 +317,169 @@ jumps:[],
     for (var id in this.shoots) {
       this.shootPushData();
     }
+    // Quem andou para perto de uma mina durante o turno a detona agora.
+    this.checkMines(0);
+  }
+
+  // ORayonMine [2] 0x495850: a cada tick a mina mede a distancia ate cada
+  // jogador vivo; dentro do raio de ativacao chama [8] 0x494d70 ("rayon
+  // bombing"), que explode NO LUGAR com o Draw Impact do tiro. Fora isso ela
+  // dorme. Aqui a checagem roda quando a mina nasce, no inicio de cada tiro e
+  // depois que os tiros terminam (jogadores empurrados/caidos).
+  checkMines(stime) {
+    const self = this;
+    let explodiu = 0;
+    for (const mine of self.mines) {
+      if (mine.done) continue;
+      let perto = !!mine.triggered; // atropelada durante uma caminhada
+      self.game.room.forPlayers(function (acc) {
+        const p = acc && acc.player;
+        if (perto || !p || p.is_alive !== 1) return;
+        const dx = p.x - mine.x, dy = p.y - mine.y;
+        if (dx * dx + dy * dy <= MINE_RADIUS * MINE_RADIUS) perto = true;
+      });
+      if (perto) {
+        self.explodeMine(mine, stime);
+        explodiu++;
+      }
+    }
+    if (explodiu) self.mines = self.mines.filter((m) => !m.done);
+    return explodiu;
+  }
+
+  // --- Kalsiddon (OCarriorBullet / OBigFoot2PSSBullet) ----------------------
+  // Se o tiro saiu para cima (vel.y < 1), no apice (vel.y > 0) ele se divide:
+  // S1 2 teleguiados a +-60, S2 4 a +-40/+-80, SS 4 carregadores a +-30/+-90.
+  // Depois disso o pai segue voando, mas ao colidir some sem explodir.
+  kalsDivide(shoot) {
+    const gf = shoot.gbFlight;
+    if (shoot.kalsFeito) return;
+    if (gf.vel0.y >= 1) { shoot.kalsFeito = true; return; } // saiu para baixo: tiro comum
+    const tickApice = gf.apiceMs() / 48; // ticks do original
+    if (tickApice <= 0) return;
+    if (shoot.time < tickApice * 24) return;
+    shoot.kalsFeito = true;
+    const p = gf.ensure(tickApice);
+    const d = GBPhysics.atanTab(Math.trunc(p.vx / 100), Math.trunc(p.vy / 100));
+    const div = gf.kals;
+    const mob = GBPhysics.MOBILES.Kalsiddon;
+    const cratera = (mob.cratera || [])[shoot.type] || [35, 35];
+    const IMG = Types.BULLETS;
+    const filhos = [];
+    if (div.ss) {
+      for (const a of [30, -30, 90, -90])
+        filhos.push({ ang: d + a, vel: 1536, curva: 80, carregador: true, image: IMG.KALSIDDONSS_MED, damage: null });
+    } else {
+      const img = shoot.type === 1 ? IMG.KALSIDDON2_TINY : IMG.KALSIDDON1_TINY;
+      const dano = shoot.type === 1 ? 110 : 120;
+      for (let i = 1; i <= div.pares; i++)
+        for (const sg of [1, -1])
+          filhos.push({ ang: d + sg * div.abertura * i, vel: div.vel, curva: div.curva, image: img, damage: dano });
+    }
+    for (const f of filhos)
+      this.kalsFilho(shoot, { x: p.x, y: p.y }, f, cratera, shoot.stime + shoot.time * 2);
+    // o pai continua so como alvo: nao fere, nao cava, nao explode
+    shoot.damage = null;
+    shoot.pala_bunge = [0, 0];
+    shoot.explode = null;
+    shoot.canPlayerCollide = false;
+    shoot.kalsSome = true;
+  }
+  kalsFilho(pai, pos, f, cratera, stime) {
+    const self = this;
+    const sh = new Shoot({
+      x0: Math.floor(pos.x / 256),
+      y0: Math.floor(pos.y / 256),
+      ang: 0,
+      power: 0,
+      type: pai.type,
+      stime: stime,
+      account: pai.account,
+      shootId: pai.shootId,
+      is: "homing",
+      homing: { x: pos.x, y: pos.y, ang: f.ang, vel: f.vel, curva: f.curva, carregador: !!f.carregador },
+      damage: f.damage,
+      pala_bunge: f.carregador ? [0, 0] : [cratera[0], cratera[1]],
+      image: f.image,
+      explode: f.carregador ? null : Types.EXPLODE.KALSIDDON,
+      canPlayerCollide: !f.carregador,
+      no_sound: true,
+      cratera: cratera,
+    });
+    sh.homingParent = pai;
+    sh.homingCarrier = !!f.carregador;
+    self.shoots[self.shoots_count] = sh;
+    self.shoots_count++;
+    self.shootPushData();
+  }
+  // Teleguiado por tick: o carregador do SS solta 1 par de netos a +-30 do
+  // proprio rumo no tick 30 (0x478150) e continua so como alvo; quem alcanca o
+  // pai "morre" ali (explode, ou some se for carregador).
+  kalsHoming(shoot) {
+    if (shoot.isComplete) return;
+    const hf = shoot.homingFlight;
+    if (shoot.homingCarrier && !shoot.kalsNetos && hf.s.cont >= 30) {
+      shoot.kalsNetos = true;
+      const p = hf.pts[30] || hf.pts[hf.pts.length - 1];
+      const r = hf.rumo();
+      for (const a of [30, -30])
+        this.kalsFilho(
+          shoot,
+          { x: p.x, y: p.y },
+          { ang: r + a, vel: 1536, curva: 80, image: Types.BULLETS.KALSIDDONSS_TINY, damage: 110 },
+          shoot.cratera || [35, 35],
+          shoot.stime + 30 * 24 * 2
+        );
+    }
+    if (shoot.homingEnd && shoot.time >= (hf.pts.length - 1) * 24) {
+      shoot.isComplete = true;
+      if (shoot.homingCarrier || shoot.homingEnd === "tempo") shoot._outOfBounds = true;
+      else {
+        this.addGroundHole(shoot);
+        shoot.groundCollide = true;
+      }
+    }
+  }
+
+  // Caminhada de um jogador (game_move): marca as minas que ficaram no trecho
+  // percorrido. Elas detonam no proximo tiro (checkMines).
+  trackMove(x0, y0, x1, y1) {
+    for (const mine of this.mines) {
+      if (mine.done || mine.triggered) continue;
+      const lo = Math.min(x0, x1) - MINE_RADIUS, hi = Math.max(x0, x1) + MINE_RADIUS;
+      if (mine.x >= lo && mine.x <= hi && Math.abs(mine.y - y1) <= 25) mine.triggered = true;
+    }
+  }
+
+  // A explosao e' um andador de 0 px: nasce no lugar da mina e explode no
+  // primeiro tick, reaproveitando cratera, dano e o path para o cliente.
+  explodeMine(mine, stime) {
+    const self = this;
+    mine.done = true;
+    const shootConfig = {
+      x0: mine.x,
+      y0: mine.y,
+      ang: 0,
+      power: 0,
+      type: mine.type,
+      stime: stime || 0,
+      account: mine.account,
+      shootId: 0,
+      is: "mine",
+      walk: true,
+      map: self.map,
+      dir: "RIGHT",
+      walk_max: 0,
+      damage: mine.damage,
+      pala_bunge: mine.pala_bunge,
+      image: mine.image,
+      explode: mine.explode,
+      no_sound: true,
+      mineId: mine.id,
+    };
+    self.shoots[self.shoots_count] = new Shoot(shootConfig);
+    self.shoots_count++;
+    self.shootPushData();
   }
 
   run() {
@@ -406,14 +578,20 @@ jumps:[],
           //Logger.log('Scratch: ' + scratch_my_ava);
           /* |<-========================= [Stats Avatars] ===========================->| */
           shoot.move(shoot.a.x, shoot.a.y, 0);
-          shoot.bunge_jc = [
-            parseInt(
-              Math.round(parseInt(scratch_my_ava / 5) + shoot.pala_bunge[0])
-            ),
-            parseInt(
-              Math.round(parseInt(scratch_my_ava / 5) + shoot.pala_bunge[1])
-            ),
-          ];
+          // Projetil sem cratera (pala_bunge 0/ausente: Frog, Raon S2/SS, que
+          // so cavam quando o andador explode) nao ganha o bonus de "scratch"
+          // do avatar: antes abria um buraquinho de 4 px ao tocar o mapa.
+          const _pb = shoot.pala_bunge || [];
+          const _cava = _pb[0] > 0 && _pb[1] > 0;
+          shoot.bunge_jc = _cava
+            ? [
+                parseInt(Math.round(parseInt(scratch_my_ava / 5) + _pb[0])),
+                parseInt(Math.round(parseInt(scratch_my_ava / 5) + _pb[1])),
+              ]
+            : [0, 0];
+          if (shoot.walking) this.checkWalker(shoot);
+          if (shoot.gbFlight && shoot.gbFlight.kals) this.kalsDivide(shoot);
+          if (shoot.homingFlight) this.kalsHoming(shoot);
           this.checkCollision(shoot);
           this.checkWeatersCast(shoot);
 
@@ -857,11 +1035,28 @@ jumps:[],
             // (x0,y0,ang,power,ax,ay). Manda a trajetoria pronta, que ele le via
             // CShot.GetPosAtPath; orbita e onda do DragonBound ficam de fora
             // (o desvio do original ja esta no path, e e' ele que colide).
-            if (shoot.gbFlight) {
+            if (shoot.mineId) {
+              // a mina sai do mapa no cliente quando explode
+              (this.shoots_data[this.shoots_complete].mines_remove =
+                this.shoots_data[this.shoots_complete].mines_remove || []).push(shoot.mineId);
+            }
+            if (shoot.walking && shoot.walkPath) {
+              const wp = shoot.walkPath.slice();
+              wp.push(shoot.a.x, shoot.a.y, shoot.walkCode());
+              this.shoots_data[this.shoots_complete].path = wp;
+            } else if (shoot.homingFlight) {
+              this.shoots_data[this.shoots_complete].path = shoot.homingPath(shoot.time);
+              this.shoots_data[this.shoots_complete].no_camera = true;
+            } else if (shoot.gbFlight) {
               this.shoots_data[this.shoots_complete].path =
                 shoot.gbFlight.clientPath(shoot.time);
               this.shoots_data[this.shoots_complete].orbit = undefined;
               this.shoots_data[this.shoots_complete].wave = undefined;
+              // Projeteis que oscilam em volta do voo (laser do Raon, orbita do
+              // Trico, onda da Turtle) nao levam a camera: ela tremia seguindo
+              // a oscilacao. O cliente pula estes ao escolher quem seguir.
+              if (["laser", "orbita", "onda"].includes(shoot.gbFlight.mov))
+                this.shoots_data[this.shoots_complete].no_camera = true;
             }
 
             // Segmento apenas refletido (tornado/espelho) nao dispara os efeitos
@@ -880,6 +1075,17 @@ jumps:[],
             this.shoots_complete++;
           }
         }
+      }
+      // Antes de fechar o turno: alguem foi parar perto de uma mina?
+      if (
+        this.shoots_count <= this.shoots_complete &&
+        this.mines.length &&
+        this.checkMines(this.shootTicks * 2)
+      ) {
+        setImmediate(function () {
+          self.update();
+        });
+        return;
       }
       if (this.shoots_count <= this.shoots_complete) {
         // Todos os tiros terminaram: agora quem ficou sem vida sai de campo.
@@ -1489,6 +1695,11 @@ jumps:[],
     self.shoots[self.shoots_count] = new Shoot({
       ...shootConfig,
       ...mergedCfg,
+      // No original (0x441600) o raio do Thor cria o objeto de explosao
+      // (0x436180 -> classe 0x57623c, cujo [2] chama o Draw Impact) com
+      // A = 46 em todos os niveis do Thor (tabela 0x5cf25c) e B = 150:
+      // elipse de raio y 23 e raio x 23*150/100 = 34.
+      pala_bunge: [34, 23],
     });
     self.shoots_data[self.shoots_complete].isStage = true;
     self.shoots_count++;
@@ -1560,6 +1771,10 @@ jumps:[],
     self.shoots[self.shoots_count] = new Shoot({
       ...shootConfig,
       ...data.config,
+      // No original o relampago (0x484fb0 -> 0x435da0) cria o mesmo objeto
+      // de explosao com os dados do bloco SS do Lightning no characterdata
+      // (A = 40, B = 143): elipse de raio y 20 e raio x 20*143/100 = 28.
+      pala_bunge: [28, 20],
     });
     //	console.log({soy:"ligt",data:{...shootConfig,...data.config}});
     self.shoots_data[self.shoots_complete].isStage = true;
@@ -1680,6 +1895,152 @@ jumps:[],
       for (let key in shoot.config) {
         self.shoots_data[self.shoots_complete][key] = shoot.config[key];
       }
+    }
+  }
+
+  // Andadores (addAtEnd "walk"): Raon S2 (mina), Raon SS (robo) e Frog. Nascem
+  // no ponto de impacto, assentados no chao, e andam ate encostar num inimigo,
+  // completar walk_max px ou travar; ai explodem como um tiro que bateu no chao.
+  addwalk(data) {
+    // Cratera do andador: a do tiro no original (o andador e' a continuacao do
+    // projetil), senao a da config do DragonBound.
+    function craterAndador(d, c) {
+      const GB = require("./lib/gbPhysics");
+      // Segmentos refletidos (tornado/espelho) nao carregam o gb: cai no
+      // mobile de quem atirou.
+      let nome = d.gb && d.gb.nome;
+      if (!nome && d.account && d.account.player) {
+        const mb = Types.MOBILES[d.account.player.mobile];
+        nome = mb && mb.name;
+      }
+      const cr = nome && GB.MOBILES[nome] && (GB.MOBILES[nome].cratera || [])[d.type];
+      if (cr && cr[0] > 0 && cr[1] > 0) return [cr[0], cr[1]];
+      return c.pala_bunge && c.pala_bunge.length === 2 && c.pala_bunge[0] > 0 ? c.pala_bunge : [38, 38];
+    }
+    const self = this;
+    const cfg = data.config || {};
+    const me = data.account.player;
+    let x = Math.round(data.a.x), y = Math.round(data.a.y);
+    // assenta no chao: sobe ate sair do terreno, depois desce ate encostar
+    let g = 0;
+    while (self.map.IsPixel(x, y) && g++ < 60) y--;
+    g = 0;
+    while (!self.map.IsPixel(x, y + 1) && y < self.map.h && g++ < 400) y++;
+    let dir;
+    if (cfg.dir === 1) dir = "RIGHT";
+    else if (cfg.dir === -1) dir = "LEFT";
+    else {
+      // "auto" (ou sem direcao): vai para o inimigo vivo mais perto
+      let best = null;
+      self.game.room.forPlayers(function (acc) {
+        const p = acc && acc.player;
+        if (!p || p.is_alive !== 1 || p.team === me.team) return;
+        const d = Math.abs(p.x - x);
+        if (!best || d < best.d) best = { d: d, x: p.x };
+      });
+      dir = best ? (best.x < x ? "LEFT" : "RIGHT") : data.ang > 90 && data.ang < 270 ? "LEFT" : "RIGHT";
+    }
+    const EXPLODE_PADRAO = { 62: Types.EXPLODE.RAONSS, 63: Types.EXPLODE.RAON2, 65: 31, 67: 43 };
+    // Mina do Raon S2 (`is_alive`): nao anda; dorme onde caiu ate alguem
+    // chegar perto (ver checkMines).
+    if (cfg.is_alive) {
+      const mine = {
+        id: ++self.mineSeq,
+        x: x,
+        y: y,
+        dir: dir,
+        type: data.type,
+        account: data.account,
+        damage: cfg.damage != null ? cfg.damage : data.damage,
+        pala_bunge: craterAndador(data, cfg),
+        image: cfg.image,
+        explode: cfg.explode != null ? cfg.explode : EXPLODE_PADRAO[cfg.image] != null ? EXPLODE_PADRAO[cfg.image] : Types.EXPLODE.RAON2,
+      };
+      self.mines.push(mine);
+      const slot = self.shoots_data[self.shoots_complete];
+      (slot.mines_add = slot.mines_add || []).push([mine.id, x, y, dir === "LEFT" ? 0 : 1]);
+      return;
+    }
+    const shootConfig = {
+      x0: x,
+      y0: y,
+      ang: 0,
+      power: 0,
+      type: data.type,
+      stime: cfg.stime,
+      account: data.account,
+      shootId: data.shootId,
+      is: "walker",
+      walk: true,
+      map: self.map,
+      dir: dir,
+      walk_max: cfg.walk_max || 150,
+      damage: cfg.damage != null ? cfg.damage : data.damage,
+      pala_bunge: craterAndador(data, cfg),
+      image: cfg.image,
+      explode: cfg.explode != null ? cfg.explode : EXPLODE_PADRAO[cfg.image] != null ? EXPLODE_PADRAO[cfg.image] : Types.EXPLODE.RAON2,
+      no_sound: true,
+      // Frog (sprites 65 e 67): o sapo rola grudado no terreno. T1 sempre
+      // anti-horario, T2 sempre horario, SS para a frente de quem atirou.
+      rolar: cfg.image === 65 || cfg.image === 67,
+      crawl:
+        cfg.image === 65 || cfg.image === 67
+          ? data.type === 0
+            ? "ccw"
+            : data.type === 1
+            ? "cw"
+            : data.ang > 90 && data.ang < 270
+            ? "ccw"
+            : "cw"
+          : undefined,
+    };
+    self.shoots[self.shoots_count] = new Shoot(shootConfig);
+    self.shoots_count++;
+    self.shootPushData();
+    self.shoots_data[self.shoots_complete].isStage = true;
+  }
+
+  // Fim do andador: caiu do mapa (some), travou, andou o maximo ou encostou
+  // num inimigo (explode no lugar).
+  checkWalker(shoot) {
+    const self = this;
+    if (shoot.isComplete) return;
+    if (shoot.walkEnd === "fall") {
+      shoot.isComplete = true;
+      shoot._outOfBounds = true;
+      return;
+    }
+    // Frog (OAmoeba [2] 0x453a80): nao explode ao encostar. Com alguem a
+    // 24 px ela so desacelera; explode quando acaba o tempo (30 ticks).
+    if (shoot.crawl) {
+      let perto = false;
+      self.game.room.forPlayers(function (acc) {
+        const p = acc && acc.player;
+        if (perto || !p || p.is_alive !== 1) return;
+        const dx = p.x - shoot.a.x, dy = p.y - shoot.a.y;
+        if (dx * dx + dy * dy <= 24 * 24) perto = true;
+      });
+      shoot.nearPlayer = perto;
+      if (shoot.walkEnd === "tempo") {
+        shoot.isComplete = true;
+        self.addGroundHole(shoot);
+        shoot.groundCollide = true;
+      }
+      return;
+    }
+    let explode = shoot.walkEnd === "stuck" || shoot.walk_dist >= shoot.walk_max;
+    if (!explode) {
+      const me = shoot.account.player;
+      self.game.room.forPlayers(function (acc) {
+        const p = acc && acc.player;
+        if (explode || !p || p.is_alive !== 1 || p.team === me.team) return;
+        if (Math.abs(p.x - shoot.a.x) <= 14 && Math.abs(p.y - shoot.a.y) <= 30) explode = true;
+      });
+    }
+    if (explode) {
+      shoot.isComplete = true;
+      self.addGroundHole(shoot);
+      shoot.groundCollide = true;
     }
   }
 

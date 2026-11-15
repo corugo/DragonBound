@@ -4437,6 +4437,10 @@ module.exports = class Account {
         var _ang = message[5];
         var _time = message[6];
         if (self.room) {
+          var _px = self.player.x, _py = self.player.y;
+          var _w = self.room.game && self.room.game.world;
+          if (_w && _w.mines && _w.mines.length && typeof _px === "number")
+            _w.trackMove(_px, _py, _x, _y);
           self.player.x = _x;
           self.player.y = _y;
           self.player.body = _body;

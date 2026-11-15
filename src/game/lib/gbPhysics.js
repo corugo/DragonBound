@@ -91,7 +91,10 @@ class GBFlight {
   constructor({ nome, tipo, pj, x0, y0, ang, barra, windAng = 0, windPower = 0 }) {
     const mb = MOBILES[nome];
     pj = pj || { dA: 0, dE: 0, dF: 0, mov: "base" };
-    this.mov = pj.mov === "kalsiddon" ? "base" : pj.mov; // divisao fica no DB
+    // Kalsiddon: voa como OBullet; a divisao em teleguiados no apice e' feita
+    // pelo world (Homing abaixo), que precisa do pai vivo para perseguir.
+    this.kals = pj.mov === "kalsiddon" ? pj.div : null;
+    this.mov = pj.mov === "kalsiddon" ? "base" : pj.mov;
     const P = mb.P[tipo] != null ? mb.P[tipo] : 100;
     // Grub: o leque soma na elevacao, espelhado pelo lado.
     const dElev = mod360(ang) <= 90 ? pj.dE || 0 : -(pj.dE || 0);
@@ -280,7 +283,69 @@ class GBFlight {
   }
 }
 
+// --- Kalsiddon: teleguiados -------------------------------------------------
+// OHommingBullet (0x475220, [2] 0x476240) e OHommingCarriorBullet (0x477040,
+// [2] 0x478150). Sem gravidade nem vento. O alvo e' o projetil PAI (que grava
+// a propria posicao a cada tick); o filho o persegue com curva limitada.
+// Porte do teleguiado() do gunbound-sim/original.js.
+class Homing {
+  // x, y em 1/256 px; ang em graus de mundo; vel/curva do original
+  constructor({ x, y, ang, vel, curva, carregador }) {
+    this.carregador = !!carregador;
+    this.s = {
+      x, y, h: ang * 20, vel, curva, acel: -128, dcurva: -2, cont: 0, travado: false,
+      vx: idiv(Math.trunc(cos(ang) * vel) * 512, 100),
+      vy: -idiv(Math.trunc(sen(ang) * vel) * 512, 100),
+    };
+    this.pts = [{ x, y }];
+    this.afastou = false;
+  }
+  // um tick do original; alvo = {x, y} em px (posicao atual do pai)
+  step(alvo) {
+    const s = this.s;
+    const antes = this.pts[this.pts.length - 1];
+    s.x += s.vx;
+    s.y += s.vy;
+    const px = Math.floor(s.x / 256), py = Math.floor(s.y / 256);
+    if (this.carregador || s.cont < 41 || s.travado) {
+      const dv = atanTab(idiv(s.vx, 100), idiv(s.vy, 100));
+      const dt = atanTab(alvo.x - px, alvo.y - py);
+      const dif = Math.abs(dv - dt);
+      if (!s.travado && dif * 20 < s.curva) { s.travado = true; s.dcurva = -15; }
+      let giro = Math.min(dif * 20, s.curva);
+      if ((alvo.x - px) * s.vy - (alvo.y - py) * s.vx >= 0) giro = -giro;
+      s.h += giro;
+      if (s.vel > 0) {
+        s.vx = idiv(Math.trunc(cos(idiv(s.h, 20)) * s.vel) * 256, 50);
+        s.vy = idiv(Math.trunc(sen(idiv(s.h, 20)) * s.vel) * 256, 50);
+      }
+    }
+    if (s.acel < 0) s.vel -= idiv(s.vel, this.carregador ? 6 : 7);
+    else s.vel += s.acel;
+    s.curva = Math.max(0, Math.min(200, s.curva + s.dcurva));
+    if (s.acel < 0 && s.vel < 128) { s.acel = 55; s.dcurva = 10; }
+    s.cont++;
+    this.pts.push({ x: s.x, y: s.y });
+    // encontro com o pai (o filho "morre" ao alcanca-lo). So conta depois de
+    // ter se afastado: todos nascem colados no pai.
+    const ax = Math.floor(antes.x / 256), ay = Math.floor(antes.y / 256);
+    const dx = px - ax, dy = py - ay, l2 = dx * dx + dy * dy;
+    const u = l2 ? Math.max(0, Math.min(1, ((alvo.x - ax) * dx + (alvo.y - ay) * dy) / l2)) : 0;
+    const dist = Math.hypot(ax + u * dx - alvo.x, ay + u * dy - alvo.y);
+    if (dist > 48) this.afastou = true;
+    return this.afastou && dist <= 12;
+  }
+  // rumo atual em graus de mundo (para dividir o carregador)
+  rumo() { return idiv(this.s.h, 20); }
+}
+
+// Parametros da divisao do Kalsiddon por tiro (gunboundDados).
+const kalsDivisao = (tipo) => MOBILES.Kalsiddon.tiros[tipo][0].div;
+
 module.exports = {
+  Homing,
+  kalsDivisao,
+  atanTab,
   GBFlight,
   MOBILES,
   mobileOriginal,

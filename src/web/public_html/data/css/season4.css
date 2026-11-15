@@ -1148,11 +1148,11 @@
     background-position: -119px -93px;
 }
 #imgmobileselected.mobile20{
-    background-position: -25px 0px;
+    background-position: -337px -269px; /* Randomizer (id 20) */
 }
 /*Maya*/
 #imgmobileselected.mobile21{
-    background-position: -228px -269px;
+    background-position: -10px -269px; /* Frog (id 21) */
 }
 #imgmobileselected.mobile22{
     background-position: -25px 0px;
@@ -1579,4 +1579,8 @@
     border: 2px solid #000 !important;
     border-radius: 5px;
     box-shadow: 0 0 4px #f80;
+}
+/* Maya: id 28 no cliente (nao existe no servidor) */
+#imgmobileselected.mobile28{
+    background-position: -228px -269px;
 }
