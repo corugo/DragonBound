@@ -1774,7 +1774,10 @@ jumps:[],
       // No original o relampago (0x484fb0 -> 0x435da0) cria o mesmo objeto
       // de explosao com os dados do bloco SS do Lightning no characterdata
       // (A = 40, B = 143): elipse de raio y 20 e raio x 20*143/100 = 28.
-      pala_bunge: [28, 20],
+      // O relampago do CLIMA e' o mesmo objeto com escala 1/2 (0x45d5d0 e
+      // 0x484fb0 chamam 0x435da0(.., 2) quando o impacto cai numa coluna do
+      // clima, objetos 0x1f6 testados em 0x458680): raio 14 x 10.
+      pala_bunge: data.is === "weatherLightning" ? [14, 10] : [28, 20],
     });
     //	console.log({soy:"ligt",data:{...shootConfig,...data.config}});
     self.shoots_data[self.shoots_complete].isStage = true;
