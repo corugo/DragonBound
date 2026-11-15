@@ -853,11 +853,16 @@ jumps:[],
               ? 0
               : shoot.time * 2;
             this.shoots_data[this.shoots_complete].ss = shoot.ss;
-            // Boomer: o cliente so sabe desenhar parabola (x0,y0,ang,power,ax,ay).
-            // Manda a trajetoria pronta, que ele le via CShot.GetPosAtPath.
-            if (shoot.boomerFlight)
+            // Fisica do GunBound original: o cliente so sabe desenhar parabola
+            // (x0,y0,ang,power,ax,ay). Manda a trajetoria pronta, que ele le via
+            // CShot.GetPosAtPath; orbita e onda do DragonBound ficam de fora
+            // (o desvio do original ja esta no path, e e' ele que colide).
+            if (shoot.gbFlight) {
               this.shoots_data[this.shoots_complete].path =
-                shoot.boomerFlight.clientPath(shoot.time);
+                shoot.gbFlight.clientPath(shoot.time);
+              this.shoots_data[this.shoots_complete].orbit = undefined;
+              this.shoots_data[this.shoots_complete].wave = undefined;
+            }
 
             // Segmento apenas refletido (tornado/espelho) nao dispara os efeitos
             // de fim: eles migraram para o proximo segmento em _carryEndEffects.

@@ -37077,6 +37077,7 @@
             img: a.img,
             s: a.s.slice(),
             wave: a.wave,
+            path: a.path,
             time: a.time,
             alpha: 1,
             no_sound: 1,

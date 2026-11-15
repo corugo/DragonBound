@@ -2,7 +2,7 @@ var Types = require('./gametypes');
 var Logger = require('./lib/logger');
 var Message = require('./lib/message');
 var BotChat = require('./lib/botChat');
-var BoomerPhysics = require('./lib/boomerPhysics');
+var GBPhysics = require('./lib/gbPhysics');
 var Player = require('./player');
 var Room = require('./room');
 
@@ -720,22 +720,34 @@ module.exports = class Bot {
         return null;
     }
 
-    // Boomer: mira com a mesma fisica do servidor (GunBound original, por tick).
-    // Varre angulos da faixa do mobile e a barra 0..400; fica com o menor erro.
-    CalcularBoomer() {
+    // Mobiles do GunBound original: mira com a mesma fisica do servidor
+    // (lib/gbPhysics.js, por tick). Tenta primeiro o angulo-base do bot e depois
+    // varre a faixa; fica com a combinacao de menor erro. Devolve a barra 0..400.
+    CalcularGB(nome) {
         var self = this;
         var game = self.room.game;
         var alvo = self.objetivo.player;
-        var boca = BoomerPhysics.bocaDoCano(self.player.x, self.player.y, self.player.look, self.player.body);
+        var mobile_data = Types.MOBILES[self.player.mobile];
+        var boca = GBPhysics.bocaDoCano(nome, 0, self.player.x, self.player.y, self.player.look, self.player.body);
+        var pj = GBPhysics.MOBILES[nome].tiros[0][0];
         var bases = [this.base_ang];
-        for (var b = 20; b <= 80; b += 10) if (b !== this.base_ang) bases.push(b);
-        var best = { cl: Infinity, barra: 200, base: this.base_ang };
+        if (GBPhysics.MOBILES[nome].paraTras) {
+            // Aduka/Nak atiram para tras: usa a faixa de mira do mobile.
+            var lo = typeof mobile_data.minang === "number" ? mobile_data.minang : 110;
+            var hi = typeof mobile_data.maxang === "number" ? mobile_data.maxang : 170;
+            bases = [];
+            for (var ab = lo; ab <= hi; ab += 5) bases.push(ab);
+        } else {
+            for (var b = 20; b <= 80; b += 10) if (b !== this.base_ang) bases.push(b);
+        }
+        var best = { cl: Infinity, barra: 200, base: bases[0] };
         for (var bi = 0; bi < bases.length; bi++) {
             var ang = bases[bi];
             if (self.player.look === 0) ang = 180 - ang;
             ang -= self.player.body;
             for (var barra = 0; barra <= 400; barra += 2) {
-                var fl = new BoomerPhysics.BoomerFlight({
+                var fl = new GBPhysics.GBFlight({
+                    nome: nome, tipo: 0, pj: pj,
                     x0: boca.x, y0: boca.y, ang: ang, barra: barra,
                     windAng: game.wind_angle, windPower: game.wind_power,
                 });
@@ -758,7 +770,7 @@ module.exports = class Bot {
     Calcular(xv) {
         var self = this;
         var mobile_data = Types.MOBILES[self.player.mobile];
-        if (self.player.mobile === Types.MOBILE.BOOMER) return self.CalcularBoomer();
+        if (mobile_data && GBPhysics.mobileOriginal(mobile_data.name)) return self.CalcularGB(mobile_data.name);
         var b0 = Math.round(parseInt(Math.cos(self.room.game.wind_angle * Math.PI / 180) * self.room.game.wind_power * mobile_data.by)) / 100;
         var b1 = Math.round(parseInt(Math.sin(self.room.game.wind_angle * Math.PI / 180) * self.room.game.wind_power * mobile_data.by - mobile_data.bx)) / 100;
         this.ax = Math.round(0 - b0);

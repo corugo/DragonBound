@@ -6,7 +6,7 @@ var Shoot = require("./lib/shoot");
 var events = require("events");
 var thorControl = require("./lib/thorControl");
 var BotChat = require("./lib/botChat");
-var BoomerPhysics = require("./lib/boomerPhysics");
+var GBPhysics = require("./lib/gbPhysics");
 var weatherControl = require("./lib/weatherControl");
 const { forEach } = require("underscore");
 
@@ -769,9 +769,10 @@ module.exports = class Game {
       },
       body
     );
-    // Boomer: boca do cano do GunBound original (characterdata: 75 graus, 38 px)
-    if (mobile_data && mobile_data.name === "Boomer" && account.player.TELEPORT != 1) {
-      pfinal = BoomerPhysics.bocaDoCano(x, y, look, body);
+    // Mobiles do GunBound original: boca do cano do characterdata (angulo e
+    // distancia por tiro, girada pela inclinacao e espelhada pelo lado).
+    if (mobile_data && GBPhysics.mobileOriginal(mobile_data.name) && account.player.TELEPORT != 1) {
+      pfinal = GBPhysics.bocaDoCano(mobile_data.name, type, x, y, look, body);
     }
 
     let calc_thor_angle = Math.round(
@@ -862,6 +863,10 @@ module.exports = class Game {
         shootId: shootId,
       };
       data = { ...data, ...shootConfig };
+      // Projeteis do disparo de um mobile do original voam com a fisica dele.
+      if (GBPhysics.mobileOriginal(mobile_data.name)) {
+        data.gb = { nome: mobile_data.name, idx: shootId, qtd: shootData.length };
+      }
       if (Array.isArray(data.addOrbit) && Array.isArray(data.addOrbit[1])) {
         data.orbit = [
           data.addOrbit[0],

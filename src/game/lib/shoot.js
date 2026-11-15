@@ -6,7 +6,7 @@ var Message = require("./message");
 var Map = require("./map");
 var Box = require("./box");
 var Vector = require("./vect");
-var BoomerPhysics = require("./boomerPhysics");
+var GBPhysics = require("./gbPhysics");
 
 // Shoot
 module.exports = class Shoot {
@@ -102,6 +102,45 @@ module.exports = class Shoot {
     this.time = 0;
     if (!this.v) this.v = new Vector2(this.ang, this.power);
 
+    // Mobiles do GunBound original: trajetoria integrada por tick com a fisica
+    // do cliente original (lib/gbPhysics.js). So para os projeteis criados pelo
+    // disparo (game.setShoots marca gb); filhos (ion, thor, raios, digger,
+    // walk, divisoes) seguem com a fisica do DragonBound.
+    if (this.gb && typeof this.power === "number") {
+      const gb = this.gb;
+      const pj = GBPhysics.projetilOriginal(gb.nome, this.type, gb.idx, gb.qtd);
+      // Com a composicao do original, os desvios sao os dele (dA/dE/dF) e os
+      // modifiers do DragonBound sao desfeitos; sem ela, ficam os modifiers.
+      if (pj.casou && this.modifiers) {
+        if (this.modifiers.x0) this.x0 -= this.modifiers.x0;
+        if (this.modifiers.y0) this.y0 -= this.modifiers.y0;
+      }
+      const base = pj.casou ? con : this;
+      this.gbFlight = new GBPhysics.GBFlight({
+        nome: gb.nome,
+        tipo: this.type,
+        pj: pj,
+        x0: this.x0,
+        y0: this.y0,
+        ang: base.ang,
+        barra: GBPhysics.barraDaForca(base.power),
+        windAng: this.wind_ang,
+        windPower: this.wind_power,
+      });
+      // Formula fechada equivalente: e' o que os efeitos sem path desenham e o
+      // que os projeteis filhos herdam (power "parent", tornado, espelho).
+      const eq = this.gbFlight.equivalente();
+      this.ang = this.gbFlight.angI;
+      this.power = eq.power;
+      this.friccion = eq.friccion;
+      this.weight = eq.weight;
+      this.v = new Vector2(this.ang, this.power);
+      this.boomerSS = pj.mov === "boomer" && this.type === 2;
+      // O cliente desenha pelo path; orbita/onda do DragonBound desligadas.
+      this.orbit = undefined;
+      this.addOrbit = undefined;
+    }
+
     this.show = true;
     this.thorTime = 0;
 
@@ -109,20 +148,7 @@ module.exports = class Shoot {
       this.killAt = Math.abs(this.stime * 2 - this.getMaxT() - 200);
       console.log({ is: "killAt", killAt: this.killAt });
     }
-    // Boomer: trajetoria integrada por tick com a fisica do GunBound original
-    // (bumerangue contra o vento, sustentacao a favor). Usa o vento cru, antes
-    // de setWindEfect mexer em friccion/weight.
-    if (this.boomer && typeof this.power === "number") {
-      this.boomerFlight = new BoomerPhysics.BoomerFlight({
-        x0: this.x0,
-        y0: this.y0,
-        ang: this.ang,
-        barra: BoomerPhysics.barraDaForca(this.power),
-        windAng: this.wind_ang,
-        windPower: this.wind_power,
-      });
-    }
-    if (this.wind_power != 0) this.setWindEfect();
+    if (this.wind_power != 0 && !this.gbFlight) this.setWindEfect();
     if (this.power == "auto") this.positionToForce({ x: this.x1, y: this.y1 });
 
     this.box = new Box(new Vector(this.x0, this.y0), 8, 10, 0);
@@ -186,8 +212,8 @@ module.exports = class Shoot {
   }
 
   getPosAtTime(time = null) {
-    if (this.boomerFlight)
-      return this.boomerFlight.posAt(time ? time : this.time);
+    if (this.gbFlight)
+      return this.gbFlight.posAt(time ? time : this.time);
     let a = (time ? time : this.time) / 485;
     return {
       x: Math.ceil(this.x0 + this.v.x * a + (this.friccion * a * a) / 2),
@@ -196,8 +222,8 @@ module.exports = class Shoot {
   }
 
   getVelocityAtTime(time = null) {
-    if (this.boomerFlight)
-      return this.boomerFlight.velAt(time ? time : this.time);
+    if (this.gbFlight)
+      return this.gbFlight.velAt(time ? time : this.time);
     let a = (time ? time : this.time) / 485;
     return {
       x: Math.ceil(this.v.x + this.friccion * a),
@@ -276,8 +302,11 @@ module.exports = class Shoot {
     this.power = Math.abs(power);
   }
   getMaxT() {
-    // SS do Boomer fica dourado no 36o tick de voo (OBoomerPSSBullet 0x459c10)
-    if (this.boomerFlight) return BoomerPhysics.DOURADO_MS;
+    if (this.gbFlight) {
+      // SS do Boomer fica dourado no 36o tick de voo (OBoomerPSSBullet 0x459c10)
+      if (this.boomerSS) return GBPhysics.DOURADO_MS;
+      return this.gbFlight.apiceMs();
+    }
     return Math.ceil(-this.v.y / this.weight) * 488;
   }
   setWindEfect() {
