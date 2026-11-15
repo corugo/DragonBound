@@ -66,6 +66,19 @@ img.onload = () => {
   }
 };
 
+function mostrador(ctx) {
+  const R2 = 42;
+  ctx.fillStyle = "rgba(40,40,40,0.38)"; ctx.beginPath(); ctx.arc(0, 0, R2, 0, 2 * Math.PI); ctx.fill();
+  ctx.strokeStyle = "rgba(204,204,204,0.85)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R2, 0, 2 * Math.PI); ctx.stroke();
+  ctx.strokeStyle = "rgba(204,204,204,0.35)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, 15, 0, 2 * Math.PI); ctx.stroke();
+  for (let t = 0; t < 360; t += 10) {
+    const r1 = t % 30 === 0 ? R2 - 7 : R2 - 4, c = Math.cos(R(t)), s = Math.sin(R(t));
+    ctx.strokeStyle = t % 30 === 0 ? "rgba(238,238,238,0.9)" : "rgba(238,238,238,0.6)"; ctx.lineWidth = t % 30 === 0 ? 1.5 : 1;
+    ctx.beginPath(); ctx.moveTo(c * r1, s * r1); ctx.lineTo(c * (R2 - 1), s * (R2 - 1)); ctx.stroke();
+  }
+  ctx.fillStyle = "rgba(16,16,16,0.8)"; ctx.beginPath(); ctx.arc(0, 0, 3, 0, 2 * Math.PI); ctx.fill();
+}
+
 function desenha(ctx, m, c) {
   const W = 200, cx = 100, cy = 140; // ponto do jogador (x, y do servidor)
   const mira = Math.round((m.true[0] + m.true[1]) / 2); // mira de teste: meio da faixa true
@@ -80,7 +93,7 @@ function desenha(ctx, m, c) {
   ctx.save();
   ctx.translate(cx, cy); ctx.rotate(R(c.body)); ctx.scale(c.look === 0 ? 1 : -1, 1);
   ctx.translate(-aim.x, aim.y); // SetAimCircleOffset
-  ctx.drawImage(img, 483, 116, 86, 86, -43, -43, 86, 86); // aimCircle (SD)
+  mostrador(ctx); // aimCircle: mesmo desenho do cliente (DesenhaMostradorMira)
   // greenArea: faixa toda, alfa 0.25
   ctx.lineWidth = 25; ctx.strokeStyle = "rgba(0,220,0,0.25)";
   ctx.beginPath(); ctx.arc(0, 0, 28, R(180 + m.mira[0]), R(180 + m.mira[1])); ctx.stroke();

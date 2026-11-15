@@ -54692,11 +54692,10 @@
       void 0 != r &&
         ((a = dragonTheme.Get("HD")),
         (b = GAME_STUFF),
-        (this.aimCircle = new PIXI.Sprite(
-          GetTexture(g_gameStuffImageURL, b.aimX, b.aimY, b.aimW, b.aimW)
-        )),
-        (this.aimCircle.anchor.x = this.aimCircle.anchor.y = 0.5),
-        a && (this.aimCircle.scale.x = this.aimCircle.scale.y = 0.5),
+        // Mostrador desenhado em codigo (antes: recorte do game_stuff.png):
+        // disco cinza translucido, borda clara, marcas a cada 10 graus
+        // (maiores a cada 30) e eixo no centro, como no GunBound original.
+        (this.aimCircle = DesenhaMostradorMira(new PIXI.Graphics())),
         (this.aimCircle.z = -3),
         this.rotate_container.addChild(this.aimCircle),
         (this.angMin = x),
@@ -54733,6 +54732,30 @@
       this.frameTimeMobile = 1e3 / MOBILE_FPS;
       this.ion_speed = 1e3;
       DragonClock.Add(this);
+    }
+    function DesenhaMostradorMira(g) {
+      var R = 42;
+      g.lineStyle(0);
+      g.beginFill(2631720, 0.38);
+      g.drawCircle(0, 0, R);
+      g.endFill();
+      g.lineStyle(2, 13421772, 0.85);
+      g.drawCircle(0, 0, R);
+      g.lineStyle(1, 13421772, 0.35);
+      g.drawCircle(0, 0, 15);
+      for (var t = 0; 360 > t; t += 10) {
+        var r1 = 0 === t % 30 ? R - 7 : R - 4,
+          c = Math.cos(AngleToRad(t)),
+          s = Math.sin(AngleToRad(t));
+        g.lineStyle(0 === t % 30 ? 1.5 : 1, 15658734, 0 === t % 30 ? 0.9 : 0.6);
+        g.moveTo(c * r1, s * r1);
+        g.lineTo(c * (R - 1), s * (R - 1));
+      }
+      g.lineStyle(0);
+      g.beginFill(1052688, 0.8);
+      g.drawCircle(0, 0, 3);
+      g.endFill();
+      return g;
     }
     PlayerContainer.constructor = PlayerContainer;
     PlayerContainer.prototype = Object.create(
