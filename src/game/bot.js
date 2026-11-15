@@ -2,6 +2,7 @@ var Types = require('./gametypes');
 var Logger = require('./lib/logger');
 var Message = require('./lib/message');
 var BotChat = require('./lib/botChat');
+var BoomerPhysics = require('./lib/boomerPhysics');
 var Player = require('./player');
 var Room = require('./room');
 
@@ -719,9 +720,45 @@ module.exports = class Bot {
         return null;
     }
 
+    // Boomer: mira com a mesma fisica do servidor (GunBound original, por tick).
+    // Varre angulos da faixa do mobile e a barra 0..400; fica com o menor erro.
+    CalcularBoomer() {
+        var self = this;
+        var game = self.room.game;
+        var alvo = self.objetivo.player;
+        var boca = BoomerPhysics.bocaDoCano(self.player.x, self.player.y, self.player.look, self.player.body);
+        var bases = [this.base_ang];
+        for (var b = 20; b <= 80; b += 10) if (b !== this.base_ang) bases.push(b);
+        var best = { cl: Infinity, barra: 200, base: this.base_ang };
+        for (var bi = 0; bi < bases.length; bi++) {
+            var ang = bases[bi];
+            if (self.player.look === 0) ang = 180 - ang;
+            ang -= self.player.body;
+            for (var barra = 0; barra <= 400; barra += 2) {
+                var fl = new BoomerPhysics.BoomerFlight({
+                    x0: boca.x, y0: boca.y, ang: ang, barra: barra,
+                    windAng: game.wind_angle, windPower: game.wind_power,
+                });
+                for (var i = 1; i < 600; i++) {
+                    var p = fl.ensure(i);
+                    var px = p.x / 256, py = p.y / 256;
+                    var cl = Math.sqrt(Math.pow(alvo.x - px, 2) + Math.pow(alvo.y - py, 2));
+                    if (cl < best.cl) best = { cl: cl, barra: barra, base: bases[bi] };
+                    if (py > alvo.y + 200) break; // ja passou do alvo descendo
+                }
+                if (best.cl <= 10) break;
+            }
+            if (best.cl <= 15) break;
+        }
+        self.player.ang = best.base;
+        this.base_ang = best.base;
+        return { power: best.barra, found: best.cl <= 15 };
+    }
+
     Calcular(xv) {
         var self = this;
         var mobile_data = Types.MOBILES[self.player.mobile];
+        if (self.player.mobile === Types.MOBILE.BOOMER) return self.CalcularBoomer();
         var b0 = Math.round(parseInt(Math.cos(self.room.game.wind_angle * Math.PI / 180) * self.room.game.wind_power * mobile_data.by)) / 100;
         var b1 = Math.round(parseInt(Math.sin(self.room.game.wind_angle * Math.PI / 180) * self.room.game.wind_power * mobile_data.by - mobile_data.bx)) / 100;
         this.ax = Math.round(0 - b0);

@@ -1196,6 +1196,29 @@ module.exports = class Commands {
           }
           break;
         }
+        // /vento <forca> [angulo]: fixa o vento da partida (teste de fisica).
+        // O angulo e' o da seta na tela (0 = direita, 90 = cima); o servidor
+        // guarda wind_angle = angulo - 180, como o resto do jogo.
+        case "/vento": {
+          if (self.account.player.rank === 31 && self.account.room && self.account.room.game) {
+            var g = self.account.room.game;
+            var wp = parseInt(data[1]);
+            var wa = data[2] !== undefined ? parseInt(data[2]) : g.wind_angle + 180;
+            if (!isNaN(wp) && !isNaN(wa)) {
+              g.wind_power = Math.max(0, Math.min(50, wp));
+              g.wind_angle = (((wa - 180) % 360) + 360) % 360;
+              self.gameserver.pushBroadcastChat(
+                new Message.chatResponse(
+                  self,
+                  "Vento: " + g.wind_power + " para " + ((g.wind_angle + 180) % 360) + " graus (vale a partir do proximo tiro)",
+                  Types.CHAT_TYPE.SYSTEM
+                ),
+                self.account.room
+              );
+            }
+          }
+          break;
+        }
         case "/teleport": {
           if (self.account.player.rank === 31) {
             self.account.player.TELEPORT = 1;

@@ -6,6 +6,7 @@ var Message = require("./message");
 var Map = require("./map");
 var Box = require("./box");
 var Vector = require("./vect");
+var BoomerPhysics = require("./boomerPhysics");
 
 // Shoot
 module.exports = class Shoot {
@@ -108,6 +109,19 @@ module.exports = class Shoot {
       this.killAt = Math.abs(this.stime * 2 - this.getMaxT() - 200);
       console.log({ is: "killAt", killAt: this.killAt });
     }
+    // Boomer: trajetoria integrada por tick com a fisica do GunBound original
+    // (bumerangue contra o vento, sustentacao a favor). Usa o vento cru, antes
+    // de setWindEfect mexer em friccion/weight.
+    if (this.boomer && typeof this.power === "number") {
+      this.boomerFlight = new BoomerPhysics.BoomerFlight({
+        x0: this.x0,
+        y0: this.y0,
+        ang: this.ang,
+        barra: BoomerPhysics.barraDaForca(this.power),
+        windAng: this.wind_ang,
+        windPower: this.wind_power,
+      });
+    }
     if (this.wind_power != 0) this.setWindEfect();
     if (this.power == "auto") this.positionToForce({ x: this.x1, y: this.y1 });
 
@@ -172,6 +186,8 @@ module.exports = class Shoot {
   }
 
   getPosAtTime(time = null) {
+    if (this.boomerFlight)
+      return this.boomerFlight.posAt(time ? time : this.time);
     let a = (time ? time : this.time) / 485;
     return {
       x: Math.ceil(this.x0 + this.v.x * a + (this.friccion * a * a) / 2),
@@ -180,6 +196,8 @@ module.exports = class Shoot {
   }
 
   getVelocityAtTime(time = null) {
+    if (this.boomerFlight)
+      return this.boomerFlight.velAt(time ? time : this.time);
     let a = (time ? time : this.time) / 485;
     return {
       x: Math.ceil(this.v.x + this.friccion * a),
@@ -258,6 +276,8 @@ module.exports = class Shoot {
     this.power = Math.abs(power);
   }
   getMaxT() {
+    // SS do Boomer fica dourado no 36o tick de voo (OBoomerPSSBullet 0x459c10)
+    if (this.boomerFlight) return BoomerPhysics.DOURADO_MS;
     return Math.ceil(-this.v.y / this.weight) * 488;
   }
   setWindEfect() {

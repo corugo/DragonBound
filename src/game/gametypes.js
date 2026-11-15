@@ -2774,6 +2774,7 @@ Types.MOBILES = [
           image: Types.BULLETS.BOOMER12,
           explode: Types.EXPLODE.BOOMER12,
           weight: 244,
+          boomer: true, // fisica do GunBound original (lib/boomerPhysics.js)
           friccion: 0,
         },
       ],
@@ -2786,6 +2787,7 @@ Types.MOBILES = [
           image: Types.BULLETS.BOOMER12,
           explode: Types.EXPLODE.BOOMER12,
           weight: 244,
+          boomer: true, // fisica do GunBound original (lib/boomerPhysics.js)
           friccion: 0,
         },
         {
@@ -2795,6 +2797,7 @@ Types.MOBILES = [
           image: Types.BULLETS.BOOMER12,
           explode: Types.EXPLODE.BOOMER12,
           weight: 244,
+          boomer: true, // fisica do GunBound original (lib/boomerPhysics.js)
           friccion: 0,
         },
         {
@@ -2804,6 +2807,7 @@ Types.MOBILES = [
           image: Types.BULLETS.BOOMER12,
           explode: Types.EXPLODE.BOOMER12,
           weight: 244,
+          boomer: true, // fisica do GunBound original (lib/boomerPhysics.js)
           friccion: 0,
         },
         {
@@ -2814,6 +2818,7 @@ Types.MOBILES = [
           image: Types.BULLETS.BOOMER12,
           explode: Types.EXPLODE.BOOMER12,
           weight: 244,
+          boomer: true, // fisica do GunBound original (lib/boomerPhysics.js)
           friccion: 0,
         },
       ],
@@ -2826,6 +2831,7 @@ Types.MOBILES = [
           image: Types.BULLETS.BOOMER12,
           explode: Types.EXPLODE.BOOMERSS,
           weight: 244,
+          boomer: true, // fisica do GunBound original (lib/boomerPhysics.js)
           friccion: 0,
           ss: true,
           addAtMaxT: ["change"],

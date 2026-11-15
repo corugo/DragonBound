@@ -6,6 +6,7 @@ var Shoot = require("./lib/shoot");
 var events = require("events");
 var thorControl = require("./lib/thorControl");
 var BotChat = require("./lib/botChat");
+var BoomerPhysics = require("./lib/boomerPhysics");
 var weatherControl = require("./lib/weatherControl");
 const { forEach } = require("underscore");
 
@@ -768,6 +769,10 @@ module.exports = class Game {
       },
       body
     );
+    // Boomer: boca do cano do GunBound original (characterdata: 75 graus, 38 px)
+    if (mobile_data && mobile_data.name === "Boomer" && account.player.TELEPORT != 1) {
+      pfinal = BoomerPhysics.bocaDoCano(x, y, look, body);
+    }
 
     let calc_thor_angle = Math.round(
       (Math.atan2(this.thor.y - pfinal.y, this.thor.x - pfinal.x) * 180) /
