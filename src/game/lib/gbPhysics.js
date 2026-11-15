@@ -56,6 +56,19 @@ function atanTab(x, y) {
 const direcaoVel = (s) =>
   idiv(atanTab(idiv(s.vx, 100), idiv(s.vy, 100)) + 1, 3) * 3;
 
+// Espelho (clima 7): reflete na horizontal quem cruza a faixa px +-10 abaixo
+// do topo do desenho (o cliente desenha o espelho de y = -600 ate o chao; por
+// cima dele o tiro passa direto). Feito dentro da fisica, no tick em que cruza:
+// o tiro continua o mesmo (path, divisao do Kalsiddon, efeitos de fim).
+const ESPELHO_FAIXA = 10;
+const ESPELHO_TOPO = -600;
+function espelhoCruzado(espelhos, px, py, ultimo) {
+  if (!espelhos || !espelhos.length || py < ESPELHO_TOPO) return null;
+  for (const e of espelhos)
+    if (e.px !== ultimo && Math.abs(px - e.px) <= ESPELHO_FAIXA) return e.px;
+  return null;
+}
+
 // Mobile do original pelo nome do DragonBound (Fox, Barney e Electrico nao
 // existem no original e ficam com a fisica antiga).
 const mobileOriginal = (nome) => (nome && MOBILES[nome]) || null;
@@ -64,7 +77,13 @@ const mobileOriginal = (nome) => (nome && MOBILES[nome]) || null;
 function bocaDoCano(nome, tipo, x, y, look, body) {
   const mb = MOBILES[nome];
   const [A, R] = mb.boca[tipo] || mb.boca[0];
-  const incl = -Math.round(body || 0);
+  // A inclinacao do .gme (+0x1bc) e' relativa ao lado para onde o mobile olha
+  // (bico para cima positivo); o body do DragonBound e' a inclinacao do
+  // terreno no mundo (angulo de mundo = mira - body, para os dois lados).
+  // Entao incl = -body olhando para a direita e +body olhando para a esquerda:
+  // a boca gira junto com o mobile nos dois lados.
+  const r = Math.round(body || 0);
+  const incl = look === 1 ? -r : r;
   const b = look === 1 ? A + incl : 180 - A - incl;
   return { x: x + Math.trunc(cos(b) * R), y: y - Math.trunc(sen(b) * R) };
 }
@@ -88,8 +107,10 @@ class GBFlight {
   // nome: mobile do original | tipo: 0..2 | pj: {dA,dE,dF,mov,fase}
   // x0,y0: boca (px) | ang: angulo de mundo (0 dir, 90 cima) | barra: 0..400
   // windAng/windPower: como o servidor guarda (empurra para windAng + 180).
-  constructor({ nome, tipo, pj, x0, y0, ang, barra, windAng = 0, windPower = 0 }) {
+  constructor({ nome, tipo, pj, x0, y0, ang, barra, windAng = 0, windPower = 0, espelhos = null }) {
     const mb = MOBILES[nome];
+    this.espelhos = espelhos;
+    this.ultimoEspelho = null;
     pj = pj || { dA: 0, dE: 0, dF: 0, mov: "base" };
     // Kalsiddon: voa como OBullet; a divisao em teleguiados no apice e' feita
     // pelo world (Homing abaixo), que precisa do pai vivo para perseguir.
@@ -216,12 +237,10 @@ class GBFlight {
     s.vy += s.ay;
     if (this.mov === "boomer") this.boomerDepois();
     if (this.apice === null && s.vy > 0) this.apice = this.pts.length;
-    this.pts.push({
-      x: this.cx + (d ? d[0] : 0),
-      y: this.cy + (d ? d[1] : 0),
-      vx: s.vx,
-      vy: s.vy,
-    });
+    const x = this.cx + (d ? d[0] : 0), y = this.cy + (d ? d[1] : 0);
+    const e = espelhoCruzado(this.espelhos, Math.floor(x / 256), Math.floor(y / 256), this.ultimoEspelho);
+    if (e !== null) { s.vx = -s.vx; this.ultimoEspelho = e; }
+    this.pts.push({ x, y, vx: s.vx, vy: s.vy });
   }
 
   ensure(i) {
@@ -290,28 +309,36 @@ class GBFlight {
 // Porte do teleguiado() do gunbound-sim/original.js.
 class Homing {
   // x, y em 1/256 px; ang em graus de mundo; vel/curva do original
-  constructor({ x, y, ang, vel, curva, carregador }) {
+  constructor({ x, y, ang, vel, curva, carregador, espelhos = null }) {
     this.carregador = !!carregador;
+    this.espelhos = espelhos;
+    this.ultimoEspelho = null;
     this.s = {
-      x, y, h: ang * 20, vel, curva, acel: -128, dcurva: -2, cont: 0, travado: false,
+      x, y, h: ang * 20, vel, curva, acel: -128, dcurva: -2, cont: 0, ticks: 0, travado: false,
       vx: idiv(Math.trunc(cos(ang) * vel) * 512, 100),
       vy: -idiv(Math.trunc(sen(ang) * vel) * 512, 100),
     };
     this.pts = [{ x, y }];
     this.afastou = false;
   }
-  // um tick do original; alvo = {x, y} em px (posicao atual do pai)
+  // um tick do original; alvo = {x, y, caiu} em px: a posicao que o pai gravou
+  // em 0x870368 neste tick. caiu = flag da entrada (=1 so depois que o pai bate
+  // no terreno, 0x45e9a5/0x4770c9). Enquanto o pai voa o filho persegue sem
+  // prazo; o cont (limite de 41 ticks de curva) e a trava so andam depois que
+  // ele caiu (0x476240 e 0x4755ac).
   step(alvo) {
     const s = this.s;
     const antes = this.pts[this.pts.length - 1];
     s.x += s.vx;
     s.y += s.vy;
     const px = Math.floor(s.x / 256), py = Math.floor(s.y / 256);
+    const esp = espelhoCruzado(this.espelhos, px, py, this.ultimoEspelho);
+    if (esp !== null) { s.vx = -s.vx; s.h = 3600 - s.h; this.ultimoEspelho = esp; }
     if (this.carregador || s.cont < 41 || s.travado) {
       const dv = atanTab(idiv(s.vx, 100), idiv(s.vy, 100));
       const dt = atanTab(alvo.x - px, alvo.y - py);
       const dif = Math.abs(dv - dt);
-      if (!s.travado && dif * 20 < s.curva) { s.travado = true; s.dcurva = -15; }
+      if (alvo.caiu && !s.travado && dif * 20 < s.curva) { s.travado = true; s.dcurva = -15; }
       let giro = Math.min(dif * 20, s.curva);
       if ((alvo.x - px) * s.vy - (alvo.y - py) * s.vx >= 0) giro = -giro;
       s.h += giro;
@@ -324,16 +351,13 @@ class Homing {
     else s.vel += s.acel;
     s.curva = Math.max(0, Math.min(200, s.curva + s.dcurva));
     if (s.acel < 0 && s.vel < 128) { s.acel = 55; s.dcurva = 10; }
-    s.cont++;
+    if (alvo.caiu) s.cont++;
+    s.ticks++;
     this.pts.push({ x: s.x, y: s.y });
-    // encontro com o pai (o filho "morre" ao alcanca-lo). So conta depois de
-    // ter se afastado: todos nascem colados no pai.
-    const ax = Math.floor(antes.x / 256), ay = Math.floor(antes.y / 256);
-    const dx = px - ax, dy = py - ay, l2 = dx * dx + dy * dy;
-    const u = l2 ? Math.max(0, Math.min(1, ((alvo.x - ax) * dx + (alvo.y - ay) * dy) / l2)) : 0;
-    const dist = Math.hypot(ax + u * dx - alvo.x, ay + u * dy - alvo.y);
-    if (dist > 48) this.afastou = true;
-    return this.afastou && dist <= 12;
+    // No .gme (0x475220) o teleguiado nao "encontra" o pai: so termina ao
+    // bater no terreno, num jogador ou sair do mapa. Depois que o pai cai ele
+    // trava no ponto de impacto e e' la que bate.
+    return false;
   }
   // rumo atual em graus de mundo (para dividir o carregador)
   rumo() { return idiv(this.s.h, 20); }

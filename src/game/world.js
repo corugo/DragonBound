@@ -377,7 +377,7 @@ jumps:[],
           filhos.push({ ang: d + sg * div.abertura * i, vel: div.vel, curva: div.curva, image: img, damage: dano });
     }
     for (const f of filhos)
-      this.kalsFilho(shoot, { x: p.x, y: p.y }, f, cratera, shoot.stime + shoot.time * 2);
+      this.kalsFilho(shoot, { x: p.x, y: p.y }, f, cratera, shoot.stime + tickApice * 24 * 2, tickApice * 24);
     // o pai continua so como alvo: nao fere, nao cava, nao explode
     shoot.damage = null;
     shoot.pala_bunge = [0, 0];
@@ -385,7 +385,9 @@ jumps:[],
     shoot.canPlayerCollide = false;
     shoot.kalsSome = true;
   }
-  kalsFilho(pai, pos, f, cratera, stime) {
+  // offset: tempo do pai (ticks do servidor) em que o filho nasce; o alvo do
+  // tick t do filho e' a posicao do pai em offset + t*24 (rastro do pai).
+  kalsFilho(pai, pos, f, cratera, stime, offset) {
     const self = this;
     const sh = new Shoot({
       x0: Math.floor(pos.x / 256),
@@ -405,8 +407,10 @@ jumps:[],
       canPlayerCollide: !f.carregador,
       no_sound: true,
       cratera: cratera,
+      espelhos: pai.espelhos || null,
     });
     sh.homingParent = pai;
+    sh.homingOffset = offset || 0;
     sh.homingCarrier = !!f.carregador;
     self.shoots[self.shoots_count] = sh;
     self.shoots_count++;
@@ -418,8 +422,12 @@ jumps:[],
   kalsHoming(shoot) {
     if (shoot.isComplete) return;
     const hf = shoot.homingFlight;
-    if (shoot.homingCarrier && !shoot.kalsNetos && hf.s.cont >= 30) {
+    if (shoot.homingCarrier && !shoot.kalsNetos && hf.s.ticks >= 30) {
       shoot.kalsNetos = true;
+      // 0x478150: ao separar, o carregador marca +0x344 = 1 e vira um guia
+      // (como o principal depois da divisao, mas rosa: estado "open" do
+      // kalsiddonSSb). Segue como alvo dos netos e, ao bater, some sem explodir.
+      shoot.kalsGuiaEm = 30 * 24;
       const p = hf.pts[30] || hf.pts[hf.pts.length - 1];
       const r = hf.rumo();
       for (const a of [30, -30])
@@ -428,7 +436,8 @@ jumps:[],
           { x: p.x, y: p.y },
           { ang: r + a, vel: 1536, curva: 80, image: Types.BULLETS.KALSIDDONSS_TINY, damage: 110 },
           shoot.cratera || [35, 35],
-          shoot.stime + 30 * 24 * 2
+          shoot.stime + 30 * 24 * 2,
+          30 * 24
         );
     }
     if (shoot.homingEnd && shoot.time >= (hf.pts.length - 1) * 24) {
@@ -1054,6 +1063,12 @@ jumps:[],
               this.shoots_data[this.shoots_complete].path = wp;
             } else if (shoot.homingFlight) {
               this.shoots_data[this.shoots_complete].path = shoot.homingPath(shoot.time);
+              if (shoot.kalsGuiaEm)
+                this.shoots_data[this.shoots_complete].change = {
+                  at: shoot.kalsGuiaEm * 2,
+                  img: Types.BULLETS.KALSIDDONSS_MED_OPEN,
+                  exp: null,
+                };
               this.shoots_data[this.shoots_complete].no_camera = true;
             } else if (shoot.gbFlight) {
               this.shoots_data[this.shoots_complete].path =
@@ -1452,6 +1467,8 @@ jumps:[],
     }
   }
   _castWeatherMirror(shoot, force, config) {
+    // Fisica do original e teleguiados refletem dentro da propria trajetoria.
+    if (shoot.gbFlight || shoot.homingFlight) return;
     shoot.lastMirror = shoot.lastMirror ? shoot.lastMirror : null;
     shoot.countMirror = shoot.countMirror ? shoot.countMirror : 0;
     if (shoot.lastMirror !== force.px) {

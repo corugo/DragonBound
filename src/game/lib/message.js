@@ -6,6 +6,14 @@ var GBPhysics = require('./gbPhysics');
 var Messages = {};
 module.exports = Messages;
 
+// Centro do circulo de mira por tiro [angulo, distancia]. Nos mobiles do
+// original e' a boca do cano do characterdata (o mesmo ponto de onde o
+// servidor solta o tiro, GBPhysics.bocaDoCano); nos outros, o aim do DB.
+function mira(mob_data) {
+    var o = mob_data && GBPhysics.mobileOriginal(mob_data.name);
+    return o && o.boca ? o.boca : mob_data.aim;
+}
+
 // [[min, max] x3] da faixa true de cada tiro, ou null.
 function trueAngles(mob_data) {
     var o = mob_data && GBPhysics.mobileOriginal(mob_data.name);
@@ -385,12 +393,12 @@ Messages.gameStart = Message.extend({
                     player.abackground,
                     player.aforeground,
                 ],
-                mob_data.aim[0][0],//aim_s1_ang aim_s1_len aim_s2_ang aim_s2_len aim_ss_ang aim_ss_len 
-                mob_data.aim[0][1],
-                mob_data.aim[1][0],
-                mob_data.aim[1][1],
-                mob_data.aim[2][0],
-                mob_data.aim[2][1],
+                mira(mob_data)[0][0],//aim_s1_ang aim_s1_len aim_s2_ang aim_s2_len aim_ss_ang aim_ss_len 
+                mira(mob_data)[0][1],
+                mira(mob_data)[1][0],
+                mira(mob_data)[1][1],
+                mira(mob_data)[2][0],
+                mira(mob_data)[2][1],
                 player.relationship_status,
                 player.country,
                 // Faixa "true angle" por tiro (S1, S2, SS) do characterdata
@@ -454,9 +462,9 @@ Messages.gamePlay = Message.extend({
         var game_play = [Types.SERVER_OPCODE.play, [
             self.next_turn_number,
             self.player.game_position,
-            self.player.x,
-            self.player.y,
-            self.player.look,
+            self.player.shot_pos ? self.player.shot_pos.x : self.player.x,
+            self.player.shot_pos ? self.player.shot_pos.y : self.player.y,
+            self.player.shot_pos ? self.player.shot_pos.look : self.player.look,
             self.player.added_delay,
             self.nextplayer.position,
             self.chat,

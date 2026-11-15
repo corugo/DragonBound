@@ -722,6 +722,11 @@ module.exports = class Game {
     let self = this;
     let mobile_data;
     const anguloMira = ang; // angulo da mira, antes de virar angulo de mundo
+    // Posicao do atirador NO DISPARO: o pacote play e' montado depois de
+    // simular o tiro inteiro, e com player.x/y o cliente punha o atirador ja
+    // na posicao final (ex.: caido na cratera de um teleguiado que so chega
+    // segundos depois). A queda dele o cliente calcula quando o buraco surge.
+    account.player.shot_pos = { x: x, y: y, look: look };
     clearTimeout(self.turnPassClock);
     power = parseInt((power * 234) / 100);
     if (account.player.mobile == Types.MOBILE.RANDOMIZER) {
@@ -871,6 +876,10 @@ module.exports = class Game {
       // Projeteis do disparo de um mobile do original voam com a fisica dele.
       if (GBPhysics.mobileOriginal(mobile_data.name)) {
         data.gb = { nome: mobile_data.name, idx: shootId, qtd: shootData.length };
+        // espelhos ativos: a reflexao e' feita dentro da fisica do original
+        data.espelhos = ((self.weather && self.weather.active) || [])
+          .filter((f) => f && f.id === 7)
+          .map((f) => ({ px: f.px }));
       }
       if (Array.isArray(data.addOrbit) && Array.isArray(data.addOrbit[1])) {
         data.orbit = [

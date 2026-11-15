@@ -137,6 +137,7 @@ module.exports = class Shoot {
         barra: GBPhysics.barraDaForca(base.power),
         windAng: this.wind_ang,
         windPower: this.wind_power,
+        espelhos: this.espelhos || null,
       });
       // Formula fechada equivalente: e' o que os efeitos sem path desenham e o
       // que os projeteis filhos herdam (power "parent", tornado, espelho).
@@ -175,7 +176,7 @@ module.exports = class Shoot {
     }
     // Teleguiado do Kalsiddon (filho, neto ou carregador do SS)
     if (this.homing) {
-      this.homingFlight = new GBPhysics.Homing(this.homing);
+      this.homingFlight = new GBPhysics.Homing({ ...this.homing, espelhos: this.espelhos || null });
       this.v = new Vector2(0, 0);
       this.friccion = 0;
       this.weight = 0;
@@ -332,11 +333,25 @@ module.exports = class Shoot {
   }
 
   // Teleguiado: integra tick a tick perseguindo a posicao ATUAL do pai.
+  // Alvo do tick k do filho: o pai no MESMO tick (o .gme grava a posicao do
+  // pai por tick em 0x870368 e o filho persegue essa entrada); depois que o pai
+  // bate, o ponto de impacto. null = o pai ainda nao chegou nesse tempo.
+  homingAlvo(k) {
+    const p = this.homingParent;
+    if (!p) return { x: Math.floor(this.homingFlight.s.x / 256), y: Math.floor(this.homingFlight.s.y / 256), caiu: true };
+    const t = (this.homingOffset || 0) + k * 24;
+    // Pai ja bateu (principal ou carregador do SS): o alvo fica parado no
+    // ponto de impacto, que e' o que o pai deixou gravado em 0x870368.
+    if (p.isComplete && t >= p.time) return { x: p.a.x, y: p.a.y, caiu: true };
+    if (!p.isComplete && t > p.time + 24) return null;
+    const q = p.homingFlight ? p.homingPos(t) : p.getPosAtTime(t);
+    return { x: q.x, y: q.y, caiu: false };
+  }
   homingAvanca(tick) {
     const hf = this.homingFlight;
     while (hf.pts.length - 1 < tick && !this.homingEnd) {
-      const p = this.homingParent;
-      const alvo = p && p.a ? { x: p.a.x, y: p.a.y } : { x: Math.floor(hf.s.x / 256), y: Math.floor(hf.s.y / 256) };
+      const alvo = this.homingAlvo(hf.pts.length);
+      if (!alvo) break;
       if (hf.step(alvo)) this.homingEnd = "encontro";
       else if (hf.pts.length > 600) this.homingEnd = "tempo";
     }
