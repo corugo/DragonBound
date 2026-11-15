@@ -14,6 +14,12 @@ function mira(mob_data) {
     return o && o.boca ? o.boca : mob_data.aim;
 }
 
+// Andar do original: [W, H, medidor, subida] (gunboundDados.andar), ou null.
+function andar(mob_data) {
+    var o = mob_data && GBPhysics.mobileOriginal(mob_data.name);
+    return o && o.andar ? [o.andar.W, o.andar.H, o.andar.medidor, o.andar.subida] : null;
+}
+
 // [[min, max] x3] da faixa true de cada tiro, ou null.
 function trueAngles(mob_data) {
     var o = mob_data && GBPhysics.mobileOriginal(mob_data.name);
@@ -403,7 +409,8 @@ Messages.gameStart = Message.extend({
                 player.country,
                 // Faixa "true angle" por tiro (S1, S2, SS) do characterdata
                 // do GunBound original; null para mobiles sem dados.
-                trueAngles(mob_data)
+                trueAngles(mob_data),
+                andar(mob_data)
             ]);
 		});
 	//	console.log({is:"mensaje turn",data:this.players});

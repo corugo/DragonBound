@@ -70,7 +70,18 @@ module.exports = Map = cls.Class.extend({
             if (this.IsPixel(a, b)) return b - 1;
     },
 
-    GetAngle: function (a, b) {
+    // Inclinacao do GunBound original (0x463440), igual a do cliente.
+    GetAngle: function (a, b, W, H) {
+        W = W || 28; H = H || 24;
+        var y0 = b - (H >> 1), self = this;
+        var g = function (x) { var r = self.GetUnder(x, y0); return r === undefined ? 1e4 : r; };
+        var c = g(a), L = g(a - (W >> 1)), R = g(a + (W >> 1)), lim = c + H;
+        if (c >= 1e4) return 0;
+        if (L > lim) { if (R > lim) return 0; if (R < lim) L = 2 * c - R; }
+        if (R > lim && L < lim) R = 2 * c - L;
+        return Math.round(this.RadToAngle(Math.atan2(R - L, W)));
+    },
+    GetAngleAntigo: function (a, b) {
         if (this.IsPixel(a, b)) return 0;
         var c = this.GetUnder(a, b, 5);
         if (void 0 == c) return 0;

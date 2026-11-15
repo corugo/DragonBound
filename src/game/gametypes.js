@@ -356,6 +356,7 @@ Types = {
     relationship_status: 21,
     country: 22,
     trueang: 23,
+    gbmove: 24,
   },
   RECORDER_STATUS: {
     NO_INIT: 0,

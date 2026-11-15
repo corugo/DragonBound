@@ -36134,7 +36134,32 @@
           })));
     };
     var MAX_WALK_DISTANCE = 150,
-      WALK_SPEED = 50;
+      WALK_SPEED = 50,
+      // Andar do GunBound original (OCharacter 0x466230): 1 quadro a cada
+      // 48 ms. Por quadro: so anda se a inclinacao (relativa ao lado, bico
+      // para cima positivo) for menor que a subida maxima do mobile e a ponta
+      // da frente estiver livre a 30 px de altura; gasta 1 do medidor e avanca
+      // ((75 - inclinacao) * 2 + resto) / 100 px.
+      GB_WALK_FRAME_MS = 48,
+      GB_WALK_PADRAO = [28, 24, 100, 60];
+    DangerBound.prototype.GBWalkFrame = function (b, dir) {
+      var m = b.gbmove || GB_WALK_PADRAO;
+      if (this.steps >= m[2]) return !1;
+      var incl = dir == DIR_RIGHT ? -b.body : b.body;
+      if (!(incl < m[3])) return !1;
+      var ex = dir == DIR_RIGHT ? b.x + (m[0] >> 1) : b.x - (m[0] >> 1);
+      if (b.ground.IsPixel(ex, b.y - 30)) return !1;
+      this.steps++;
+      this.walkAcc = (this.walkAcc || 0) + (75 - incl) * 2;
+      var n = Math.floor(this.walkAcc / 100);
+      this.walkAcc %= 100;
+      for (var k = 0; k < n; k++) if (!b.Walk(dir)) return !1;
+      return !0;
+    };
+    DangerBound.prototype.GBWalkRest = function (b) {
+      var m = b.gbmove || GB_WALK_PADRAO;
+      return Math.max(0, 1 - this.steps / m[2]);
+    };
     DangerBound.prototype.UIWalkLeftStart = function () {
       var a = this;
       $("#btnLeft").addClass("active");
@@ -36148,33 +36173,22 @@
               d = 0;
             b.PlayAnim("move");
             this.isMobileInUserControl = !0;
+            a.walkAcc = 0;
             var e = function () {
               if (a.intervalDoLeft) {
-                var f = Math.ceil(((get_time() - c) * WALK_SPEED) / 1e3),
+                var f = Math.floor((get_time() - c) / GB_WALK_FRAME_MS),
                   h = f - d;
-                a.steps + h > MAX_WALK_DISTANCE &&
-                  (h = MAX_WALK_DISTANCE - a.steps);
-                if (a.steps >= MAX_WALK_DISTANCE)
-                  b.Look(DIR_LEFT) && b.SendLookUpdate(),
-                    a.PlayMoveSound(b.mobile_data.nmove),
+                for (var k = 0; k < h; k++)
+                  if (a.GBWalkFrame(b, DIR_LEFT))
+                    a.UpdateMines(), a.PlayMoveSound(b.mobile_data.move);
+                  else {
+                    b.Look(DIR_LEFT) && b.SendLookUpdate();
+                    a.PlayMoveSound(b.mobile_data.nmove);
                     b.PlayAnim("unmove");
-                else {
-                  for (var k = 0; k < h; k++)
-                    if (b.Walk(DIR_LEFT))
-                      a.UpdateMines(), a.PlayMoveSound(b.mobile_data.move);
-                    else {
-                      a.PlayMoveSound(b.mobile_data.nmove);
-                      b.PlayAnim("unmove");
-                      break;
-                    }
-                  h = k;
-                }
-                a.steps += h;
+                    break;
+                  }
                 d = f;
-                $("#walkBar").css(
-                  "width",
-                  round(400 - (400 * a.steps) / MAX_WALK_DISTANCE)
-                );
+                $("#walkBar").css("width", round(400 * a.GBWalkRest(b)));
                 requestAnimationFrame(e);
               }
             };
@@ -36206,33 +36220,22 @@
               d = 0;
             b.PlayAnim("move");
             this.isMobileInUserControl = !0;
+            a.walkAcc = 0;
             var e = function () {
               if (a.intervalDoRight) {
-                var f = Math.floor(((get_time() - c) * WALK_SPEED) / 1e3),
+                var f = Math.floor((get_time() - c) / GB_WALK_FRAME_MS),
                   h = f - d;
-                a.steps + h > MAX_WALK_DISTANCE &&
-                  (h = MAX_WALK_DISTANCE - a.steps);
-                if (a.steps >= MAX_WALK_DISTANCE)
-                  b.Look(DIR_RIGHT) && b.SendLookUpdate(),
-                    a.PlayMoveSound(b.mobile_data.nmove),
+                for (var k = 0; k < h; k++)
+                  if (a.GBWalkFrame(b, DIR_RIGHT))
+                    a.UpdateMines(), a.PlayMoveSound(b.mobile_data.move);
+                  else {
+                    b.Look(DIR_RIGHT) && b.SendLookUpdate();
+                    a.PlayMoveSound(b.mobile_data.nmove);
                     b.PlayAnim("unmove");
-                else {
-                  for (var k = 0; k < h; k++)
-                    if (b.Walk(DIR_RIGHT))
-                      a.UpdateMines(), a.PlayMoveSound(b.mobile_data.move);
-                    else {
-                      a.PlayMoveSound(b.mobile_data.nmove);
-                      b.PlayAnim("unmove");
-                      break;
-                    }
-                  h = k;
-                }
-                a.steps += h;
+                    break;
+                  }
                 d = f;
-                $("#walkBar").css(
-                  "width",
-                  round(400 - (400 * a.steps) / MAX_WALK_DISTANCE)
-                );
+                $("#walkBar").css("width", round(400 * a.GBWalkRest(b)));
                 requestAnimationFrame(e);
               }
             };
@@ -43112,18 +43115,30 @@
       for (c = c ? b + c : this.h; b < c; b++)
         if (this.IsPixel(a, b)) return b - 1;
     };
-    CGround.prototype.GetAngle = function (a, b) {
-      if (this.IsPixel(a, b)) return 0;
-      var c = this.GetUnder(a, b, 10);
-      if (void 0 == c || c != b) return 0;
-      for (var d = c, e = 1, f = c, h = 1, k = 1; 9 >= k; k++)
-        (c = this.GetUnder(a - k, b - 10, 20)),
-          void 0 != c && ((d += c), e++),
-          (c = this.GetUnder(a + k, b - 10, 20)),
-          void 0 != c && ((f += c), h++);
-      return Math.round(
-        RadToAngle(Math.atan2((0 < h ? f / h : b) - (0 < e ? d / e : b), 19))
-      );
+    CGround.prototype.GetAngle = function (a, b, d, e) {
+      // Inclinacao do GunBound original (0x463440): chao no centro e nas
+      // pontas (+-W/2), procurado a partir de y - H/2; ponta sem chao ate H
+      // abaixo do centro e' espelhada pela outra. W/H = campos 0/1 do
+      // characterdata (28 x 24).
+      var W = d || 28,
+        H = e || 24,
+        y0 = b - (H >> 1),
+        self = this,
+        g = function (x) {
+          var r = self.GetUnder(x, y0);
+          return void 0 == r ? 1e4 : r;
+        },
+        c = g(a),
+        L = g(a - (W >> 1)),
+        R = g(a + (W >> 1)),
+        lim = c + H;
+      if (1e4 <= c) return 0;
+      if (lim < L) {
+        if (lim < R) return 0;
+        R < lim && (L = 2 * c - R);
+      }
+      lim < R && L < lim && (R = 2 * c - L);
+      return Math.round(RadToAngle(Math.atan2(R - L, W)));
     };
     CGround.prototype.AddGroundHole = function (a, b, c, d) {
       var e,
@@ -43310,6 +43325,7 @@
       relationship_status: 21,
       country: 22,
       trueang: 23,
+      gbmove: 24,
     });
     function CPlayer(a, b, c, d, e) {
       if (void 0 == a) throw Error("CPlayer - bad arguments", a);
@@ -44037,7 +44053,7 @@
         left: a.x,
         top: a.y,
       });
-      a = this.ground.GetAngle(a.x, a.y);
+      a = this.ground.GetAngle(a.x, a.y, this.gbmove && this.gbmove[0], this.gbmove && this.gbmove[1]);
       var b = this.divMobile;
       this.body != a &&
         ((this.body = a),
@@ -44282,7 +44298,7 @@
               },
               500 / a
             )),
-            (a = this.ground.GetAngle(this.x, this.y)),
+            (a = this.ground.GetAngle(this.x, this.y, this.gbmove && this.gbmove[0], this.gbmove && this.gbmove[1])),
             a != this.body &&
               ((this.body = a),
               this.divMobile.css("rotate", this.body + "deg"),
@@ -53370,6 +53386,8 @@
     DangerBound2.prototype.UIWalkLeftStart =
       DangerBound.prototype.UIWalkLeftStart;
     DangerBound2.prototype.UIWalkLeftEnd = DangerBound.prototype.UIWalkLeftEnd;
+    DangerBound2.prototype.GBWalkFrame = DangerBound.prototype.GBWalkFrame;
+    DangerBound2.prototype.GBWalkRest = DangerBound.prototype.GBWalkRest;
     DangerBound2.prototype.UIWalkRightStart =
       DangerBound.prototype.UIWalkRightStart;
     DangerBound2.prototype.UIWalkRightEnd =
@@ -53784,18 +53802,30 @@
       for (c = c ? b + c : this.h; b < c; b++)
         if (this.IsPixel(a, b)) return b - 1;
     };
-    Ground2.prototype.GetAngle = function (a, b) {
-      if (this.IsPixel(a, b)) return 0;
-      var c = this.GetUnder(a, b, 10);
-      if (void 0 == c || c != b) return 0;
-      for (var d = c, e = 1, f = c, h = 1, k = 1; 9 >= k; k++)
-        (c = this.GetUnder(a - k, b - 10, 20)),
-          void 0 != c && ((d += c), e++),
-          (c = this.GetUnder(a + k, b - 10, 20)),
-          void 0 != c && ((f += c), h++);
-      return Math.round(
-        RadToAngle(Math.atan2((0 < h ? f / h : b) - (0 < e ? d / e : b), 19))
-      );
+    Ground2.prototype.GetAngle = function (a, b, d, e) {
+      // Inclinacao do GunBound original (0x463440): chao no centro e nas
+      // pontas (+-W/2), procurado a partir de y - H/2; ponta sem chao ate H
+      // abaixo do centro e' espelhada pela outra. W/H = campos 0/1 do
+      // characterdata (28 x 24).
+      var W = d || 28,
+        H = e || 24,
+        y0 = b - (H >> 1),
+        self = this,
+        g = function (x) {
+          var r = self.GetUnder(x, y0);
+          return void 0 == r ? 1e4 : r;
+        },
+        c = g(a),
+        L = g(a - (W >> 1)),
+        R = g(a + (W >> 1)),
+        lim = c + H;
+      if (1e4 <= c) return 0;
+      if (lim < L) {
+        if (lim < R) return 0;
+        R < lim && (L = 2 * c - R);
+      }
+      lim < R && L < lim && (R = 2 * c - L);
+      return Math.round(RadToAngle(Math.atan2(R - L, W)));
     };
     Ground2.prototype.AddGroundHole = function (a, b, c, d) {
       var e,
@@ -54108,7 +54138,7 @@
       this.ground = this.db.dragon2d.ground;
       a = ArrayToObject(
         a,
-        "n,id,name,guild,rank,x,y,hp,shield,shield_regen,minang,maxang,lastturn,mobile,avatars,aim_s1_ang,aim_s1_len,aim_s2_ang,aim_s2_len,aim_ss_ang,aim_ss_len,relationship_status,country,trueang"
+        "n,id,name,guild,rank,x,y,hp,shield,shield_regen,minang,maxang,lastturn,mobile,avatars,aim_s1_ang,aim_s1_len,aim_s2_ang,aim_s2_len,aim_ss_ang,aim_ss_len,relationship_status,country,trueang,gbmove"
       );
       a.avatars = ArrayToObject(a.avatars, "head,body,eyes,flag,bg,fg");
       delete a.avatars.bg;
@@ -54126,7 +54156,7 @@
       this.delay = this.delay_before = 0;
       this.is_alive = !0;
       this.ang = random(this.minang, this.maxang);
-      this.body = this.ground.GetAngle(this.x, this.y);
+      this.body = this.ground.GetAngle(this.x, this.y, this.gbmove && this.gbmove[0], this.gbmove && this.gbmove[1]);
       this.maxhp = this.hp;
       this.maxshield = this.shield;
       this.shield_regen = this.shield_regen;
@@ -54180,7 +54210,7 @@
                 !0,
                 250 * gSpeedAdjust
               )),
-            (a = this.ground.GetAngle(this.x, this.y)),
+            (a = this.ground.GetAngle(this.x, this.y, this.gbmove && this.gbmove[0], this.gbmove && this.gbmove[1])),
             a != this.body &&
               ((this.body = a),
               this.UpdateGuiAngle(),
@@ -54194,7 +54224,7 @@
       this.x = a.x;
       this.y = a.y;
       this.player_sprite.ChangePos(a.x, a.y);
-      a = this.ground.GetAngle(a.x, a.y);
+      a = this.ground.GetAngle(a.x, a.y, this.gbmove && this.gbmove[0], this.gbmove && this.gbmove[1]);
       this.body != a &&
         ((this.body = a),
         this.UpdateGuiAngle(),
