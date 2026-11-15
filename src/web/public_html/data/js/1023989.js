@@ -43326,6 +43326,7 @@
       country: 22,
       trueang: 23,
       gbmove: 24,
+      fullang: 25,
     });
     function CPlayer(a, b, c, d, e) {
       if (void 0 == a) throw Error("CPlayer - bad arguments", a);
@@ -53118,6 +53119,14 @@
       }
       if (!this.thor && !this.shot.is_lightning) {
         if (a >= this.shot.time) return this.Remove();
+        // Tornado do original: dentro dele indo para a esquerda o tiro passa
+        // atras do sprite (intervalos behind_at em ms, vindos do servidor).
+        if (this.shot.behind_at) {
+          for (var bt = !1, bi = 0; bi < this.shot.behind_at.length; bi++)
+            if (a >= this.shot.behind_at[bi][0] && a < this.shot.behind_at[bi][1]) bt = !0;
+          bt != !!this.shot.behind &&
+            ((this.shot.behind = bt), this.onUpdateZ && this.onUpdateZ());
+        }
         var c = this.GetPosAtTime(a),
           d = this.shot.wave ? this.zp.GetPosAtTime(a, this.shot.jumps) : c;
         if (this.trace_divs.length)
@@ -54138,7 +54147,7 @@
       this.ground = this.db.dragon2d.ground;
       a = ArrayToObject(
         a,
-        "n,id,name,guild,rank,x,y,hp,shield,shield_regen,minang,maxang,lastturn,mobile,avatars,aim_s1_ang,aim_s1_len,aim_s2_ang,aim_s2_len,aim_ss_ang,aim_ss_len,relationship_status,country,trueang,gbmove"
+        "n,id,name,guild,rank,x,y,hp,shield,shield_regen,minang,maxang,lastturn,mobile,avatars,aim_s1_ang,aim_s1_len,aim_s2_ang,aim_s2_len,aim_ss_ang,aim_ss_len,relationship_status,country,trueang,gbmove,fullang"
       );
       a.avatars = ArrayToObject(a.avatars, "head,body,eyes,flag,bg,fg");
       delete a.avatars.bg;
@@ -54176,9 +54185,18 @@
     }
     Player2.prototype.ChangedShot = function (a) {
       this.selected_shot = a;
+      // Faixa de mira por tiro (characterdata): limita a mira e redesenha.
+      this.fullang &&
+        this.fullang[a] &&
+        ((this.minang = this.fullang[a][0]),
+        (this.maxang = this.fullang[a][1]),
+        this.is_me && this.player_sprite && this.ChangeAngleTo(this.ang, !0));
       this.player_sprite &&
         this.player_sprite.SetTrueAngle &&
-        this.player_sprite.SetTrueAngle(this.trueang ? this.trueang[a] : void 0);
+        this.player_sprite.SetTrueAngle(
+          this.trueang ? this.trueang[a] : void 0,
+          this.fullang ? this.fullang[a] : void 0
+        );
       this.aim_circle_x = this.aim[a].x;
       this.aim_circle_y = this.aim[a].y;
       this.player_sprite &&
@@ -54684,14 +54702,6 @@
         (this.angMin = x),
         (this.angMax = w),
         (this.greenArea = new PIXI.Graphics()),
-        this.greenArea.lineStyle(25, 56320, 0.25),
-        this.greenArea.arc(
-          0,
-          0,
-          28,
-          AngleToRad(180 + x),
-          AngleToRad(180 + w + 3)
-        ),
         (this.greenArea.z = 12),
         this.rotate_container.addChild(this.greenArea),
         (this.trueArea = new PIXI.Graphics()),
@@ -54730,14 +54740,20 @@
     );
     // True angle (verde escuro, dano cheio) sobre a faixa toda (verde claro,
     // false angle: dano reduzido). Sem faixa: a faixa toda e' true.
-    PlayerContainer.prototype.SetTrueAngle = function (a) {
+    // a = faixa true [min, max] do tiro; f = faixa toda do tiro (sem ela, a
+    // do mobile). Arcos exatamente de min a max (sem a sobra de 3 graus).
+    PlayerContainer.prototype.SetTrueAngle = function (a, f) {
       if (this.trueArea) {
+        f && ((this.angMin = f[0]), (this.angMax = f[1]));
+        this.greenArea.clear();
+        this.greenArea.lineStyle(25, 56320, 0.25);
+        this.greenArea.arc(0, 0, 28, AngleToRad(180 + this.angMin), AngleToRad(180 + this.angMax));
         var b = a ? Math.max(a[0], this.angMin) : this.angMin,
           c = a ? Math.min(a[1], this.angMax) : this.angMax;
         this.trueArea.clear();
         b <= c &&
           (this.trueArea.lineStyle(25, 41984, 0.6),
-          this.trueArea.arc(0, 0, 28, AngleToRad(180 + b), AngleToRad(180 + c + 3)));
+          this.trueArea.arc(0, 0, 28, AngleToRad(180 + b), AngleToRad(180 + c)));
       }
     };
     PlayerContainer.prototype.SetAimCircleOffset = function (a, b) {

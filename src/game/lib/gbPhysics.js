@@ -69,6 +69,131 @@ function espelhoCruzado(espelhos, px, py, ultimo) {
   return null;
 }
 
+// Tornado (clima 8), como no .gme (OBullet [6] 0x45d5d0, varredura 0x458540):
+// entra quem cruza |x - centro| < largura/4 (metade da largura desenhada).
+// Dentro: sem gravidade nem vento, |vx| minimo de 200 (1/256 px/tick) e, ao
+// passar de uma parede (centro +- largura/4), inverte vx ate 2 vezes; na 3a
+// parede sai do tornado sem inverter e volta a fisica normal.
+function tornadoEm(tornados, px) {
+  if (!tornados) return null;
+  for (const t of tornados) {
+    const q = Math.trunc(t.size / 4);
+    if (t.px - q < px && px < t.px + q) return t;
+  }
+  return null;
+}
+// Um tick dentro do tornado: devolve false quando o projetil sai dele.
+function tornadoPasso(s, t, px) {
+  if (Math.abs(s.vx) < 200) s.vx = s.vx < 0 ? -200 : 200;
+  const q = Math.trunc(t.size / 4);
+  if (px < t.px - q || px > t.px + q) {
+    s.tornCont = (s.tornCont || 0) + 1;
+    if (s.tornCont > 2) return false;
+    s.vx = -s.vx;
+  }
+  return true;
+}
+
+// Desenho no tornado (0x45e410): dentro dele e indo para a esquerda (vx < 0)
+// o projetil e' desenhado ATRAS do tornado. Intervalos [inicioMs, fimMs] (tick
+// do original = 48 ms) a partir das marcas "atras" de cada ponto do voo.
+function intervalosAtras(pts, ticks) {
+  const out = [];
+  let ini = null;
+  const n = Math.min(pts.length - 1, Math.ceil(ticks));
+  for (let k = 0; k <= n; k++) {
+    const a = !!(pts[k] && pts[k].atras);
+    if (a && ini === null) ini = k;
+    if (!a && ini !== null) { out.push([ini * 48, k * 48]); ini = null; }
+  }
+  if (ini !== null) out.push([ini * 48, (n + 1) * 48]);
+  return out.length ? out : null;
+}
+
+// Dano do original: campo 0 do bloco do tiro no characterdata (44 + 13*t).
+// null quando o mobile nao e' do original ou o campo e' 0.
+function danoOriginal(nome, tipo) {
+  const m = nome && MOBILES[nome];
+  const v = m && m.dano && m.dano[tipo];
+  return v > 0 ? v : null;
+}
+// Nome do mobile do original de quem disparou (gb do disparo ou mobile atual).
+function nomeOriginalDe(data, Types) {
+  let nome = data && data.gb && data.gb.nome;
+  if (!nome && data && data.account && data.account.player) {
+    const mb = Types.MOBILES[data.account.player.mobile];
+    nome = mb && mb.name;
+  }
+  return nome && MOBILES[nome] ? nome : null;
+}
+
+// --- Corpo e dano do original --------------------------------------------
+// Corpo: retangulo W x H acima dos pes (c2 acima do chao), com o centro
+// deslocado de lado pela inclinacao (0x465ee0, tabela 0x5cfa28).
+const CORPO_PADRAO = { W: 28, H: 24, c2: 0, defesa: 100 };
+const corpoDe = (nome) => (nome && MOBILES[nome] && MOBILES[nome].corpo) || CORPO_PADRAO;
+const DESVIO_INCL = [0, 2, 4, 6, 9, 12, 13];
+function desvioInclinacao(body) {
+  const b = Math.round(body || 0);
+  let i = b > 0 ? Math.trunc((b + 4) / 10) : Math.trunc((-4 - b) / 10);
+  if (i > 5) i = 6;
+  const v = DESVIO_INCL[Math.max(0, i) % 7];
+  return b > 0 ? v : -v;
+}
+// 0x4647a0: o projetil (um ponto) acerta o mobile se cair no retangulo.
+function acertaCorpo(px, py, pl, corpo) {
+  const off = desvioInclinacao(pl.body);
+  const meia = corpo.W >> 1;
+  return (
+    pl.x + off - meia <= px && px <= pl.x + off + meia &&
+    pl.y - corpo.H - corpo.c2 <= py && py <= pl.y - corpo.c2
+  );
+}
+// 0x464ab0: dano de uma explosao em (ix, iy) com cratera [rx, ry] no mobile.
+// A = 2*ry e B = rx*100/ry (a mesma elipse da cratera); raio r = A/2 + 10;
+// distancia d ate o centro do corpo com o x escalado por 100/B; queda linear
+// (r - d)/r em milesimos; bonus de ate 20% se |dx| < W/2; defesa do alvo (%).
+//
+// ATENCAO - partes do 0x464ab0 que NAO estao portadas:
+//  - Ataque: o .gme multiplica o dano por (tiro+0xd0)/100 e por
+//    (100 + (tiro+0xc8)/2 + (tiro+0xc0))/100. Nao identifiquei a origem desses
+//    campos (provavelmente ataque do avatar/itens). Aqui continua o bonus do
+//    DragonBound: Shoot soma avaAttack/2 (max 50) ao dano base.
+//  - Guarda: o .gme nao tem o desconto fixo de avaGuard/2 (max 50); ele vem
+//    do DragonBound (Player.disHpShield) e continua valendo.
+//  - Defesa -20% quando o alvo tem a flag +0x4ac: ligada pelo tratador de
+//    pacotes 0x4d84d0 (provavelmente um item); origem nao identificada.
+//  - Vulnerabilidades acumuladas do alvo (+0x444..+0x45c, ate 50%): somadas a
+//    partir de um vetor que so alguns tiros passam ao 0x464ab0; nao portado.
+// Portado: ajuste de +-4 pontos na defesa pelo tipo do mobile atingido
+// (campo 35, bits 8/4/2) contra o tipo do tiro (campo 10 do bloco, bits 4/2/1).
+function danoExplosao(base, ix, iy, cratera, pl, corpo, tiroBits) {
+  if (!(base > 0) || !cratera || !(cratera[1] > 0)) return 0;
+  const ry = cratera[1], rx = cratera[0] > 0 ? cratera[0] : ry;
+  const A = 2 * ry, B = Math.max(1, Math.trunc((rx * 100) / ry));
+  const r = (A >> 1) + 10;
+  const off = desvioInclinacao(pl.body);
+  const dxBruto = Math.abs(pl.x - ix + 2 * off);
+  const dx = Math.trunc((dxBruto * 100) / B);
+  const dy = pl.y - ((corpo.H - corpo.c2) >> 1) - iy - corpo.c2;
+  const d2 = dx * dx + dy * dy;
+  if (d2 >= r * r) return 0;
+  const meia = corpo.W >> 1;
+  const bonus = Math.max(0, Math.trunc(((meia - dxBruto) * 20) / meia));
+  const queda = Math.trunc(((r - Math.sqrt(d2)) * 1000) / r);
+  let dm = Math.trunc((base * (queda + Math.trunc((bonus * queda) / 100))) / 1000);
+  let def = corpo.defesa;
+  const vt = corpo.tipo || 0, tb = tiroBits || 0;
+  if (vt & 8) { if (tb & 2) def -= 4; if (tb & 1) def += 4; }
+  if (vt & 4) { if (tb & 4) def -= 4; if (tb & 2) def += 4; }
+  if (vt & 2) { if (tb & 4) def += 4; if (tb & 1) def -= 4; }
+  dm = Math.trunc((dm * def) / 100);
+  return dm > 0 ? dm : 0;
+}
+// Tipo (bits) do tiro do mobile do original.
+const tipoTiroDe = (nome, tipo) =>
+  (nome && MOBILES[nome] && MOBILES[nome].tipoTiro && MOBILES[nome].tipoTiro[tipo]) || 0;
+
 // Mobile do original pelo nome do DragonBound (Fox, Barney e Electrico nao
 // existem no original e ficam com a fisica antiga).
 const mobileOriginal = (nome) => (nome && MOBILES[nome]) || null;
@@ -107,9 +232,11 @@ class GBFlight {
   // nome: mobile do original | tipo: 0..2 | pj: {dA,dE,dF,mov,fase}
   // x0,y0: boca (px) | ang: angulo de mundo (0 dir, 90 cima) | barra: 0..400
   // windAng/windPower: como o servidor guarda (empurra para windAng + 180).
-  constructor({ nome, tipo, pj, x0, y0, ang, barra, windAng = 0, windPower = 0, espelhos = null }) {
+  constructor({ nome, tipo, pj, x0, y0, ang, barra, windAng = 0, windPower = 0, espelhos = null, tornados = null }) {
     const mb = MOBILES[nome];
     this.espelhos = espelhos;
+    this.tornados = tornados && tornados.length ? tornados : null;
+    this.torn = null;
     this.ultimoEspelho = null;
     pj = pj || { dA: 0, dE: 0, dF: 0, mov: "base" };
     // Kalsiddon: voa como OBullet; a divisao em teleguiados no apice e' feita
@@ -233,14 +360,24 @@ class GBFlight {
     this.cx += s.vx;
     this.cy += s.vy;
     const d = this.desvio();
-    s.vx += s.ax;
-    s.vy += s.ay;
+    if (this.tornados) {
+      const pcx = Math.floor(this.cx / 256);
+      if (!this.torn) {
+        this.torn = tornadoEm(this.tornados, pcx);
+        if (this.torn) s.tornCont = 0;
+      }
+      if (this.torn && !tornadoPasso(s, this.torn, pcx)) this.torn = null;
+    }
+    if (!this.torn) {
+      s.vx += s.ax;
+      s.vy += s.ay;
+    }
     if (this.mov === "boomer") this.boomerDepois();
     if (this.apice === null && s.vy > 0) this.apice = this.pts.length;
     const x = this.cx + (d ? d[0] : 0), y = this.cy + (d ? d[1] : 0);
     const e = espelhoCruzado(this.espelhos, Math.floor(x / 256), Math.floor(y / 256), this.ultimoEspelho);
     if (e !== null) { s.vx = -s.vx; this.ultimoEspelho = e; }
-    this.pts.push({ x, y, vx: s.vx, vy: s.vy });
+    this.pts.push({ x, y, vx: s.vx, vy: s.vy, atras: !!this.torn && s.vx < 0 });
   }
 
   ensure(i) {
@@ -309,9 +446,11 @@ class GBFlight {
 // Porte do teleguiado() do gunbound-sim/original.js.
 class Homing {
   // x, y em 1/256 px; ang em graus de mundo; vel/curva do original
-  constructor({ x, y, ang, vel, curva, carregador, espelhos = null }) {
+  constructor({ x, y, ang, vel, curva, carregador, espelhos = null, tornados = null }) {
     this.carregador = !!carregador;
     this.espelhos = espelhos;
+    this.tornados = tornados && tornados.length ? tornados : null;
+    this.torn = null;
     this.ultimoEspelho = null;
     this.s = {
       x, y, h: ang * 20, vel, curva, acel: -128, dcurva: -2, cont: 0, ticks: 0, travado: false,
@@ -334,7 +473,15 @@ class Homing {
     const px = Math.floor(s.x / 256), py = Math.floor(s.y / 256);
     const esp = espelhoCruzado(this.espelhos, px, py, this.ultimoEspelho);
     if (esp !== null) { s.vx = -s.vx; s.h = 3600 - s.h; this.ultimoEspelho = esp; }
-    if (this.carregador || s.cont < 41 || s.travado) {
+    // Tornado (0x475220): dentro dele o teleguiado nao faz curva, so quica.
+    if (this.tornados) {
+      if (!this.torn) {
+        this.torn = tornadoEm(this.tornados, px);
+        if (this.torn) s.tornCont = 0;
+      }
+      if (this.torn && !tornadoPasso(s, this.torn, px)) this.torn = null;
+    }
+    if (!this.torn && (this.carregador || s.cont < 41 || s.travado)) {
       const dv = atanTab(idiv(s.vx, 100), idiv(s.vy, 100));
       const dt = atanTab(alvo.x - px, alvo.y - py);
       const dif = Math.abs(dv - dt);
@@ -353,7 +500,7 @@ class Homing {
     if (s.acel < 0 && s.vel < 128) { s.acel = 55; s.dcurva = 10; }
     if (alvo.caiu) s.cont++;
     s.ticks++;
-    this.pts.push({ x: s.x, y: s.y });
+    this.pts.push({ x: s.x, y: s.y, atras: !!this.torn && s.vx < 0 });
     // No .gme (0x475220) o teleguiado nao "encontra" o pai: so termina ao
     // bater no terreno, num jogador ou sair do mapa. Depois que o pai cai ele
     // trava no ponto de impacto e e' la que bate.
@@ -377,6 +524,14 @@ const anguloFalso = (nome, tipo, ang) => {
 const kalsDivisao = (tipo) => MOBILES.Kalsiddon.tiros[tipo][0].div;
 
 module.exports = {
+  tipoTiroDe,
+  corpoDe,
+  desvioInclinacao,
+  acertaCorpo,
+  danoExplosao,
+  danoOriginal,
+  nomeOriginalDe,
+  intervalosAtras,
   FALSE_ANGLE_DAMAGE,
   anguloFalso,
   Homing,

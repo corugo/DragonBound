@@ -138,6 +138,7 @@ module.exports = class Shoot {
         windAng: this.wind_ang,
         windPower: this.wind_power,
         espelhos: this.espelhos || null,
+        tornados: this.tornados || null,
       });
       // Formula fechada equivalente: e' o que os efeitos sem path desenham e o
       // que os projeteis filhos herdam (power "parent", tornado, espelho).
@@ -152,6 +153,20 @@ module.exports = class Shoot {
       // DragonBound (addAtMaxT "bulets") saem.
       if (this.gbFlight.kals && Array.isArray(this.addAtMaxT))
         this.addAtMaxT = this.addAtMaxT.filter((k) => k !== "bulets");
+      // No .gme o principal do Kalsiddon (OCarriorBullet) so some sem explodir
+      // DEPOIS de dividir; se bater antes, explode e cava como um tiro comum.
+      if (this.gbFlight.kals && this.damage == null) {
+        const cr = (GBPhysics.MOBILES.Kalsiddon.cratera || [])[this.type] || [39, 32];
+        this.damage = this.type === 0 ? 120 : 110;
+        this.pala_bunge = [cr[0], cr[1]];
+        this.explode = Types.EXPLODE.KALSIDDON;
+      }
+      // Dano do original por projetil. Quem causa o dano por outro objeto
+      // (andadores do Raon/Frog, relampagos do Lightning) nao fere direto.
+      const dn = GBPhysics.danoOriginal(gb.nome, this.type);
+      const fim = Array.isArray(this.addAtEnd) ? this.addAtEnd : [];
+      if (fim.includes("walk") || fim.includes("lightning")) this.damage = null;
+      else if (dn && (this.gbFlight.kals || typeof this.damage === "number")) this.damage = dn;
       // Cratera do original (characterdata, "Hard Impact" 0x447ae0): elipse de
       // raio y = A/2 e raio x = (A/2)*B/100. So onde o DragonBound ja cava com o
       // proprio projetil; nos demais o buraco vem de um efeito filho.
@@ -176,7 +191,7 @@ module.exports = class Shoot {
     }
     // Teleguiado do Kalsiddon (filho, neto ou carregador do SS)
     if (this.homing) {
-      this.homingFlight = new GBPhysics.Homing({ ...this.homing, espelhos: this.espelhos || null });
+      this.homingFlight = new GBPhysics.Homing({ ...this.homing, espelhos: this.espelhos || null, tornados: this.tornados || null });
       this.v = new Vector2(0, 0);
       this.friccion = 0;
       this.weight = 0;

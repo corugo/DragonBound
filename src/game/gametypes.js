@@ -357,6 +357,7 @@ Types = {
     country: 22,
     trueang: 23,
     gbmove: 24,
+    fullang: 25,
   },
   RECORDER_STATUS: {
     NO_INIT: 0,

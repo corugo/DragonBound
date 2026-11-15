@@ -880,6 +880,10 @@ module.exports = class Game {
         data.espelhos = ((self.weather && self.weather.active) || [])
           .filter((f) => f && f.id === 7)
           .map((f) => ({ px: f.px }));
+        // tornados ativos: [centro, largura desenhada]
+        data.tornados = ((self.weather && self.weather.active) || [])
+          .filter((f) => f && f.id === 8)
+          .map((f) => ({ px: f.px, size: f.power }));
       }
       if (Array.isArray(data.addOrbit) && Array.isArray(data.addOrbit[1])) {
         data.orbit = [

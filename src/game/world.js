@@ -368,10 +368,12 @@ jumps:[],
     const filhos = [];
     if (div.ss) {
       for (const a of [30, -30, 90, -90])
-        filhos.push({ ang: d + a, vel: 1536, curva: 80, carregador: true, image: IMG.KALSIDDONSS_MED, damage: null });
+        // carregador: antes de separar (tick 30) explode ao bater, como um tiro
+        // comum (0x4770d0 so some sem explodir com +0x344 = 1)
+        filhos.push({ ang: d + a, vel: 1536, curva: 80, carregador: true, image: IMG.KALSIDDONSS_MED, damage: GBPhysics.danoOriginal("Kalsiddon", 2) || 110 });
     } else {
       const img = shoot.type === 1 ? IMG.KALSIDDON2_TINY : IMG.KALSIDDON1_TINY;
-      const dano = shoot.type === 1 ? 110 : 120;
+      const dano = GBPhysics.danoOriginal("Kalsiddon", shoot.type) || (shoot.type === 1 ? 110 : 120);
       for (let i = 1; i <= div.pares; i++)
         for (const sg of [1, -1])
           filhos.push({ ang: d + sg * div.abertura * i, vel: div.vel, curva: div.curva, image: img, damage: dano });
@@ -401,13 +403,14 @@ jumps:[],
       is: "homing",
       homing: { x: pos.x, y: pos.y, ang: f.ang, vel: f.vel, curva: f.curva, carregador: !!f.carregador },
       damage: f.damage,
-      pala_bunge: f.carregador ? [0, 0] : [cratera[0], cratera[1]],
+      pala_bunge: [cratera[0], cratera[1]],
       image: f.image,
-      explode: f.carregador ? null : Types.EXPLODE.KALSIDDON,
-      canPlayerCollide: !f.carregador,
+      explode: Types.EXPLODE.KALSIDDON,
+      canPlayerCollide: true,
       no_sound: true,
       cratera: cratera,
       espelhos: pai.espelhos || null,
+      tornados: pai.tornados || null,
     });
     sh.homingParent = pai;
     sh.homingOffset = offset || 0;
@@ -428,13 +431,17 @@ jumps:[],
       // (como o principal depois da divisao, mas rosa: estado "open" do
       // kalsiddonSSb). Segue como alvo dos netos e, ao bater, some sem explodir.
       shoot.kalsGuiaEm = 30 * 24;
+      shoot.damage = null;
+      shoot.pala_bunge = [0, 0];
+      shoot.explode = null;
+      shoot.canPlayerCollide = false;
       const p = hf.pts[30] || hf.pts[hf.pts.length - 1];
       const r = hf.rumo();
       for (const a of [30, -30])
         this.kalsFilho(
           shoot,
           { x: p.x, y: p.y },
-          { ang: r + a, vel: 1536, curva: 80, image: Types.BULLETS.KALSIDDONSS_TINY, damage: 110 },
+          { ang: r + a, vel: 1536, curva: 80, image: Types.BULLETS.KALSIDDONSS_TINY, damage: GBPhysics.danoOriginal("Kalsiddon", 2) || 110 },
           shoot.cratera || [35, 35],
           shoot.stime + 30 * 24 * 2,
           30 * 24
@@ -631,7 +638,11 @@ jumps:[],
                 let timxx = shoot.time * 2;
                 let fullcollide = false;
                 let areacollide = false;
-                let x11 = player.box.isColliding(shoot.box);
+                // Corpo do original (0x4647a0): retangulo W x H acima dos pes,
+                // deslocado pela inclinacao; o projetil e' um ponto.
+                const _mobAlvo = Types.MOBILES[player.mobile];
+                const corpo = GBPhysics.corpoDe(_mobAlvo && _mobAlvo.name);
+                let x11 = GBPhysics.acertaCorpo(shoot.a.x, shoot.a.y, player, corpo) ? 0 : 1;
                 let distf = {
                   x: Math.sqrt(Math.pow(player.x - shoot.a.x, 2) + 0),
                   y: Math.sqrt(0 + Math.pow(player.y - shoot.a.y, 2)),
@@ -689,12 +700,24 @@ jumps:[],
                   } else if (shoot.damage == null && shoot.canPlayerCollide) {
                     shoot.isComplete = true;
                     shoot.damageComplete = true;
-                  } else if (
-                    distf.x <= shoot.bunge_jc[0] &&
-                    distf.y <= shoot.bunge_jc[1]
-                  ) {
-                    dm -= distf.t / 2;
-                    areacollide = true;
+                  } else if (typeof dm === "number") {
+                    // Dano do original (0x464ab0): elipse da cratera + 10 px,
+                    // queda linear ate o centro do corpo, bonus de ate 20% no
+                    // meio do corpo e defesa do mobile atingido. Vale tambem
+                    // para o acerto direto (a explosao e' no ponto do acerto).
+                    // ATENCAO: o bonus de ataque (Shoot: +avaAttack/2) e a
+                    // guarda (Player.disHpShield: -avaGuard/2) sao do
+                    // DragonBound; os multiplicadores de ataque do .gme
+                    // (tiro+0xd0, +0xc0, +0xc8) nao foram identificados.
+                    // Detalhes em GBPhysics.danoExplosao.
+                    const _cr =
+                      shoot.bunge_jc && shoot.bunge_jc[1] > 0 ? shoot.bunge_jc : [10, 10];
+                    const _tb = GBPhysics.tipoTiroDe(GBPhysics.nomeOriginalDe(shoot, Types), shoot.type);
+                    const _v = GBPhysics.danoExplosao(dm, shoot.a.x, shoot.a.y, _cr, player, corpo, _tb);
+                    if (_v > 0) {
+                      dm = _v;
+                      areacollide = true;
+                    } else if (fullcollide) dm = 0;
                   }
                   if (fullcollide || areacollide) {
                     /** @Begin add Shoots */
@@ -1063,6 +1086,8 @@ jumps:[],
               this.shoots_data[this.shoots_complete].path = wp;
             } else if (shoot.homingFlight) {
               this.shoots_data[this.shoots_complete].path = shoot.homingPath(shoot.time);
+              this.shoots_data[this.shoots_complete].behind_at =
+                GBPhysics.intervalosAtras(shoot.homingFlight.pts, shoot.time / 24);
               if (shoot.kalsGuiaEm)
                 this.shoots_data[this.shoots_complete].change = {
                   at: shoot.kalsGuiaEm * 2,
@@ -1073,6 +1098,8 @@ jumps:[],
             } else if (shoot.gbFlight) {
               this.shoots_data[this.shoots_complete].path =
                 shoot.gbFlight.clientPath(shoot.time);
+              this.shoots_data[this.shoots_complete].behind_at =
+                GBPhysics.intervalosAtras(shoot.gbFlight.pts, shoot.time / 24);
               this.shoots_data[this.shoots_complete].orbit = undefined;
               this.shoots_data[this.shoots_complete].wave = undefined;
               // Projeteis que oscilam em volta do voo (laser do Raon, orbita do
@@ -1328,6 +1355,8 @@ jumps:[],
     });
   }
   _castWeatherTornado(shoot, force, config) {
+    // Fisica do original e teleguiados tratam o tornado dentro da trajetoria.
+    if (shoot.gbFlight || shoot.homingFlight) return;
     const v = shoot.getVelocityAtTime(shoot.time);
     // 1º contato com ESTE tornado (entrando de fora OU lançado de dentro):
     // captura a velocidade de entrada e já gera uma bala RETA (sem gravidade,
@@ -1803,6 +1832,13 @@ jumps:[],
       // 0x484fb0 chamam 0x435da0(.., 2) quando o impacto cai numa coluna do
       // clima, objetos 0x1f6 testados em 0x458680): raio 14 x 10.
       pala_bunge: data.is === "weatherLightning" ? [14, 10] : [28, 20],
+      // Dano do relampago no original: bloco SS do Lightning (0x435da0 usa
+      // sempre ele); o do clima e' a metade (escala 2).
+      ...(data.is === "weatherLightning"
+        ? {}
+        : GBPhysics.nomeOriginalDe(data, Types) === "Lightning"
+        ? { damage: GBPhysics.danoOriginal("Lightning", 2) }
+        : {}),
     });
     //	console.log({soy:"ligt",data:{...shootConfig,...data.config}});
     self.shoots_data[self.shoots_complete].isStage = true;
@@ -1824,6 +1860,12 @@ jumps:[],
       is: "digger",
     };
     shootConfig = { ...shootConfig, ...data.config };
+    // Broca do Nak S2: o dano do tiro no original fica com ela.
+    {
+      const nome = GBPhysics.nomeOriginalDe(data, Types);
+      const v = nome && GBPhysics.danoOriginal(nome, data.type);
+      if (v && typeof shootConfig.damage === "number") shootConfig.damage = v;
+    }
     if ((shootConfig.power = "parent")) shootConfig.power = data.power;
     self.shoots[self.shoots_count] = new Shoot(shootConfig);
     self.shoots_count++;
@@ -1932,6 +1974,12 @@ jumps:[],
   addwalk(data) {
     // Cratera do andador: a do tiro no original (o andador e' a continuacao do
     // projetil), senao a da config do DragonBound.
+    // Dano do andador: o do tiro no original (o andador e' quem fere).
+    function danoAndador(d, c) {
+      const nome = GBPhysics.nomeOriginalDe(d, Types);
+      const v = nome && GBPhysics.danoOriginal(nome, d.type);
+      return v || (c.damage != null ? c.damage : d.damage);
+    }
     function craterAndador(d, c) {
       const GB = require("./lib/gbPhysics");
       // Segmentos refletidos (tornado/espelho) nao carregam o gb: cai no
@@ -1979,7 +2027,7 @@ jumps:[],
         dir: dir,
         type: data.type,
         account: data.account,
-        damage: cfg.damage != null ? cfg.damage : data.damage,
+        damage: danoAndador(data, cfg),
         pala_bunge: craterAndador(data, cfg),
         image: cfg.image,
         explode: cfg.explode != null ? cfg.explode : EXPLODE_PADRAO[cfg.image] != null ? EXPLODE_PADRAO[cfg.image] : Types.EXPLODE.RAON2,
@@ -2003,7 +2051,7 @@ jumps:[],
       map: self.map,
       dir: dir,
       walk_max: cfg.walk_max || 150,
-      damage: cfg.damage != null ? cfg.damage : data.damage,
+      damage: danoAndador(data, cfg),
       pala_bunge: craterAndador(data, cfg),
       image: cfg.image,
       explode: cfg.explode != null ? cfg.explode : EXPLODE_PADRAO[cfg.image] != null ? EXPLODE_PADRAO[cfg.image] : Types.EXPLODE.RAON2,

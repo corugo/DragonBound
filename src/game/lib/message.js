@@ -20,6 +20,12 @@ function andar(mob_data) {
     return o && o.andar ? [o.andar.W, o.andar.H, o.andar.medidor, o.andar.subida] : null;
 }
 
+// [[min, max] x3] da faixa toda de cada tiro (characterdata), ou null.
+function fullAngles(mob_data) {
+    var o = mob_data && GBPhysics.mobileOriginal(mob_data.name);
+    return o && o.mira ? o.mira : null;
+}
+
 // [[min, max] x3] da faixa true de cada tiro, ou null.
 function trueAngles(mob_data) {
     var o = mob_data && GBPhysics.mobileOriginal(mob_data.name);
@@ -410,7 +416,8 @@ Messages.gameStart = Message.extend({
                 // Faixa "true angle" por tiro (S1, S2, SS) do characterdata
                 // do GunBound original; null para mobiles sem dados.
                 trueAngles(mob_data),
-                andar(mob_data)
+                andar(mob_data),
+                fullAngles(mob_data)
             ]);
 		});
 	//	console.log({is:"mensaje turn",data:this.players});

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Validação do mostrador de mira</title>
+<style>
+  body { margin: 0; background: #2a2f36; color: #e8e8e8; font: 13px system-ui, sans-serif; }
+  h1 { font-size: 16px; margin: 12px 16px 4px; }
+  p { margin: 4px 16px 10px; color: #b9c0c8; max-width: 1100px; }
+  #grade { display: grid; grid-template-columns: 150px repeat(5, 200px); gap: 6px; padding: 0 16px 16px; }
+  .rot { display: flex; align-items: center; font-weight: 600; }
+  .cab { text-align: center; font-weight: 600; padding-bottom: 2px; }
+  canvas { background: #5d6b78; border-radius: 4px; }
+  .leg span { display: inline-block; margin-right: 14px; }
+  .sw { display: inline-block; width: 10px; height: 10px; vertical-align: middle; margin-right: 4px; border-radius: 2px; }
+</style>
+</head>
+<body>
+<h1>Mostrador de mira — mesma montagem do cliente (PlayerContainer)</h1>
+<p>Cada quadro reproduz o desenho do cliente: o mostrador fica na boca do cano do .gme, gira com a inclinação (body) e espelha pelo lado.
+Por cima, em graus de MUNDO (0 = direita, 90 = cima): o transferidor branco e os marcadores onde as bordas das faixas DEVEM cair
+(olhando à direita: mundo = mira − body; à esquerda: mundo = 180 − mira − body, a mesma conta do servidor).
+A seta aponta para a mira de teste indicada no título da coluna.</p>
+<p class="leg">
+  <span><i class="sw" style="background:#00dc00;opacity:.5"></i>faixa toda (false angle)</span>
+  <span><i class="sw" style="background:#00a400"></i>faixa true</span>
+  <span><i class="sw" style="background:#ff40ff"></i>borda esperada da faixa toda</span>
+  <span><i class="sw" style="background:#ffd400"></i>borda esperada da faixa true</span>
+  <span><i class="sw" style="background:#fff"></i>chão (inclinação)</span>
+</p>
+<div id="grade"></div>
+<script>
+// Dados do characterdata (gunboundDados.js): boca [A, R], faixa toda e faixa true do tiro.
+const MOBILES = [
+  { nome: "Armor S1", boca: [46, 30], mira: [10, 55], true: [25, 40] },
+  { nome: "Armor S2", boca: [46, 30], mira: [15, 50], true: [27, 38] },
+  { nome: "Boomer", boca: [75, 38], mira: [10, 90], true: [35, 65] },
+  { nome: "Ice S1", boca: [54, 50], mira: [20, 70], true: [30, 60] },
+  { nome: "Grub S1", boca: [55, 38], mira: [30, 60], true: [35, 55] },
+  { nome: "Trico S1", boca: [60, 38], mira: [10, 50], true: [20, 40] },
+  { nome: "Nak (de costas)", boca: [140, 33], mira: [130, 170], true: [130, 170] },
+];
+// Casos: lado (0 = esquerda, 1 = direita), body (graus, positivo = desce para a direita) e mira de teste.
+const CASOS = [
+  { look: 0, body: 0, rot: "esq., plano" },
+  { look: 1, body: 0, rot: "dir., plano" },
+  { look: 1, body: 20, rot: "dir., body +20" },
+  { look: 0, body: 20, rot: "esq., body +20" },
+  { look: 1, body: -25, rot: "dir., body −25" },
+];
+const R = (d) => (d * Math.PI) / 180;
+const img = new Image();
+img.src = "game_stuff.png";
+img.onload = () => {
+  const grade = document.getElementById("grade");
+  grade.appendChild(Object.assign(document.createElement("div"), { className: "cab" }));
+  for (const c of CASOS) grade.appendChild(Object.assign(document.createElement("div"), { className: "cab", textContent: c.rot }));
+  for (const m of MOBILES) {
+    grade.appendChild(Object.assign(document.createElement("div"), { className: "rot", textContent: m.nome }));
+    for (const c of CASOS) {
+      const cv = document.createElement("canvas");
+      cv.width = 200; cv.height = 200;
+      grade.appendChild(cv);
+      desenha(cv.getContext("2d"), m, c);
+    }
+  }
+};
+
+function desenha(ctx, m, c) {
+  const W = 200, cx = 100, cy = 140; // ponto do jogador (x, y do servidor)
+  const mira = Math.round((m.true[0] + m.true[1]) / 2); // mira de teste: meio da faixa true
+  // chao com a inclinacao do body
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(R(c.body));
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-90, 1); ctx.lineTo(90, 1); ctx.stroke();
+  ctx.fillStyle = "#c33"; ctx.fillRect(-14, -14, 28, 14); // corpo do mobile (W = 28)
+  ctx.restore();
+
+  // ---- montagem do cliente: rotate_container (rotation = body, scale.x = esquerda ? 1 : -1)
+  const aim = { x: Math.cos(R(m.boca[0])) * m.boca[1], y: -Math.sin(R(m.boca[0])) * m.boca[1] };
+  ctx.save();
+  ctx.translate(cx, cy); ctx.rotate(R(c.body)); ctx.scale(c.look === 0 ? 1 : -1, 1);
+  ctx.translate(-aim.x, aim.y); // SetAimCircleOffset
+  ctx.drawImage(img, 483, 116, 86, 86, -43, -43, 86, 86); // aimCircle (SD)
+  // greenArea: faixa toda, alfa 0.25
+  ctx.lineWidth = 25; ctx.strokeStyle = "rgba(0,220,0,0.25)";
+  ctx.beginPath(); ctx.arc(0, 0, 28, R(180 + m.mira[0]), R(180 + m.mira[1])); ctx.stroke();
+  // trueArea: alfa 0.6
+  const tmin = Math.max(m.true[0], m.mira[0]), tmax = Math.min(m.true[1], m.mira[1]);
+  ctx.strokeStyle = "rgba(0,164,0,0.6)";
+  ctx.beginPath(); ctx.arc(0, 0, 28, R(180 + tmin), R(180 + tmax)); ctx.stroke();
+  // seta: triangulo (6,-3)-(29,0)-(6,3) com rotation 180 + mira
+  ctx.save(); ctx.rotate(R(180 + mira)); ctx.fillStyle = "#e00000";
+  ctx.beginPath(); ctx.moveTo(6, -3); ctx.lineTo(29, 0); ctx.lineTo(6, 3); ctx.closePath(); ctx.fill(); ctx.restore();
+  ctx.restore();
+
+  // ---- verificacao em coordenadas de MUNDO
+  const sx = c.look === 0 ? 1 : -1;
+  // centro do mostrador no mundo: aplica R(body) * S ao offset (-aim.x, aim.y)
+  const lx = sx * -aim.x, ly = aim.y;
+  const gx = cx + lx * Math.cos(R(c.body)) - ly * Math.sin(R(c.body));
+  const gy = cy + lx * Math.sin(R(c.body)) + ly * Math.cos(R(c.body));
+  const mundo = (a) => (c.look === 1 ? a : 180 - a) - c.body; // conta do servidor (game.gameShoot)
+  // transferidor
+  ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.fillStyle = "#fff"; ctx.lineWidth = 1; ctx.font = "9px sans-serif";
+  for (let t = -60; t <= 240; t += 10) {
+    const r1 = t % 30 === 0 ? 44 : 47, r2 = 52;
+    ctx.beginPath();
+    ctx.moveTo(gx + Math.cos(R(t)) * r1, gy - Math.sin(R(t)) * r1);
+    ctx.lineTo(gx + Math.cos(R(t)) * r2, gy - Math.sin(R(t)) * r2); ctx.stroke();
+    if (t % 30 === 0) ctx.fillText(String(((t % 360) + 360) % 360), gx + Math.cos(R(t)) * 60 - 7, gy - Math.sin(R(t)) * 60 + 3);
+  }
+  // marcadores esperados
+  const marca = (a, cor) => {
+    const t = mundo(a);
+    ctx.strokeStyle = cor; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(gx + Math.cos(R(t)) * 12, gy - Math.sin(R(t)) * 12);
+    ctx.lineTo(gx + Math.cos(R(t)) * 44, gy - Math.sin(R(t)) * 44); ctx.stroke();
+  };
+  marca(m.mira[0], "#ff40ff"); marca(m.mira[1], "#ff40ff");
+  marca(m.true[0], "#ffd400"); marca(m.true[1], "#ffd400");
+  ctx.fillStyle = "#fff"; ctx.font = "11px sans-serif";
+  ctx.fillText("mira " + mira + "° → mundo " + mundo(mira) + "°", 6, 194);
+}
+</script>
+</body>
+</html>
