@@ -25596,6 +25596,7 @@
         MOBILE.MAGE,
         MOBILE.TURTLE,
         MOBILE.BOOMER,
+        MOBILE.RAON,
         MOBILE.RANDOM,
       ];
 
@@ -37071,7 +37072,7 @@
             ));
         }
       }, b.GetTimeLeft());
-      if (a.img == BULLETS.RAON1)
+      if (a.img == BULLETS.RAON1 && !a.no_sound)
         for (h = 1; 8 > h; h++)
           (b = {
             img: a.img,

@@ -73,11 +73,14 @@ function bocaDoCano(nome, tipo, x, y, look, body) {
 const barraDaForca = (power) => Math.max(0, Math.round(power / 2.34));
 
 // Composicao do tiro no original para o projetil `idx` de um tiro com `qtd`
-// projeteis no DragonBound. So vale quando as contagens batem; senao, o
-// projetil voa como OBullet comum e mantem os desvios do DragonBound.
+// projeteis no DragonBound. Vale quando as contagens batem, ou quando o
+// original tem um projetil so (Armor S2: o DragonBound faz o impacto duplo do
+// ODoubleBullet com 2 projeteis identicos). Senao, o projetil voa como OBullet
+// comum e mantem os desvios do DragonBound.
 function projetilOriginal(nome, tipo, idx, qtd) {
   const lista = MOBILES[nome].tiros[tipo] || [];
   if (lista.length === qtd && lista[idx]) return { ...lista[idx], casou: true };
+  if (lista.length === 1) return { ...lista[0], casou: true };
   return { dA: 0, dE: 0, dF: 0, mov: "base", casou: false };
 }
 

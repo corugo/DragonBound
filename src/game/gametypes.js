@@ -1265,23 +1265,6 @@ Types.MOBILES = [
             },
           ],
         },
-        {
-          addtime: 600,
-          damage: null,
-
-          image: Types.BULLETS.ADUKA2,
-          explode: null,
-          weight: 392,
-          friccion: 0,
-          addAtEnd: ["thor"],
-          thor: [
-            {
-              pala_bunge: [30, 20],
-              explode: Types.EXPLODE.ADUKA1_THOR,
-              damage: 80,
-            },
-          ],
-        },
       ],
       [
         {
@@ -3048,130 +3031,57 @@ Types.MOBILES = [
     hp: 1000,
     shoots: [
       [
+        // GunBound original: 1 OFireBall com forca +10. Dano total mantido (4 x 80).
         {
           delay: 250,
           addtime: 0,
-          damage: 80,
+          damage: 320,
           pala_bunge: [40, 30],
           image: Types.BULLETS.DRAGON2_1,
           explode: Types.EXPLODE.DRAGON2_1,
           weight: 396,
           friccion: 0,
-        },
-        {
-          addtime: 100,
-          damage: 80,
-          pala_bunge: [40, 30],
-          image: Types.BULLETS.DRAGON2_1,
-          explode: Types.EXPLODE.DRAGON2_1,
-          weight: 396,
-          friccion: 0,
-          modifiers: {
-            y0: -10,
-            ang: 4,
-            power: 10,
-          },
-        },
-        {
-          addtime: 200,
-          damage: 80,
-          pala_bunge: [40, 30],
-          image: Types.BULLETS.DRAGON2_2,
-          explode: Types.EXPLODE.DRAGON2_2,
-          weight: 396,
-          friccion: 0,
-          modifiers: {
-            y0: -10,
-            ang: -2,
-            power: -10,
-          },
-        },
-        {
-          addtime: 300,
-          damage: 80,
-          pala_bunge: [40, 30],
-          image: Types.BULLETS.DRAGON2_2,
-          explode: Types.EXPLODE.DRAGON2_2,
-          weight: 396,
-          friccion: 0,
-          modifiers: {
-            y0: -10,
-            ang: 6,
-            power: 20,
-          },
         },
       ],
       [
+        // GunBound original: 4 OFireBall, angulo +-1 x forca +-50 (os desvios
+        // vem de lib/gunboundDados.js). Dano total mantido (6 x 90 = 540).
         {
           delay: 400,
           addtime: 0,
-          damage: 90,
+          damage: 135,
           pala_bunge: [40, 30],
           image: Types.BULLETS.DRAGON2_2,
           explode: Types.EXPLODE.DRAGON2_2,
           weight: 396,
-          friccion: 0,
+          friccion: 0, // A+1, F+50
         },
         {
           addtime: 0,
-          damage: 90,
+          damage: 135,
           pala_bunge: [40, 30],
           image: Types.BULLETS.DRAGON2_2,
           explode: Types.EXPLODE.DRAGON2_2,
           weight: 396,
-          friccion: 0,
-          modifiers: {
-            ang: 5,
-            power: 15,
-          },
-        },
-        {
-          addtime: 0,
-          damage: 90,
-          pala_bunge: [40, 30],
-          image: Types.BULLETS.DRAGON2_2,
-          explode: Types.EXPLODE.DRAGON2_2,
-          weight: 396,
-          friccion: 0,
-          modifiers: {
-            ang: 10,
-            power: 30,
-          },
+          friccion: 0, // A+1, F-50
         },
         {
           addtime: 100,
-          damage: 90,
+          damage: 135,
           pala_bunge: [40, 30],
           image: Types.BULLETS.DRAGON2_2,
           explode: Types.EXPLODE.DRAGON2_2,
           weight: 396,
-          friccion: 0,
+          friccion: 0, // A-1, F+50
         },
         {
           addtime: 100,
-          damage: 90,
+          damage: 135,
           pala_bunge: [40, 30],
           image: Types.BULLETS.DRAGON2_2,
           explode: Types.EXPLODE.DRAGON2_2,
           weight: 396,
-          friccion: 0,
-          modifiers: {
-            ang: 5,
-            power: 15,
-          },
-        },
-        {
-          addtime: 100,
-          damage: 90,
-          pala_bunge: [40, 30],
-          image: Types.BULLETS.DRAGON2_2,
-          explode: Types.EXPLODE.DRAGON2_2,
-          weight: 396,
-          friccion: 0,
-          modifiers: {
-            ang: 10,
-            power: 30,
-          },
+          friccion: 0, // A-1, F-50
         },
       ],
       [
@@ -3281,15 +3191,37 @@ Types.MOBILES = [
     hp: 1000,
     shoots: [
       [
+        // Composicao do GunBound original: 1 reto + 2 ORayonLaser (fases 0 e
+        // 180) oscilando 13 px em volta dele. Dano total do tiro mantido (150).
         {
           delay: 250,
           addtime: 0,
-          damage: 150,
+          damage: 50,
           pala_bunge: [58, 58],
           image: Types.BULLETS.RAON1,
           explode: Types.EXPLODE.RAON1,
           weight: 398,
           friccion: 0,
+        },
+        {
+          addtime: 0,
+          damage: 50,
+          pala_bunge: [58, 58],
+          image: Types.BULLETS.RAON1,
+          explode: Types.EXPLODE.RAON1,
+          weight: 398,
+          friccion: 0,
+          no_sound: true, // sem som repetido nem rastro de copias no cliente
+        },
+        {
+          addtime: 0,
+          damage: 50,
+          pala_bunge: [58, 58],
+          image: Types.BULLETS.RAON1,
+          explode: Types.EXPLODE.RAON1,
+          weight: 398,
+          friccion: 0,
+          no_sound: true,
         },
       ],
       [
