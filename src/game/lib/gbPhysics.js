@@ -339,10 +339,22 @@ class Homing {
   rumo() { return idiv(this.s.h, 20); }
 }
 
+// True/False angle: o characterdata traz, por tiro, a faixa de mira toda e a
+// faixa "true" (campos 3-6 / 9-12 / 15-18). Fora da true o tiro sai com dano
+// reduzido; o percentual nao foi achado no .gme, 20% vem dos guias da epoca.
+const FALSE_ANGLE_DAMAGE = 0.8;
+const anguloFalso = (nome, tipo, ang) => {
+  const m = mobileOriginal(nome);
+  const f = m && m.miraTrue && m.miraTrue[tipo];
+  return !!f && (ang < f[0] || ang > f[1]);
+};
+
 // Parametros da divisao do Kalsiddon por tiro (gunboundDados).
 const kalsDivisao = (tipo) => MOBILES.Kalsiddon.tiros[tipo][0].div;
 
 module.exports = {
+  FALSE_ANGLE_DAMAGE,
+  anguloFalso,
   Homing,
   kalsDivisao,
   atanTab,

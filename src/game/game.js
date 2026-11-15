@@ -721,6 +721,7 @@ module.exports = class Game {
   gameShoot(x, y, body, look, ang, power, time, type, account) {
     let self = this;
     let mobile_data;
+    const anguloMira = ang; // angulo da mira, antes de virar angulo de mundo
     clearTimeout(self.turnPassClock);
     power = parseInt((power * 234) / 100);
     if (account.player.mobile == Types.MOBILE.RANDOMIZER) {
@@ -731,6 +732,10 @@ module.exports = class Game {
     } else {
       mobile_data = Types.MOBILES[account.player.mobile];
     }
+    // False angle: fora da faixa true do tiro o dano sai reduzido (world.js).
+    account.player._falseAngle = !!(
+      mobile_data && GBPhysics.anguloFalso(mobile_data.name, type, anguloMira)
+    );
     let dis = 0;
     if (look === 0) {
       ang = 180 - ang;

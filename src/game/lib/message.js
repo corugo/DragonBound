@@ -2,8 +2,15 @@ var cls = require('./class');
 var Types = require('../gametypes');
 var Logger = require('./logger');
 const { shuffle } = require('underscore');
+var GBPhysics = require('./gbPhysics');
 var Messages = {};
 module.exports = Messages;
+
+// [[min, max] x3] da faixa true de cada tiro, ou null.
+function trueAngles(mob_data) {
+    var o = mob_data && GBPhysics.mobileOriginal(mob_data.name);
+    return o && o.miraTrue ? o.miraTrue : null;
+}
 
 var Message = cls.Class.extend({});
 
@@ -385,7 +392,10 @@ Messages.gameStart = Message.extend({
                 mob_data.aim[2][0],
                 mob_data.aim[2][1],
                 player.relationship_status,
-                player.country
+                player.country,
+                // Faixa "true angle" por tiro (S1, S2, SS) do characterdata
+                // do GunBound original; null para mobiles sem dados.
+                trueAngles(mob_data)
             ]);
 		});
 	//	console.log({is:"mensaje turn",data:this.players});

@@ -43309,6 +43309,7 @@
       aim_ss_len: 20,
       relationship_status: 21,
       country: 22,
+      trueang: 23,
     });
     function CPlayer(a, b, c, d, e) {
       if (void 0 == a) throw Error("CPlayer - bad arguments", a);
@@ -54107,7 +54108,7 @@
       this.ground = this.db.dragon2d.ground;
       a = ArrayToObject(
         a,
-        "n,id,name,guild,rank,x,y,hp,shield,shield_regen,minang,maxang,lastturn,mobile,avatars,aim_s1_ang,aim_s1_len,aim_s2_ang,aim_s2_len,aim_ss_ang,aim_ss_len,relationship_status,country"
+        "n,id,name,guild,rank,x,y,hp,shield,shield_regen,minang,maxang,lastturn,mobile,avatars,aim_s1_ang,aim_s1_len,aim_s2_ang,aim_s2_len,aim_ss_ang,aim_ss_len,relationship_status,country,trueang"
       );
       a.avatars = ArrayToObject(a.avatars, "head,body,eyes,flag,bg,fg");
       delete a.avatars.bg;
@@ -54145,6 +54146,9 @@
     }
     Player2.prototype.ChangedShot = function (a) {
       this.selected_shot = a;
+      this.player_sprite &&
+        this.player_sprite.SetTrueAngle &&
+        this.player_sprite.SetTrueAngle(this.trueang ? this.trueang[a] : void 0);
       this.aim_circle_x = this.aim[a].x;
       this.aim_circle_y = this.aim[a].y;
       this.player_sprite &&
@@ -54647,8 +54651,10 @@
         a && (this.aimCircle.scale.x = this.aimCircle.scale.y = 0.5),
         (this.aimCircle.z = -3),
         this.rotate_container.addChild(this.aimCircle),
+        (this.angMin = x),
+        (this.angMax = w),
         (this.greenArea = new PIXI.Graphics()),
-        this.greenArea.lineStyle(25, 56320, 0.5),
+        this.greenArea.lineStyle(25, 56320, 0.25),
         this.greenArea.arc(
           0,
           0,
@@ -54658,11 +54664,19 @@
         ),
         (this.greenArea.z = 12),
         this.rotate_container.addChild(this.greenArea),
-        (this.angle = new PIXI.Sprite(
-          GetTexture(g_gameStuffImageURL, b.pArwX, b.pArwY, b.pArwW, b.pArwH)
-        )),
-        (this.angle.anchor.x = this.angle.anchor.y = 0.5),
-        a && (this.angle.scale.x = this.angle.scale.y = 0.5),
+        (this.trueArea = new PIXI.Graphics()),
+        (this.trueArea.z = 12),
+        this.rotate_container.addChild(this.trueArea),
+        this.SetTrueAngle(),
+        // Seta do angulo como no GunBound original: triangulo vermelho fino
+        // saindo do centro do circulo e apontando para o angulo.
+        (this.angle = new PIXI.Graphics()),
+        this.angle.beginFill(14680064, 1),
+        this.angle.moveTo(6, -3),
+        this.angle.lineTo(29, 0),
+        this.angle.lineTo(6, 3),
+        this.angle.lineTo(6, -3),
+        this.angle.endFill(),
         (this.angle.rotation = AngleToRad(180 + u)),
         (this.angle.z = 13),
         this.rotate_container.addChild(this.angle),
@@ -54684,11 +54698,24 @@
     PlayerContainer.prototype = Object.create(
       PIXI.DisplayObjectContainer.prototype
     );
+    // True angle (verde escuro, dano cheio) sobre a faixa toda (verde claro,
+    // false angle: dano reduzido). Sem faixa: a faixa toda e' true.
+    PlayerContainer.prototype.SetTrueAngle = function (a) {
+      if (this.trueArea) {
+        var b = a ? Math.max(a[0], this.angMin) : this.angMin,
+          c = a ? Math.min(a[1], this.angMax) : this.angMax;
+        this.trueArea.clear();
+        b <= c &&
+          (this.trueArea.lineStyle(25, 41984, 0.6),
+          this.trueArea.arc(0, 0, 28, AngleToRad(180 + b), AngleToRad(180 + c + 3)));
+      }
+    };
     PlayerContainer.prototype.SetAimCircleOffset = function (a, b) {
       this.aimCircle.x = -a;
       this.aimCircle.y = b;
       this.greenArea.x = -a;
       this.greenArea.y = b;
+      this.trueArea && ((this.trueArea.x = -a), (this.trueArea.y = b));
       this.angle.x = -a;
       this.angle.y = b;
     };

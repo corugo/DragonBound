@@ -478,6 +478,7 @@ jumps:[],
       mineId: mine.id,
     };
     self.shoots[self.shoots_count] = new Shoot(shootConfig);
+    self.shoots[self.shoots_count].falseAngle = false;
     self.shoots_count++;
     self.shootPushData();
   }
@@ -631,6 +632,13 @@ jumps:[],
                   ),
                 };
                 let dm = shoot.damage;
+                // False angle do atirador: dano base reduzido (a mina do Raon
+                // explode em outro turno e marca falseAngle = false).
+                const anguloFalso =
+                  shoot.falseAngle !== undefined
+                    ? shoot.falseAngle
+                    : !!(shoot.account && shoot.account.player && shoot.account.player._falseAngle);
+                if (anguloFalso && typeof dm === "number") dm *= GBPhysics.FALSE_ANGLE_DAMAGE;
                 let heal = shoot.heal;
                 let shdm = 0;
 
