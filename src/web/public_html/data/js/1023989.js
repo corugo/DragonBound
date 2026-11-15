@@ -54695,7 +54695,7 @@
         // Mostrador desenhado em codigo (antes: recorte do game_stuff.png):
         // disco cinza translucido, borda clara, marcas a cada 10 graus
         // (maiores a cada 30) e eixo no centro, como no GunBound original.
-        (this.aimCircle = DesenhaMostradorMira(new PIXI.Graphics())),
+        (this.aimCircle = DesenhaMostradorMira(new PIXI.Graphics(), x, w)),
         (this.aimCircle.z = -3),
         this.rotate_container.addChild(this.aimCircle),
         (this.angMin = x),
@@ -54733,28 +54733,54 @@
       this.ion_speed = 1e3;
       DragonClock.Add(this);
     }
-    function DesenhaMostradorMira(g) {
-      var R = 42;
-      g.lineStyle(0);
-      g.beginFill(2631720, 0.38);
-      g.drawCircle(0, 0, R);
-      g.endFill();
-      g.lineStyle(2, 13421772, 0.85);
-      g.drawCircle(0, 0, R);
-      g.lineStyle(1, 13421772, 0.35);
-      g.drawCircle(0, 0, 15);
-      for (var t = 0; 360 > t; t += 10) {
-        var r1 = 0 === t % 30 ? R - 7 : R - 4,
-          c = Math.cos(AngleToRad(t)),
-          s = Math.sin(AngleToRad(t));
-        g.lineStyle(0 === t % 30 ? 1.5 : 1, 15658734, 0 === t % 30 ? 0.9 : 0.6);
-        g.moveTo(c * r1, s * r1);
-        g.lineTo(c * (R - 1), s * (R - 1));
+    // Mostrador de mira como no GunBound original: disco de "vidro" so no
+    // quadrante de 0 a 90 graus (ampliado se a faixa do mobile passar dele),
+    // linhas grandes em 0 e 90 graus, sem marcas intermediarias, e o disco
+    // sumindo aos poucos fora do quadrante. Angulos como os do arco: a = mira,
+    // desenhado em 180 + a no rotate_container.
+    function DesenhaMostradorMira(g, amin, amax) {
+      // Anel de "vidro" do mesmo raio do arco verde (15.5 a 42): miolo vazio,
+      // so no quadrante de 0 a 90 graus (ampliado se a faixa passar dele),
+      // esmaecendo fora do quadrante e no limite interno. Borda e linhas de 0
+      // e 90 graus finas e escuras.
+      var R = 42,
+        RI = 15.5,
+        a0 = Math.min(0, void 0 == amin ? 0 : amin),
+        a1 = Math.max(90, void 0 == amax ? 90 : amax),
+        rad = function (a) {
+          return AngleToRad(180 + a);
+        },
+        anel = function (r1, r2, b0, b1, cor, alfa) {
+          g.lineStyle(r2 - r1, cor, alfa);
+          g.moveTo(Math.cos(rad(b0)) * ((r1 + r2) / 2), Math.sin(rad(b0)) * ((r1 + r2) / 2));
+          g.arc(0, 0, (r1 + r2) / 2, rad(b0), rad(b1));
+        },
+        k;
+      for (k = 0; 6 > k; k++) {
+        var alfa = 0.22 * (1 - k / 6);
+        anel(RI, R, a0 - 5 * (k + 1), a0 - 5 * k, 10533064, alfa);
+        anel(RI, R, a1 + 5 * k, a1 + 5 * (k + 1), 10533064, alfa);
       }
+      anel(RI, R, a0, a1, 10533064, 0.3);
+      // esmaecimento para dentro do limite interno
+      for (k = 0; 3 > k; k++) anel(RI - 2 * (k + 1), RI - 2 * k, a0, a1, 10533064, 0.2 * (1 - k / 3));
+      // brilho do vidro perto da borda
+      anel(R - 6, R - 2, a0, a1, 16777215, 0.14);
+      // borda externa fina e escura
+      g.lineStyle(1, 2105376, 0.85);
+      g.moveTo(Math.cos(rad(a0)) * R, Math.sin(rad(a0)) * R);
+      g.arc(0, 0, R, rad(a0), rad(a1));
+      // linhas de 0 e 90 graus: finas e escuras, so no anel, esmaecendo
+      // para o centro
+      for (var ang = 0; 90 >= ang; ang += 90)
+        for (k = 0; 5 > k; k++) {
+          var q1 = R - 5.3 * k,
+            q2 = q1 - 5.3;
+          g.lineStyle(1, 2105376, 0.85 * (1 - k / 5));
+          g.moveTo(Math.cos(rad(ang)) * q1, Math.sin(rad(ang)) * q1);
+          g.lineTo(Math.cos(rad(ang)) * q2, Math.sin(rad(ang)) * q2);
+        }
       g.lineStyle(0);
-      g.beginFill(1052688, 0.8);
-      g.drawCircle(0, 0, 3);
-      g.endFill();
       return g;
     }
     PlayerContainer.constructor = PlayerContainer;

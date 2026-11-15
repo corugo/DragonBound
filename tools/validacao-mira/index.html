@@ -66,17 +66,17 @@ img.onload = () => {
   }
 };
 
-function mostrador(ctx) {
-  const R2 = 42;
-  ctx.fillStyle = "rgba(40,40,40,0.38)"; ctx.beginPath(); ctx.arc(0, 0, R2, 0, 2 * Math.PI); ctx.fill();
-  ctx.strokeStyle = "rgba(204,204,204,0.85)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R2, 0, 2 * Math.PI); ctx.stroke();
-  ctx.strokeStyle = "rgba(204,204,204,0.35)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, 15, 0, 2 * Math.PI); ctx.stroke();
-  for (let t = 0; t < 360; t += 10) {
-    const r1 = t % 30 === 0 ? R2 - 7 : R2 - 4, c = Math.cos(R(t)), s = Math.sin(R(t));
-    ctx.strokeStyle = t % 30 === 0 ? "rgba(238,238,238,0.9)" : "rgba(238,238,238,0.6)"; ctx.lineWidth = t % 30 === 0 ? 1.5 : 1;
-    ctx.beginPath(); ctx.moveTo(c * r1, s * r1); ctx.lineTo(c * (R2 - 1), s * (R2 - 1)); ctx.stroke();
-  }
-  ctx.fillStyle = "rgba(16,16,16,0.8)"; ctx.beginPath(); ctx.arc(0, 0, 3, 0, 2 * Math.PI); ctx.fill();
+function mostrador(ctx, amin, amax) {
+  // mesmo desenho do cliente (DesenhaMostradorMira)
+  const R2 = 42, RI = 15.5, a0 = Math.min(0, amin), a1 = Math.max(90, amax), rd = (a) => R(180 + a);
+  const anel = (r1, r2, b0, b1, cor) => { ctx.strokeStyle = cor; ctx.lineWidth = r2 - r1; ctx.beginPath(); ctx.arc(0, 0, (r1 + r2) / 2, rd(b0), rd(b1)); ctx.stroke(); };
+  const vid = (al) => "rgba(160,184,200," + al + ")";
+  for (let k = 0; k < 6; k++) { const al = 0.22 * (1 - k / 6); anel(RI, R2, a0 - 5 * (k + 1), a0 - 5 * k, vid(al)); anel(RI, R2, a1 + 5 * k, a1 + 5 * (k + 1), vid(al)); }
+  anel(RI, R2, a0, a1, vid(0.3));
+  for (let k = 0; k < 3; k++) anel(RI - 2 * (k + 1), RI - 2 * k, a0, a1, vid(0.2 * (1 - k / 3)));
+  anel(R2 - 6, R2 - 2, a0, a1, "rgba(255,255,255,0.14)");
+  ctx.strokeStyle = "rgba(32,32,32,0.85)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, R2, rd(a0), rd(a1)); ctx.stroke();
+  for (const a of [0, 90]) for (let k = 0; k < 5; k++) { const q1 = R2 - 5.3 * k, q2 = q1 - 5.3; ctx.strokeStyle = "rgba(32,32,32," + 0.85 * (1 - k / 5) + ")"; ctx.beginPath(); ctx.moveTo(Math.cos(rd(a)) * q1, Math.sin(rd(a)) * q1); ctx.lineTo(Math.cos(rd(a)) * q2, Math.sin(rd(a)) * q2); ctx.stroke(); }
 }
 
 function desenha(ctx, m, c) {
@@ -93,7 +93,7 @@ function desenha(ctx, m, c) {
   ctx.save();
   ctx.translate(cx, cy); ctx.rotate(R(c.body)); ctx.scale(c.look === 0 ? 1 : -1, 1);
   ctx.translate(-aim.x, aim.y); // SetAimCircleOffset
-  mostrador(ctx); // aimCircle: mesmo desenho do cliente (DesenhaMostradorMira)
+  mostrador(ctx, m.mira[0], m.mira[1]); // aimCircle: mesmo desenho do cliente (DesenhaMostradorMira)
   // greenArea: faixa toda, alfa 0.25
   ctx.lineWidth = 25; ctx.strokeStyle = "rgba(0,220,0,0.25)";
   ctx.beginPath(); ctx.arc(0, 0, 28, R(180 + m.mira[0]), R(180 + m.mira[1])); ctx.stroke();
