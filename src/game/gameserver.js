@@ -81,40 +81,40 @@ module.exports = class GameServer {
             parseInt(account.player.gameserverevent)
           );
           data.push([
-            "¡EVENTO! GP & Gold: 300% - " + w + " para finalizar.",
+            "EVENTO! GP e Gold: 300% - " + w + " para terminar.",
             "",
             17,
           ]);
         }
         if (self.evento500 === true) {
           data.push([
-            " El porcentaje de GP & Gold cambiaron a 500%",
-            "[Inicio de Evento",
+            " A porcentagem de GP e Gold mudou para 500%",
+            "[Início do Evento",
             17,
           ]);
         }
         if (self.roomGPS === true) {
-          data.push(["Desde ahora las salas menores que 5 ganan + GPS", "", 6]);
+          data.push(["A partir de agora, salas com menos de 5 jogadores ganham + GP", "", 6]);
         }
         if (self.name === "Holiday") {
           data.push([
-            " Búscame, gáname y te llevas un regalo: (gift) " +
+            " Me encontre, me vença e ganhe um presente: (gift) " +
               account.player.gifts_holiday +
-              " Regalos enviados (gift)",
+              " presentes enviados (gift)",
             "Halloween",
             5,
           ]);
           data.push([
-            " Tienes " +
+            " Você tem " +
               account.player.gm_probability +
-              " ganadas seguidas = 200% GP & Gold! Event probabilidad x" +
+              " vitórias seguidas = 200% GP e Gold! Probabilidade do evento x" +
               account.player.gm_probability,
             "",
             6,
           ]);
         } else if (self.id === 2) {
           data.push([
-            "(gift) ¡ Ya esta todo listo !, Prepárense. (party)",
+            "(gift) Está tudo pronto! Preparem-se. (party)",
             "Halloween",
             5,
           ]);
@@ -134,18 +134,18 @@ module.exports = class GameServer {
         /*data.push(['(trophy) GUILD PRIX J.D OFF | para más info: ya.mba/2pN  | 25 de Abril (trophy)', '', 9]);*/
         if (account.player.rank === 0) {
           data.push([
-            "Anota muy bien tu Pin User, te servira para distintos problemas ==-> [" +
+            "Anote bem o seu PIN de usuário, ele vai te ajudar em vários problemas ==-> [" +
               account.player.my_pin_user +
               "]",
             "",
             9,
           ]);
         }
-        data.push(["Bienvenido: " + account.player.game_id + " :)  ", "", 9]);
+        data.push(["Bem-vindo(a), " + account.player.game_id + "! :)", "", 9]);
         data.push([
-          "Hola " +
+          "Olá " +
             account.player.game_id +
-            " enteraté de nuestro nuevo (gift) Evento (gift) en => https://thorbound.com/event :)",
+            ", confira o nosso novo (gift) Evento (gift) em => https://thorbound.com/event :)",
           "",
           17,
         ]);
@@ -912,7 +912,7 @@ module.exports = class GameServer {
       TIME_MINUTE = 60 * 1e3;
     var w = void 0;
     if (((p *= 1e3), p >= MS_IN_1_DAY))
-      w = Math.ceil(p / MS_IN_1_DAY) + " días";
+      w = Math.ceil(p / MS_IN_1_DAY) + " dias";
     else if (3540000 < p) w = Math.ceil(p / MS_IN_1_HOUR) + " horas";
     else w = Math.ceil(p / TIME_MINUTE) + " minutos";
     return w;

@@ -139,3 +139,6 @@ src/web/public_html/data/ranking_data.json
 # Backups locais criados durante edicoes
 *.bak
 *.bak[0-9]
+
+# Replays gerados em runtime
+replays/*.json

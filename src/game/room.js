@@ -1059,7 +1059,7 @@ module.exports = class Room {
             if (self.game) {
 				if (self.game.turns_pass <= 6  && self.player_count == 2) {
 					self.free_kill = true;
-					self.gameserver.pushBroadcastChat(new Message.chatResponse(self, "Free Kill Detectado - No hay bonificación por victoria", Types.CHAT_TYPE.SYSTEM), self);
+					self.gameserver.pushBroadcastChat(new Message.chatResponse(self, "Free Kill detectado - sem bônus de vitória", Types.CHAT_TYPE.SYSTEM), self);
                     //.send(Types.GAMEMSG.free_kill_detected)
 				}
                 self.kick_user_time[account.player.user_id] = {
@@ -1095,15 +1095,14 @@ module.exports = class Room {
                     self.game.gamePass(account);
                 }
                     var message2 = [Types.SERVER_OPCODE.dead,account.player.position];
-                    var message3 = new Message.chatResponse(self, "Player "+account.player.game_id+" left the room.", Types.CHAT_TYPE.SYSTEM).serialize();
-                    var message4 = new Message.chatResponse(self, "Winning Bonus: Team A = %% GP, Team B = %% GP.", Types.CHAT_TYPE.SYSTEM).serialize();
+                    var message3 = new Message.chatResponse(self, "O jogador "+account.player.game_id+" saiu da sala.", Types.CHAT_TYPE.SYSTEM).serialize();
+                    // Aviso de bonus removido: ia para o chat com o "%%" literal (sem os valores).
                     //console.log(message);
                     self.forPlayers(function(account){
                         if (account !== null && typeof (account) !== 'undefined'){
                             if(account.player.is_bot === 0){
                                 account.send(message2);
                                 account.send(message3);
-                                account.send(message4);
                                 if (account.player.random_mobil === parseInt(1)) {
                                     account.player.mobile = Types.MOBILE.RANDOM;
                                 }
@@ -1122,7 +1121,7 @@ module.exports = class Room {
                                 p.player.is_master = 1;
                                 self.found_master = true;
                                 self.gameserver.pushToRoom(self.id, new Message.passMaster(p));
-                                self.gameserver.pushBroadcastChat(new Message.chatResponse(self, "Master de la sala se transfirió a "+p.player.game_id, Types.CHAT_TYPE.SYSTEM), self);
+                                self.gameserver.pushBroadcastChat(new Message.chatResponse(self, "O master da sala foi transferido para "+p.player.game_id, Types.CHAT_TYPE.SYSTEM), self);
 								
                             }
                         });

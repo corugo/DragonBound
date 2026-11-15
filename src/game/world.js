@@ -15,6 +15,39 @@ const { isArray } = require("underscore");
 require("setimmediate");
 
 // World
+// Niveis do Thor: mesma tabela do cliente (THOR_LEVEL). O thor.damage acumula
+// durante a partida e define o nivel 1..6.
+var BotChat = require("./lib/botChat");
+const THOR_LEVEL = [0, 300, 900, 1800, 3200, 6000];
+
+// Dano do raio invocado por MOBILE, por nivel do Thor (valores de referencia do
+// jogo original). O raio do CLIMA Thor NAO usa isto - ele continua com
+// thor.damage / 2.
+//   s2: dano POR RAIO (a Aduka S2 solta 3) -> total ~160 no nivel 1 a ~330 no 6
+//   ss: dano do raio unico do SS
+// O nivel 1 do ss e' estimado: a referencia nao tinha um valor confiavel e um
+// replay do jogo original mostrou 123 com o Thor em 123.
+const RAY_DAMAGE_BY_THOR = {
+  s2: [53, 62, 67, 84, 94, 110],
+  ss: [120, 150, 165, 187, 205, 225],
+};
+
+// Interpola entre os niveis em vez de dar saltos: dentro de um mesmo nivel o
+// dano cresce junto com o thor.damage (no jogo original dois SS de nivel 3
+// deram 174 e 198, conforme o Thor carregava).
+function rayDamageByThor(tabela, thorDamage) {
+  const d = typeof thorDamage === "number" && thorDamage > 0 ? thorDamage : 0;
+  let i = 0;
+  while (i + 1 < THOR_LEVEL.length && d >= THOR_LEVEL[i + 1]) i++;
+  const base = tabela[i];
+  const prox = tabela[i + 1];
+  if (prox === undefined) return base; // nivel 6: teto
+  const ini = THOR_LEVEL[i];
+  const fim = THOR_LEVEL[i + 1];
+  const t = fim > ini ? (d - ini) / (fim - ini) : 0;
+  return Math.round(base + (prox - base) * t);
+}
+
 module.exports = class World {
   constructor(game, gameserver) {
     var self = this;
@@ -271,6 +304,7 @@ jumps:[],
   shoot(noholea = false) {
     this.chat_complete = false;
     this.nohole = noholea;
+    this.shootTicks = 0;
     for (var id in this.shoots) {
       this.shootPushData();
     }
@@ -294,6 +328,11 @@ jumps:[],
         var _acc0 = this.shoots[0] ? this.shoots[0].account : null;
         var _sd = this.shoots_data.slice(0);
         var _ch = this.chat;
+        this.applyPendingDeaths();
+        // Descarta tambem os projeteis: sem isto os que causaram o estouro
+        // continuavam vivos e voltavam a ser simulados no turno seguinte.
+        this.shoots = {};
+        this.shootTicks = 0;
         this.shoots_count = 0;
         this.shoots_complete = 0;
         this.chat = [];
@@ -303,9 +342,58 @@ jumps:[],
         return;
       }
       var good_shot_message = false;
+      // Relogio do disparo atual (1 tick por update).
+      this.shootTicks = (this.shootTicks || 0) + 1;
       for (var id in this.shoots) {
         var shoot = this.shoots[id];
         if (shoot && !shoot.isComplete) {
+          // Respeita o atraso de lancamento. Ate aqui TODOS os projeteis eram
+          // simulados em paralelo desde o tick 0 e o stime so escalonava a
+          // ANIMACAO no cliente. Por isso os 3 tiros da Aduka colidiam no mesmo
+          // tick e no mesmo ponto: nenhum enxergava a cratera aberta pelo
+          // anterior. Agora cada projetil so comeca a voar quando o relogio do
+          // disparo alcanca o seu stime (stime esta na escala shoot.time * 2).
+          if (this.shootTicks * 2 < shoot.stime) continue;
+          // Raio do Thor: o cliente ja o desenha como instantaneo (o servidor
+          // reporta time = 0 para isthor). No servidor, porem, ele viajava como
+          // projetil comum: ~216 ticks do canhao ate o solo, contra apenas 100
+          // ticks de intervalo entre os tiros da Aduka. A cratera so abria depois
+          // que os carriers seguintes ja tinham caido, e os 3 acabavam no mesmo
+          // ponto. Adiantamos o raio ate a beira do impacto; o passo final fica
+          // para o fluxo normal abaixo, que cuida da cratera e do dano.
+          if (shoot.isthor && !shoot._ff) {
+            shoot._ff = true;
+            var _left =
+              self.map.field_left != null ? self.map.field_left : 0;
+            var _right =
+              self.map.field_right != null ? self.map.field_right : self.map.w;
+            var _g = 0;
+            while (_g++ < 20000) {
+              var _n = shoot.getPosAtTime(shoot.time + 1);
+              if (
+                self.map.IsPixel(_n.x, _n.y) ||
+                _n.y > self.map.h ||
+                _n.x < _left ||
+                _n.x > _right
+              )
+                break;
+              // Para tambem ao chegar perto de um jogador, para nao pular a
+              // colisao com quem estiver no caminho do feixe.
+              var _near = false;
+              self.game.room.forPlayers(function (acc) {
+                if (_near || !acc || !acc.player || acc.player.is_alive !== 1)
+                  return;
+                if (
+                  Math.abs(acc.player.x - _n.x) < 45 &&
+                  Math.abs(acc.player.y - _n.y) < 45
+                )
+                  _near = true;
+              });
+              if (_near) break;
+              shoot.time++;
+              shoot.a = _n;
+            }
+          }
           //console.log("Shoot not complete\n");
           shoot.update();
           // ForceController.cast(shoot, self.game.weather.client.active);
@@ -416,11 +504,18 @@ jumps:[],
                   if (fullcollide || areacollide) {
                     /** @Begin add Shoots */
                     if (!shoot.canPlayerCollide) {
-                      if (shoot._wait > 50 || !shoot._wait) {
+                      // UM raio por alvo. O guard antigo (_wait > 50) era um
+                      // contador global do tiro, incrementado uma vez POR JOGADOR
+                      // a cada tick: com o projetil passando devagar sobre alguem
+                      // (perto do apice) o contador estourava os 50 ainda dentro
+                      // da area e o SS da Aduka soltava 2 lasers no mesmo alvo.
+                      // Registrando quem ja foi atingido, cada jogador leva
+                      // exatamente um raio - e o SS segue varrendo os demais.
+                      if (!shoot._hitPlayers) shoot._hitPlayers = {};
+                      if (!shoot._hitPlayers[player.user_id]) {
+                        shoot._hitPlayers[player.user_id] = true;
                         self.addAtCollide(shoot);
-                        shoot._wait = 0;
-                        shoot._wait++;
-                      } else shoot._wait++;
+                      }
                     }
                     if (areacollide && shoot.area) {
                       shoot.a = {
@@ -559,8 +654,14 @@ jumps:[],
                         ];
                       }
 
-                      if (player.hp <= 0) {
-                        player.setAlive(0);
+                      // Nao mata na hora: o personagem fica em campo ate o ULTIMO
+                      // tiro da rodada terminar, para tomar (e acumular) os demais
+                      // hits. Sem isto a Aduka matando no 1o dos 6 raios do dual
+                      // fazia o alvo sumir e os outros 5 passavam direto.
+                      // O kill entra no placar so uma vez, aqui.
+                      if (player.hp <= 0 && !player.pending_death) {
+                        player.pending_death = true;
+                        BotChat.onKill(shoot.account, player, self.game && self.game.room);
                         self.bonos.kills.push([
                           player.game_position,
                           true,
@@ -590,6 +691,7 @@ jumps:[],
                       player.is_alive = 0;
                       player.setAlive(0);
                       player.cause_by = shoot.account.player.game_id;
+                      BotChat.onKill(shoot.account, player, self.game && self.game.room);
                       self.chat.push(Types.GAMEMSG.bunge_bonus);
                       self.chat.push(Types.GAMEMSG.x_bunge_y);
                       self.chat.push(player.game_position);
@@ -700,8 +802,15 @@ jumps:[],
               shoot.ay ? shoot.ay : shoot.weight
             );
             this.shoots_data[this.shoots_complete].s.push(shoot.stime);
-            this.shoots_data[this.shoots_complete].exp =
-              shoot.account.player.TELEPORT == 1 ? 7 : shoot.explode; //EXPLODE
+            // Tiro que saiu da tela nao explode. O cliente chama CreateExplode
+            // (que toca AudioPlay do som de impacto) sempre que um tiro completa;
+            // sem zerar o exp aqui, a bala perdida na parede da sala fazia o som
+            // de impacto - mesma raiz do raio da Aduka disparando fora da tela.
+            this.shoots_data[this.shoots_complete].exp = shoot._outOfBounds
+              ? null
+              : shoot.account.player.TELEPORT == 1
+              ? 7
+              : shoot.explode; //EXPLODE
             this.shoots_data[this.shoots_complete].thor = shoot.isthor;
             this.shoots_data[this.shoots_complete].img =
               shoot.account.player.TELEPORT == 1 ? 10 : shoot.image; //BULLETS
@@ -727,15 +836,32 @@ jumps:[],
             this.shoots_data[this.shoots_complete].no_rotate = shoot.no_rotate;
             this.shoots_data[this.shoots_complete].camera = shoot.camera;
             this.shoots_data[this.shoots_complete].behind = shoot.behind;
+            this.shoots_data[this.shoots_complete].no_sound = shoot.no_sound;
+            // Efeitos visuais de clima (Force/Lightning/Black) sao detectados
+            // durante o voo, mas o slot correto so e conhecido AGORA. Antes eram
+            // gravados em shoots_data[shoots_complete], que aponta para o proximo
+            // projetil a terminar: com mobiles multi-projetil (Aduka S2 = 3,
+            // Bigfoot/Dragon SS = 8, Boomer S2 = 4, e Dual dobrando tudo) o efeito
+            // caia no slot errado e era sobrescrito pelos projeteis seguintes.
+            if (shoot._weatherTr)
+              this.shoots_data[this.shoots_complete].tr = shoot._weatherTr;
+            if (shoot._weatherBlackAt != null)
+              this.shoots_data[this.shoots_complete].black_at =
+                shoot._weatherBlackAt;
             this.shoots_data[this.shoots_complete].s.push(shoot.image);
             this.shoots_data[this.shoots_complete].time = shoot.isthor
               ? 0
               : shoot.time * 2;
             this.shoots_data[this.shoots_complete].ss = shoot.ss;
 
-            self.addAtMaxT(shoot);
-            self.addAtEnd(shoot);
-            self.addAtTime(shoot);
+            // Segmento apenas refletido (tornado/espelho) nao dispara os efeitos
+            // de fim: eles migraram para o proximo segmento em _carryEndEffects.
+            // Tiro que saiu da tela tambem nao dispara: ele se perdeu, nao acertou.
+            if (!shoot._continues && !shoot._outOfBounds) {
+              self.addAtMaxT(shoot);
+              self.addAtEnd(shoot);
+              self.addAtTime(shoot);
+            }
             self.addWeatherDamage(shoot);
 
             //	console.log("====================== Final Shoot ============================")
@@ -746,6 +872,8 @@ jumps:[],
         }
       }
       if (this.shoots_count <= this.shoots_complete) {
+        // Todos os tiros terminaram: agora quem ficou sem vida sai de campo.
+        this.applyPendingDeaths();
         this.shoots_count = 0;
         this.shoots_complete = 0;
         this.updateTicks = 0;
@@ -878,6 +1006,19 @@ jumps:[],
       });
     });
   }
+  // Efetiva as mortes que ficaram pendentes durante a rodada.
+  applyPendingDeaths() {
+    var self = this;
+    if (!self.game || !self.game.room) return;
+    self.game.room.forPlayers(function (account) {
+      if (!account || !account.player) return;
+      if (account.player.pending_death) {
+        account.player.pending_death = false;
+        account.player.setAlive(0);
+      }
+    });
+  }
+
   checkCollision(shoot) {
     let self = this;
     //	console.log({isCollider:self.map.IsPixel(shoot.a.x, shoot.a.y)})
@@ -913,6 +1054,10 @@ jumps:[],
       // campo, por isso o projétil viaja pela margem até a borda da tela.
       // Mantido um teto de tempo (dobrado) como salvaguarda contra loop.
       shoot.isComplete = true;
+      // Sair da tela NAO e' acertar: o tiro se perde. Sem esta marca os efeitos
+      // de fim disparavam mesmo assim - o raio da Aduka caia como se ela tivesse
+      // atingido alguma coisa.
+      shoot._outOfBounds = true;
       /*	console.log({
 				is:"check collision",
 				condicionA	: (self.map.IsPixel(shoot.a.x, shoot.a.y) && !shoot.groundCollide && shoot.canMapCollide && shoot.is != "digger"),
@@ -926,18 +1071,19 @@ jumps:[],
   //Aqui empieza las balas de weathers
 
   checkWeatersCast(shoot) {
-    // O laser do Thor é um feixe reto: passa direto, não é afetado pelo clima (tornado, etc.).
+    // O raio do Thor nao sofre clima nenhum: nem desvio (tornado/espelho) nem
+    // dano (Force/Black). Isso vale tanto para o raio do clima Thor quanto para
+    // o invocado por mobiles - e o motivo de a Aduka S2 ser imune a Force/Black:
+    // seus 3 projeteis tem damage null (nao ferem) e todo o dano vem do raio.
     if (shoot.isthor) return;
     this.game.weather.active.forEach((force) => {
       if (force.isCollide(shoot.a.x)) {
         for (const cast in force.cast) {
-          if (Array.isArray(force.cast[cast]))
-            this["_castWeather" + force.cast[cast][0]](
-              shoot,
-              force,
-              force.cast[cast][1]
-            );
-          else this["_castWeather" + force.cast[cast]](shoot, force);
+          const isArr = Array.isArray(force.cast[cast]);
+          const castName = isArr ? force.cast[cast][0] : force.cast[cast];
+          if (isArr)
+            this["_castWeather" + castName](shoot, force, force.cast[cast][1]);
+          else this["_castWeather" + castName](shoot, force);
         }
       }
     });
@@ -1008,6 +1154,24 @@ jumps:[],
       }
     }
   }
+  // Um tiro refletido (tornado/espelho) NAO acabou: ele segue no proximo
+  // segmento. Os efeitos de fim (addAtEnd - ex.: o raio invocado por cada
+  // projetil da Aduka) precisam viajar junto, senao disparam no ponto de
+  // ENTRADA do tornado e o dano cai longe de onde a bala terminou na tela.
+  _carryEndEffects(shoot) {
+    // Migra os 3 hooks de fim e o que cada um referencia:
+    //   addAtEnd  -> thor (Aduka), lightning (Lightning/Electrico),
+    //                ion (Asate/Knight/Dragon2), digger (Nak), walk (Raon/Frog)
+    //   addAtMaxT -> change/bulets (Armor/Turtle/Boomer SS, Kalsiddon)
+    for (const hook of ["addAtEnd", "addAtMaxT", "addAtTime"]) {
+      const list = shoot[hook];
+      if (Array.isArray(list) && list.length) {
+        shoot.config[hook] = list;
+        for (const k of list) shoot.config[k] = shoot[k];
+      }
+    }
+    shoot._continues = true;
+  }
   _castWeatherMirrorTornado(shoot, force, config) {
     shoot.lastMirror = shoot.lastMirror ? shoot.lastMirror : null;
     shoot.countMirror = shoot.countMirror ? shoot.countMirror : 0;
@@ -1037,7 +1201,15 @@ jumps:[],
                 explode: shoot.explode,
                 weight: isExit ? w : 0,
                 friccion: isExit ? fr : 0,
-                camera: true, // câmera segue a bala pelo tornado até o fim do trajeto
+                // Foco de camera: o cliente segue apenas o PRIMEIRO tiro do turno
+                // (slot 0 de shoots_data). Só a cadeia de segmentos dessa bala
+                // herda o foco - se todo segmento forçasse camera, com mobiles
+                // multi-projetil (Aduka = 3) a camera ficaria pulando entre elas.
+                camera: shoot.camera === true || this.shoots_complete === 0,
+                // Cada segmento e um Shot novo no cliente e o construtor chama
+                // PlaySound() - sem isto o tiro parece ser disparado de novo a
+                // cada quicada dentro do tornado.
+                no_sound: true,
                 lastMirror: force.px,
                 countMirror: shoot.countMirror + 1,
                 stime: shoot.stime + shoot.time * 2,
@@ -1045,7 +1217,10 @@ jumps:[],
         };
         shoot.damage = null;
         shoot.explode = null;
-        if (shoot.config.countMirror < 10) this.addbulets(shoot);
+        if (shoot.config.countMirror < 10) {
+            this._carryEndEffects(shoot);
+            this.addbulets(shoot);
+        }
         else {
             this.addGroundHole(shoot);
             shoot.groundCollide = true;
@@ -1073,6 +1248,14 @@ jumps:[],
           explode: shoot.explode,
           weight: shoot.weight,
           friccion: shoot.friccion,
+          // Cada reflexao vira um Shot novo no cliente, cujo construtor chama
+          // PlaySound(). Sem isto o tiro parece ser disparado de novo a cada
+          // quicada no espelho (mesmo caso do tornado).
+          no_sound: true,
+          // O segmento refletido e um Shot NOVO: sem herdar o foco, a camera
+          // largava a bala ao bater no espelho. Só a cadeia da bala que o
+          // cliente ja seguia (slot 0) propaga o foco.
+          camera: shoot.camera === true || this.shoots_complete === 0,
           lastMirror: force.px,
           countMirror: shoot.countMirror + 1,
           stime: shoot.stime + shoot.time * 2,
@@ -1081,7 +1264,10 @@ jumps:[],
       shoot.damage = null;
       shoot.explode = null;
       //	console.log("is mirror",{shoot:shoot})
-      if (shoot.config.countMirror < 10) this.addbulets(shoot);
+      if (shoot.config.countMirror < 10) {
+        this._carryEndEffects(shoot);
+        this.addbulets(shoot);
+      }
       else {
         this.addGroundHole(shoot);
         shoot.groundCollide = true;
@@ -1089,6 +1275,12 @@ jumps:[],
     }
   }
   _castWeatherLightning(shoot, force, config) {
+    // Um raio NAO pode invocar outro raio. O raio nasce em x = ponto de impacto
+    // e cai vertical sobre ele - ou seja, dentro da propria faixa do clima. Sem
+    // este guard ele ganharia "lightning" no addAtEnd, geraria outro raio, e
+    // assim indefinidamente (o guard shoot.is nao pega, pois cada raio e um
+    // Shoot novo com is indefinido).
+    if (shoot.isLightning) return;
     if (shoot.is !== "weatherLightning") {
       //	console.log({shoot:shoot,include:shoot.addAtEnd.includes("lightning")})
       shoot.is = "weatherLightning";
@@ -1096,7 +1288,7 @@ jumps:[],
         ? shoot.addAtEnd
         : shoot.addAtEnd.concat(["lightning"]);
       shoot.lightning = [config];
-      this.shoots_data[this.shoots_complete].tr = [50, 0, shoot.time * 2, 200];
+      shoot._weatherTr = [50, 0, shoot.time * 2, 200];
     }
   }
   _castWeatherSun(shoot, force, config) {
@@ -1112,7 +1304,7 @@ jumps:[],
         const sum_step = pointer_step === 0 ? 0 : pointer_step === 1 ? 40 : 50;
         shot_step.push(time_lapse + sum_step);
       }
-      this.shoots_data[this.shoots_complete].tr = [
+      shoot._weatherTr = [
         51,
         3,
         time * 2,
@@ -1120,8 +1312,11 @@ jumps:[],
         shot_step,
       ];
 
-      // Increase damage by 50%
-      shoot.damage = shoot.damage * 1.5;
+      // Force (+50%). So multiplica dano NUMERICO: damage null identifica o
+      // projetil que nao causa dano direto (ex.: os 3 da Aduka S2, que so
+      // invocam raios). Como 0 == null e falso, vira-lo 0 quebraria a checagem
+      // de checkCollision e o projetil passaria a aplicar dano espurio.
+      if (typeof shoot.damage === "number") shoot.damage = shoot.damage * 1.5;
     }
   }
   _castWeatherBlack(shoot, force, config) {
@@ -1129,10 +1324,10 @@ jumps:[],
       const { time } = shoot;
       shoot.is = "weatherBlack";
       // shoot.addAtEnd	= shoot.addAtEnd.includes("black")?shoot.addAtEnd:shoot.addAtEnd.concat(["black"])
-      this.shoots_data[this.shoots_complete].black_at = time * 2;
+      shoot._weatherBlackAt = time * 2;
 
-      // Reduce damage by 50%
-      shoot.damage = shoot.damage * 0.5;
+      // Black (-50%), mesmo cuidado com damage null do Force acima.
+      if (typeof shoot.damage === "number") shoot.damage = shoot.damage * 0.5;
     }
   }
 
@@ -1237,6 +1432,20 @@ jumps:[],
   }
   addthor(data) {
     var self = this;
+    // O raio de MOBILE escala com o nivel do Thor, como no jogo original, mas
+    // numa escala MUITO menor que a do raio do clima. Antes o S2 fixava 80
+    // (damage na config, sem progressao) e o SS usava modifiers, que SOMAM ao
+    // thor.damage/2: com o Thor em 2917 isso virou 1658 num unico golpe.
+    // Agora ambos vem de RAY_DAMAGE_BY_THOR, interpolado pelo nivel.
+    var cfg = data.config || {};
+    var isSS = !!(cfg.modifiers && cfg.modifiers.damage != null);
+    var isMobileRay = cfg.damage != null || isSS;
+    var mobileRayDamage = isMobileRay
+      ? rayDamageByThor(
+          isSS ? RAY_DAMAGE_BY_THOR.ss : RAY_DAMAGE_BY_THOR.s2,
+          self.game.thor.damage
+        )
+      : null;
     self.game.thor.angle =
       (-Math.atan2(data.a.y - self.game.thor.y, data.a.x - self.game.thor.x) *
         180) /
@@ -1253,11 +1462,23 @@ jumps:[],
       shootId: data.shootId,
       thorId: data.config.iD,
       isthor: true,
-      damage: self.game.thor.damage / 2,
+      damage: isMobileRay ? mobileRayDamage : self.game.thor.damage / 2,
     };
+    // Sem isto o merge devolveria o damage fixo (S2) ou somaria o modifier (SS)
+    // por cima do valor que acabamos de calcular. Copia rasa: data.config e' o
+    // objeto compartilhado do gametypes e nao pode ser mutado.
+    var mergedCfg = data.config;
+    if (isMobileRay) {
+      mergedCfg = { ...data.config };
+      delete mergedCfg.damage;
+      if (mergedCfg.modifiers) {
+        mergedCfg.modifiers = { ...mergedCfg.modifiers };
+        delete mergedCfg.modifiers.damage;
+      }
+    }
     self.shoots[self.shoots_count] = new Shoot({
       ...shootConfig,
-      ...data.config,
+      ...mergedCfg,
     });
     self.shoots_data[self.shoots_complete].isStage = true;
     self.shoots_count++;

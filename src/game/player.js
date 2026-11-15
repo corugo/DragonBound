@@ -61,6 +61,17 @@ module.exports = class Player {
         this.avaShieldRegen = 0;
         this.shield = 0;
         this.shield_regen = 0;
+        // Modo SCORE: true enquanto o jogador esta morto com o painel de revive
+        // aberto. Ele ainda conta como "vivo" para o fim de jogo - o time so cai
+        // quando ninguem esta em campo nem aguardando volta.
+        this.awaiting_revive = false;
+        // Morte adiada: sem vida, mas ainda em campo ate a rodada terminar.
+        this.pending_death = false;
+        // Modo SCORE: ponto marcado e turno em que o jogador volta ao jogo.
+        this.revive_x = null;
+        this.revive_y = null;
+        this.revive_turn = null;
+        this.revive_deadline = null;
         this.hp = 1000;
 
         // Validation of avatars
@@ -343,13 +354,21 @@ module.exports = class Player {
             total_guard = 50;
         }
     
-        // Reduce the damage directly by the total_guard value
-        const reducedHp = hp - total_guard;
-        const reducedShield = sh - total_guard;
+        // O guard REDUZ o dano recebido - nunca pode virar cura nem gerar escudo.
+        // Antes, quando sh era 0 (caso normal: o escudo ja tinha sido zerado por
+        // setShield(0) logo antes), reducedShield ficava NEGATIVO e a subtracao
+        // DEVOLVIA escudo ao alvo:  shield = 0 - (-guard) = +guard.
+        // Efeito: qualquer jogador com avaGuard > 0 ganhava um escudo permanente
+        // que reabsorvia dano a cada acerto. Num replay real isso travou o dano
+        // do raio da Aduka em 36 por hit (80 - 22 de escudo fantasma - 22 de
+        // guard), com o campo shield preso em 22 do inicio ao fim da partida.
+        const reducedHp = Math.max(0, hp - total_guard);
+        const reducedShield = Math.max(0, sh - total_guard);
     
         // Apply the reduced damage
         this.hp = this.hp - reducedHp;
         this.shield = this.shield - reducedShield;
+        if (this.shield < 0) this.shield = 0;
     
     }
 
@@ -369,10 +388,12 @@ module.exports = class Player {
         const self = this;
         const selectedMobile = Types.MOBILES[self.mobile];
 
-        if (self.is_bot) {
-            // Skip avatar-based hp calculation for bots
-            return;
-        }
+        // Em sala avatar OFF o avatar tem que ser ignorado para TODO MUNDO,
+        // inclusive bots. Antes havia um early-return aqui para bots, entao eles
+        // entravam na partida com as stats dos avatares fixos deles enquanto os
+        // humanos tinham as suas zeradas - assimetria a favor dos bots. Ex.: o bot
+        // Gilly Gamesh mantinha avaGuard 45 (= 22 de reducao em todo dano) numa
+        // sala avatar off.
 
         // Resets the avatar stats
         this.avaDelayOne = 0;

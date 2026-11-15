@@ -7,6 +7,14 @@ module.exports = Messages;
 
 var Message = cls.Class.extend({});
 
+// Tempo de jogo (ms desde o inicio da partida) usado pelo player de replay do
+// cliente. Ele agenda cada comando comparando b.time com o tempo decorrido; sem
+// esse valor no fim da mensagem, b.time virava o proprio payload, a comparacao
+// dava sempre falso e o replay executava a partida inteira de uma vez.
+function replayTime(room) {
+    return room && room.replay_start_at ? Date.now() - room.replay_start_at : 0;
+}
+
 Messages.chatResponse = Message.extend({
     init: function (account, msj, type, rank = -1) {
         this.player = account.player;
@@ -409,9 +417,14 @@ Messages.gameStart = Message.extend({
     serialize: function () {
         var game_start = [Types.SERVER_OPCODE.game_start, this.data];
         //Logger.info(this.data);
-        this.room.forPlayers(function (account) {
-            account.player.view_replay.push(JSON.stringify(game_start));
-        });
+        // pushToRoom chama serialize() uma vez POR JOGADOR; sem esta guarda o
+        // evento era gravado no replay N vezes (N = jogadores na sala).
+        if (!this._recorded) {
+            this._recorded = true;
+            this.room.forPlayers(function (account) {
+                account.player.view_replay.push(JSON.stringify(game_start));
+            });
+        }
         return game_start;
     }
 });
@@ -449,9 +462,14 @@ Messages.gamePlay = Message.extend({
 			self.account.room.game.weather.client.active,
             self.account.room.game.GetNextWeatherPos()
         ]];
-		self.account.room.forPlayers(function (account) {
-            account.player.view_replay.push(JSON.stringify(game_play));
-        });
+        if (!self._recorded) {
+            self._recorded = true;
+            var replay_play = game_play.slice();
+            replay_play.push(replayTime(self.account.room));
+            self.account.room.forPlayers(function (account) {
+                account.player.view_replay.push(JSON.stringify(replay_play));
+            });
+        }
         return game_play;
     }
 });
@@ -503,26 +521,98 @@ Messages.gameOver = Message.extend({
             scores: this.data,
             "chat": []
         }];
-		this.room.forPlayers(function (account) {
-            account.player.view_replay.push(JSON.stringify(game_over));
-        });
+        // Este timestamp tambem vira o replayEndTime (duracao total mostrada
+        // no painel). Sem ele o contador ficava em NaN:NaN / NaN:NaN.
+        if (!this._recorded) {
+            this._recorded = true;
+            var replay_over = game_over.slice();
+            replay_over.push(replayTime(this.room));
+            this.room.forPlayers(function (account) {
+                account.player.view_replay.push(JSON.stringify(replay_over));
+            });
+        }
         return game_over;
     }
 }); // ghost
 
-Messages.Ghost = Message.extend({
-    init: function (account) {
+// Modo SCORE: painel de "clique para reviver" (o cliente so precisa do aviso).
+Messages.showRevive = Message.extend({
+    init: function () {},
+    serialize: function () {
+        return [Types.SERVER_OPCODE.show_revive];
+    }
+});
+
+// Modo SCORE: fecha o painel de revive (fim de jogo).
+Messages.stopRevive = Message.extend({
+    init: function () {},
+    serialize: function () {
+        return [Types.SERVER_OPCODE.stop_revive, []];
+    }
+});
+
+// Modo SCORE: jogador voltou ao jogo. O cliente le exatamente nesta ordem:
+//   player_number, x, y, hp, shield, delay
+Messages.revived = Message.extend({
+    init: function (account, room) {
         this.player = account.player;
+        this.room = room || (account.room ? account.room : null);
     },
     serialize: function () {
-        return [
-            Types.SERVER_OPCODE.ghost, [
-                this.player.position,
+        var rev = [
+            Types.SERVER_OPCODE.revived, [
+                this.player.game_position,
                 this.player.x,
                 this.player.y,
-                this.player.look
+                this.player.hp,
+                this.player.shield,
+                this.player.delay
             ]
         ];
+        if (!this._recorded && this.room) {
+            this._recorded = true;
+            var comTempo = rev.slice();
+            comTempo.push(replayTime(this.room));
+            this.room.forPlayers(function (account) {
+                account.player.view_replay.push(JSON.stringify(comTempo));
+            });
+        }
+        return rev;
+    }
+});
+
+// O cliente le esta mensagem como: player_number, x, y, revive_turn.
+// Ela faz duas coisas de uma vez: FECHA o painel de "clique para reviver" e
+// desenha o fantasma na posicao marcada com o contador "(Return in N Turns)".
+// O 4o campo era o 'look', que o cliente interpretava como numero de turno.
+Messages.Ghost = Message.extend({
+    init: function (account, reviveTurn, room) {
+        this.player = account.player;
+        this.reviveTurn = reviveTurn;
+        this.room = room || (account.room ? account.room : null);
+    },
+    serialize: function () {
+        var ghost = [
+            Types.SERVER_OPCODE.ghost, [
+                this.player.game_position,
+                this.player.x,
+                this.player.y,
+                typeof this.reviveTurn === 'number'
+                    ? this.reviveTurn
+                    : this.player.revive_turn
+            ]
+        ];
+        // Sem gravar no replay, quem morre some e reaparece sem explicacao ao
+        // assistir - o cliente do replay tem handler para ghost/revived.
+        if (!this._recorded && this.room) {
+            this._recorded = true;
+            var comTempo = ghost.slice();
+            comTempo.push(replayTime(this.room));
+            this.room.forPlayers(function (account) {
+                account.player.view_replay.push(JSON.stringify(comTempo));
+            });
+        }
+        return ghost;
     }
 });
 

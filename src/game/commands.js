@@ -4492,7 +4492,7 @@ module.exports = class Commands {
                     self.account,
                     "Jogador: " +
                       junteall(msj) +
-                      " - Expelled By The GM: " +
+                      " - Expulso pelo GM: " +
                       self.account.player.game_id,
                     Types.CHAT_TYPE.BOT
                   )
@@ -4500,7 +4500,7 @@ module.exports = class Commands {
                 self.gameserver.chathistory.push([
                   "Jogador: " +
                     junteall(msj) +
-                    " - Expelled By The GM: " +
+                    " - Expulso pelo GM: " +
                     self.account.player.game_id,
                   self.account.player.game_id,
                   Types.CHAT_TYPE.BOT,

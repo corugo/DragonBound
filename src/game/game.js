@@ -5,6 +5,7 @@ var World = require("./world");
 var Shoot = require("./lib/shoot");
 var events = require("events");
 var thorControl = require("./lib/thorControl");
+var BotChat = require("./lib/botChat");
 var weatherControl = require("./lib/weatherControl");
 const { forEach } = require("underscore");
 
@@ -35,6 +36,18 @@ module.exports = class Game {
     this.turns_pass = 0;
     this.turns_pass_sudden = 0;
     this.sudden = 40;
+    // Modo SCORE: cada time tem um saldo de pontos; cada morte consome 1 e o
+    // jogador revive. Zera o saldo = derrota. Definido no start(), quando ja se
+    // sabe quantos jogadores cada time tem.
+    this.score_points = { 0: 0, 1: 0 };
+    // 4 pontos por time (nao escala com o numero de jogadores).
+    this.SCORE_TEAM_POINTS = 4;
+    // Turnos entre MARCAR o ponto e voltar. No GunBound original a contagem
+    // comeca no clique, nao na morte - por isso vale esperar o momento certo.
+    this.SCORE_REVIVE_TURNS = 4;
+    // Prazo maximo sem clicar: evita que alguem que fechou a aba trave a
+    // partida (quem aguarda revive conta como vivo).
+    this.SCORE_REVIVE_DEADLINE = 12;
     this.suddenShoot = false;
     this.lastturn = 0;
     this.game_endx = false;
@@ -159,6 +172,13 @@ module.exports = class Game {
   start(callback) {
     var self = this;
     self.room.status = Types.ROOM_STATUS.PLAYING;
+    // Marco zero do replay. Fica no room (e nao no game) porque o gameOver e
+    // serializado quando o game ja pode ter sido anulado.
+    self.room.replay_start_at = Date.now();
+    if (Types.SCORE_MODES.includes(self.room.game_mode)) {
+      self.score_points[0] = self.SCORE_TEAM_POINTS;
+      self.score_points[1] = self.SCORE_TEAM_POINTS;
+    }
     // Nos modos com bots (ex.: Aduka 4v4), spawns aleatórios pelo mapa todo, porém
     // DISTINTOS (sem sobrepor jogadores) e sem separar por time.
     var useDistinctSpawn = Types.BOT_MODES.includes(self.room.game_mode);
@@ -191,21 +211,39 @@ module.exports = class Game {
           player.y = point.y;
         }
         player.reloadHp();
+        // O buffer de replay so era inicializado no construtor do Player: sem
+        // zerar aqui, cada replay saia com TODAS as partidas anteriores da
+        // sessao do jogador concatenadas.
+        player.view_replay = [];
+        player.awaiting_revive = false;
+        player.pending_death = false;
+        player.revive_x = null;
+        player.revive_y = null;
+        player.revive_turn = null;
+        player.revive_deadline = null;
         if (player.is_bot === 1) {
           account.init();
         }
       }
     });
+    BotChat.onGameStart(self.room);
     self.checkRoom();
     callback();
   }
 
   setPassTimeOut(PlayerID, shootTime = 0) {
     //	console.log({is:"set pass time out",turnTime:this.turnTime,shootTime:shootTime,playerID:PlayerID});
+    // getAccountById so encontra jogadores HUMANOS; os bots ficam em
+    // gameserver.bots. Sem esta busca extra o timeout do turno de um bot
+    // chamava gamePass(undefined) e estourava ao montar a mensagem de pass -
+    // a partida travava sem ninguem conseguir jogar.
     let player = this.room.gameserver.getAccountById(PlayerID);
+    if (!player && this.room.gameserver.bots) {
+      player = this.room.gameserver.bots[PlayerID];
+    }
     this.turnPassClock = setTimeout(() => {
       //	console.log({is:"Pass Time Out",TimeOutAt:this.turnTime, player:player,PlayerID:PlayerID,turn:turn});
-      this.gamePass(player);
+      if (player) this.gamePass(player);
     }, this.turnTime + shootTime);
   }
   checkRoom() {
@@ -259,16 +297,222 @@ module.exports = class Game {
     }
   }
 
+  // Ninguem em campo e alguem aguardando revive = travamento: lastturn so
+  // avanca quando alguem joga, entao o prazo dos 4 turnos (e o proprio limite
+  // de seguranca) nunca venceria. Traz de volta quem esta esperando.
+  scoreForceRevives() {
+    var self = this;
+    if (self.game_endx) return;
+    if (!Types.SCORE_MODES.includes(self.room.game_mode)) return;
+    self.room.forPlayers(function (account) {
+      if (!account || !account.player) return;
+      var p = account.player;
+      if (!p.awaiting_revive) return;
+      if (typeof p.revive_x !== "number") {
+        var pt = self.map && self.map.GetPoint ? self.map.GetPoint() : null;
+        if (pt && typeof pt.x !== "undefined") {
+          p.revive_x = pt.x;
+          p.revive_y = pt.y;
+        } else {
+          p.revive_x = p.x;
+          p.revive_y = p.y;
+        }
+      }
+      self.scoreDoRevive(account);
+    });
+  }
+
+  // Quem esta morto ou aguardando revive nao entra na fila de turnos.
+  scoreIsPlayable(account) {
+    if (!account || !account.player) return false;
+    if (account.player.awaiting_revive) return false;
+    return account.player.is_alive === 1;
+  }
+
+  // Modo SCORE: consome 1 ponto do time do morto e abre o painel de revive.
+  // Devolve true se a partida deve continuar (ainda ha pontos e ainda ha alguem
+  // vivo no time); false deixa o checkDead seguir para o fim de jogo normal.
+  // Modo SCORE: coloca o jogador de volta em campo na posicao escolhida. O
+  // cliente ja filtra o clique (pixel vazio com chao embaixo), mas revalidamos
+  // aqui - a mensagem vem do cliente e nao pode ser tratada como confiavel.
+  scoreRevive(account, x, y) {
+    var self = this;
+    if (self.game_endx) return false;
+    if (!Types.SCORE_MODES.includes(self.room.game_mode)) return false;
+    if (!account || !account.player || !account.player.awaiting_revive) return false;
+    var map = self.map;
+    var px = Math.round(Number(x));
+    var py = Math.round(Number(y));
+    if (!isFinite(px) || !isFinite(py)) return false;
+    var left = map.field_left != null ? map.field_left : 0;
+    var right = map.field_right != null ? map.field_right : map.w;
+    if (px < left || px > right || py < 0 || py > map.h) return false;
+    if (map.IsPixel(px, py)) return false; // dentro do terreno
+    var chao = map.GetUnder(px, py);
+    if (typeof chao === "undefined" || chao === 0) return false; // sem chao abaixo
+    var p = account.player;
+    // MARCA o ponto - nao volta ao jogo agora. O retorno acontece depois de
+    // SCORE_REVIVE_TURNS turnos, em scoreTickRevives(). Antes disto o jogador
+    // renascia no mesmo instante do clique.
+    p.revive_x = px;
+    p.revive_y = chao;
+    if (typeof p.revive_turn !== "number") {
+      p.revive_turn = self.lastturn + self.SCORE_REVIVE_TURNS;
+    }
+    p.x = px;
+    p.y = chao;
+    // Ghost: fecha o painel de revive no cliente e desenha o fantasma no ponto
+    // marcado com o contador "(Return in N Turns)".
+    self.gameserver.pushToRoom(
+      self.room.id,
+      new Message.Ghost(account, p.revive_turn, self.room)
+    );
+    return true;
+  }
+
+  // Executa os revives cujo prazo venceu. Chamado a cada troca de turno.
+  scoreTickRevives() {
+    var self = this;
+    if (self.game_endx) return;
+    if (!Types.SCORE_MODES.includes(self.room.game_mode)) return;
+    self.room.forPlayers(function (account) {
+      if (!account || !account.player) return;
+      var p = account.player;
+      if (!p.awaiting_revive) return;
+      var marcou = typeof p.revive_turn === "number";
+      var estourou =
+        typeof p.revive_deadline === "number" &&
+        self.lastturn >= p.revive_deadline;
+      if (!marcou && !estourou) return; // ainda escolhendo onde voltar
+      if (marcou && self.lastturn < p.revive_turn && !estourou) return;
+      // Prazo vencido sem ponto marcado (o jogador nao clicou, ou fechou a aba):
+      // volta num ponto de spawn do mapa. Sem isto ele ficaria fora da fila de
+      // turnos para sempre - e como quem aguarda revive conta como vivo, a
+      // partida travava com a fila vazia e ninguem para jogar.
+      if (typeof p.revive_x !== "number") {
+        var pt = self.map && self.map.GetPoint ? self.map.GetPoint() : null;
+        if (pt && typeof pt.x !== "undefined") {
+          p.revive_x = pt.x;
+          p.revive_y = pt.y;
+        } else {
+          p.revive_x = p.x;
+          p.revive_y = p.y;
+        }
+      }
+      self.scoreDoRevive(account);
+    });
+  }
+
+  // Coloca de volta em campo, no ponto que ja tinha sido marcado.
+  scoreDoRevive(account) {
+    var self = this;
+    var p = account.player;
+    p.x = p.revive_x;
+    p.y = p.revive_y;
+    p.reloadHp();
+    p.is_alive = 1;
+    p.setAlive(1);
+    p.awaiting_revive = false;
+    p.pending_death = false;
+    p.falling = false;
+    p.revive_x = null;
+    p.revive_y = null;
+    p.revive_turn = null;
+    p.revive_deadline = null;
+    p.lastturn = self.getActualTurn();
+    if (p.is_bot === 1) BotChat.say(account, "revive", {}, self.room, { delayMs: 800 });
+    // DELAY AO VOLTAR. No GunBound a posicao do jogador na fila ao renascer e'
+    // dada pelo Delay dele (StrategyWiki, GunBound Classic/Game Modes). Enquanto
+    // esteve morto ele nao acumulou delay nenhum, entao voltaria com o valor
+    // antigo - menor que o de todo mundo - e jogaria de imediato, transformando
+    // a morte em vantagem. Alinhamos ao MAIOR delay entre os vivos: ele reentra
+    // no fim da fila atual, sem ganhar nem perder turno por ter morrido.
+    var maiorDelay = p.delay;
+    self.room.forPlayers(function (acc) {
+      if (!acc || !acc.player) return;
+      if (acc.player.user_id === p.user_id) return;
+      if (acc.player.is_alive !== 1) return;
+      if (acc.player.delay > maiorDelay) maiorDelay = acc.player.delay;
+    });
+    p.delay = maiorDelay;
+    // Volta para a fila de turnos com o delay atual (o cliente recebe o mesmo
+    // valor na mensagem e reordena a lista sozinho).
+    var jaNaLista = false;
+    for (var i in self.room.turn_list) {
+      if (self.room.turn_list[i].user_id == account.user_id) {
+        jaNaLista = true;
+        self.room.turn_list[i].delay = p.delay;
+      }
+    }
+    if (!jaNaLista) {
+      self.room.turn_list.push({
+        user_id: account.user_id,
+        team: p.team,
+        position: p.position,
+        delay: p.delay,
+        lastturn: p.lastturn,
+      });
+    }
+    p.move();
+    self.gameserver.pushToRoom(self.room.id, new Message.revived(account, self.room));
+    return true;
+  }
+
+  scoreHandleDeath() {
+    var self = this;
+    if (!Types.SCORE_MODES.includes(self.room.game_mode)) return false;
+    var seguiu = false;
+    self.room.forPlayers(function (account) {
+      if (!account || !account.player) return;
+      var p = account.player;
+      if (p.is_alive === 1 || p.awaiting_revive) return; // vivo ou ja no painel
+      var team = p.team == 1 ? 1 : 0;
+      if (self.score_points[team] <= 0) return; // sem saldo: nao revive mais
+      self.score_points[team]--;
+      p.awaiting_revive = true;
+      // A contagem dos 4 turnos so comeca quando o jogador MARCA o ponto.
+      p.revive_turn = null;
+      p.revive_deadline = self.lastturn + self.SCORE_REVIVE_DEADLINE;
+      p.revive_x = null;
+      p.revive_y = null;
+      seguiu = true;
+      // Bot nao tem painel para clicar: ele mesmo escolhe onde voltar. Sem isto
+      // ficava eternamente em awaiting_revive - e como quem aguarda revive conta
+      // como vivo, a partida nunca terminava.
+      // Bot nao tem painel: marca o ponto na hora. O retorno em si continua
+      // respeitando os mesmos SCORE_REVIVE_TURNS turnos de espera.
+      if (typeof account.reviveNow === "function") {
+        setTimeout(function () {
+          if (!self.game_endx && account.reviveNow) account.reviveNow();
+        }, 300);
+      } else if (account.send) {
+        account.send(new Message.showRevive().serialize());
+      }
+    });
+    return seguiu;
+  }
+
   checkDead() {
     var self = this;
     if (self.game_endx) return null;
+    // No SCORE a morte nao encerra a partida enquanto o time tiver pontos: ela
+    // debita 1 ponto e abre o revive. O fim so vem quando o saldo zera ou quando
+    // um time inteiro esta fora (contagem de vivos abaixo, que ja considera quem
+    // esta aguardando revive como NAO vivo).
+    self.scoreHandleDeath();
     var team_a_alive = 0;
     var team_b_alive = 0;
     var end = false;
     self.room.forPlayers(function (account) {
       let player = account.player;
       //Logger.info("Player: "+player.game_id+" - Team: "+player.team+" - Is_alive: "+player.is_alive);
-      if (player.is_alive === 1) {
+      // No SCORE, quem esta no painel de revive ainda conta como vivo - o time so
+      // cai quando ninguem tem como voltar. Se TODOS morrerem de uma vez e ninguem
+      // ficar em campo nem aguardando revive, a contagem zera e o adversario vence.
+      var contaVivo =
+        player.is_alive === 1 ||
+        (Types.SCORE_MODES.includes(self.room.game_mode) && player.awaiting_revive);
+      if (contaVivo) {
         if (player.team == 1) {
           team_a_alive++;
         } else {
@@ -352,6 +596,15 @@ module.exports = class Game {
             loss: increase,
             expiry: 0,
           };
+        });
+      }
+      // Fecha o painel de revive de quem ficou esperando (modo SCORE).
+      if (Types.SCORE_MODES.includes(self.room.game_mode)) {
+        self.room.forPlayers(function (acc) {
+          if (acc && acc.player && acc.player.awaiting_revive) {
+            acc.player.awaiting_revive = false;
+            if (acc.send) acc.send(new Message.stopRevive().serialize());
+          }
         });
       }
       self.gameserver.pushToRoom(
@@ -439,6 +692,15 @@ module.exports = class Game {
           };
         });
       }
+      // Fecha o painel de revive de quem ficou esperando (modo SCORE).
+      if (Types.SCORE_MODES.includes(self.room.game_mode)) {
+        self.room.forPlayers(function (acc) {
+          if (acc && acc.player && acc.player.awaiting_revive) {
+            acc.player.awaiting_revive = false;
+            if (acc.send) acc.send(new Message.stopRevive().serialize());
+          }
+        });
+      }
       self.gameserver.pushToRoom(
         self.room.id,
         new Message.gameOver(self.room, 1, self.room.player_left_room)
@@ -518,6 +780,13 @@ module.exports = class Game {
       account.player.DUAL = 0;
     }
 
+    // world.shoots so era inicializado no construtor do World: zerar apenas o
+    // contador deixava os projeteis dos turnos anteriores vivos no objeto.
+    // Efeitos: shoot() criava um slot por chave acumulada (dezenas de slots
+    // vazios no replay) e qualquer projetil que tivesse ficado preso continuava
+    // sendo simulado nos turnos seguintes - foi assim que um tiro velho,
+    // ja com a velocidade degradada, reapareceu quicando no tornado deste turno.
+    this.world.shoots = {};
     this.world.shoots_count = 0;
     this.mobileDelay = mobile_data.delay + time * 10;
     if (account.player.TELEPORT == 1) {
@@ -646,6 +915,8 @@ module.exports = class Game {
   }
 
   getNextTurn(actual_turn, callback) {
+    // A cada troca de turno, quem ja cumpriu o prazo volta ao jogo.
+    this.scoreTickRevives();
     var self = this;
     if (self.game_endx) return null;
     var xf = 0;
@@ -699,7 +970,7 @@ module.exports = class Game {
     let players = [];
     if (self.turns_pass_sudden == self.sudden - 1) {
       self.gameserver.pushBroadcastChat(
-        new Message.chatResponse(self, "Dual activado", Types.CHAT_TYPE.SYSTEM),
+        new Message.chatResponse(self, "Dual ativado", Types.CHAT_TYPE.SYSTEM),
         self
       );
       this.room.forPlayers(function (account) {
@@ -709,30 +980,16 @@ module.exports = class Game {
         }
       });
     } else if (self.turns_pass_sudden > self.sudden - 1) {
-      self.room.forPlayers(function (account) {
-        if (typeof account !== "undefined") {
-          var player = account.player;
-          self.suddenShoot = true;
-          if (player.hp > 0) {
-            player.disHpShield(
-              (self.turns_pass_sudden - (self.sudden - 1)) * 5,
-              0
-            );
-            if (player.hp <= 0) {
-              player.setAlive(0);
-              self.checkDead();
-            }
-          }
-          players.push({
-            id: player.user_id,
-            damage: (self.turns_pass_sudden - (self.sudden - 1)) * 5,
-            hp: player.hp,
-          });
-        }
-      });
+      // Morte subita nao aplica mais dano por rodada; apenas libera o tiro
+      // de sudden death. O cliente tambem teve o ReduceHPby removido.
+      self.suddenShoot = true;
     }
     //	console.log({is: "sudden",suddenAtTurn: self.sudden,turnCount: self.turns_pass_sudden,players: players});
     //console.log({is:"game turn list",data:self.room.turn_list});
+    // Fila vazia com gente aguardando revive: destrava trazendo todos de volta.
+    if (!this.room.turn_list.length) {
+      this.scoreForceRevives();
+    }
     callback(
       this.room.turn_list[0] !== null
         ? this.room.turn_list[0]
@@ -798,6 +1055,10 @@ module.exports = class Game {
             }
           });
         }
+        // Sem account nao ha de quem passar a vez - montar a mensagem aqui
+        // estourava e deixava a partida travada.
+        if (typeof account === "undefined" || !account || !account.player)
+          return;
         var pass_message = new Message.gamePass(
           self.lastturn,
           account,

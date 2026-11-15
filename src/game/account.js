@@ -3237,9 +3237,9 @@ module.exports = class Account {
                                 new Message.chatResponse(
                                   self,
                                   plx.game_id +
-                                    " sent gift -> " +
+                                    " enviou o presente -> " +
                                     name_ava_gift_hd +
-                                    " [Flag] to -> " +
+                                    " [Bandeira] para -> " +
                                     playerdbb.game_id,
                                   Types.CHAT_TYPE.GOLD
                                 )
@@ -3248,9 +3248,9 @@ module.exports = class Account {
                                 new Message.chatResponse(
                                   self,
                                   plx.game_id +
-                                    " sent gift -> " +
+                                    " enviou o presente -> " +
                                     name_ava_gift_bd +
-                                    " [Background] to -> " +
+                                    " [Fundo] para -> " +
                                     playerdbb.game_id,
                                   Types.CHAT_TYPE.GOLD
                                 )
@@ -3258,9 +3258,9 @@ module.exports = class Account {
 
                               self.gameserver.chathistory.push([
                                 plx.game_id +
-                                  " sent gift -> " +
+                                  " enviou o presente -> " +
                                   name_ava_gift_hd +
-                                  " [Flag] to -> " +
+                                  " [Bandeira] para -> " +
                                   playerdbb.game_id,
                                 "",
                                 Types.CHAT_TYPE.GOLD,
@@ -3268,9 +3268,9 @@ module.exports = class Account {
                               ]);
                               self.gameserver.chathistory.push([
                                 plx.game_id +
-                                  " sent gift -> " +
+                                  " enviou o presente -> " +
                                   name_ava_gift_bd +
-                                  " [Background] to -> " +
+                                  " [Fundo] para -> " +
                                   playerdbb.game_id,
                                 "",
                                 Types.CHAT_TYPE.GOLD,
@@ -3619,21 +3619,32 @@ module.exports = class Account {
                     JSON.stringify(date_game)
                   )
                   .then(function (rows) {
-                    fs.writeFile(
-                      "./replays/" +
-                        self.player.code_screenshot_random +
-                        ".json",
-                      JSON.stringify(self.player.view_replay),
-                      function (err) {
-                        if (err) throw err;
-                        self.send([
-                          Types.SERVER_OPCODE.game_share,
-                          parseInt(message[1]),
-                          self.player.code_screenshot_random,
-                          JSON.stringify(self.player.screenshot),
-                        ]);
-                      }
-                    );
+                    // A pasta ./replays nao existia no projeto: o writeFile
+                    // falhava com ENOENT e o "throw err" dentro do callback
+                    // virava excecao nao capturada - nada era gravado e o link
+                    // do replay abria uma pagina vazia.
+                    fs.mkdir("./replays", { recursive: true }, function () {
+                      fs.writeFile(
+                        "./replays/" +
+                          self.player.code_screenshot_random +
+                          ".json",
+                        JSON.stringify(self.player.view_replay),
+                        function (err) {
+                          if (err) {
+                            Logger.error(
+                              "Replay [write error]: " + err.message
+                            );
+                            return;
+                          }
+                          self.send([
+                            Types.SERVER_OPCODE.game_share,
+                            parseInt(message[1]),
+                            self.player.code_screenshot_random,
+                            JSON.stringify(self.player.screenshot),
+                          ]);
+                        }
+                      );
+                    });
                   })
                   .catch(function (err) {
                     Logger.normal(
@@ -4259,6 +4270,19 @@ module.exports = class Account {
 
         //Logger.info('Items: '+message[1]);
         //Types.ITEM.DUAL_PLUS;
+        // Clima "no items" (WEATHERS.list.no_items, id 2) trava o uso de itens.
+        // Ate aqui so o CLIENTE impedia (desabilitando os botoes) - um cliente
+        // modificado passava direto, porque o servidor nunca validou.
+        if (
+          self.room &&
+          self.room.game &&
+          self.room.game.weather &&
+          self.room.game.weather.current &&
+          self.room.game.weather.current.id ===
+            Types.WEATHERS.list.no_items.id
+        ) {
+          break;
+        }
         if (self.room) {
           let x__;
           if (message[1] === 0) {
@@ -4426,6 +4450,21 @@ module.exports = class Account {
         }
         break;
       }
+      // Modo SCORE: o jogador morto clica no mapa para voltar. O cliente manda
+      // a posicao (ja filtrada por ele), e o servidor revalida antes de aceitar.
+      case Types.CLIENT_OPCODE.revive: {
+        // seguridad
+        if (!self.login_complete) {
+          console.log("login incomplete", opcode);
+          self.connection.close();
+          return null;
+        }
+        if (self.room && self.room.game !== null) {
+          self.room.game.scoreRevive(self, message[1], message[2]);
+        }
+        break;
+      }
+
       case Types.CLIENT_OPCODE.game_pass_turn: {
         // seguridad
         if (!self.login_complete) {
@@ -4843,11 +4882,11 @@ module.exports = class Account {
                   self.gameserver.pushBroadcastChat(
                     new Message.chatResponse(
                       self,
-                      "</3 Has usado el item " +
+                      "</3 Você usou o item " +
                         '"' +
                         name_ava_gift +
                         ' [ExItem]"' +
-                        " para terminar con " +
+                        " para terminar com " +
                         self.player.relationship_with_name +
                         ", agora você está solteiro(a) de novo. Boa sorte no próximo relacionamento, há muitos peixes no mar... :(",
                       Types.CHAT_TYPE.SYSTEM
@@ -4917,9 +4956,9 @@ module.exports = class Account {
                 self.player.game_id +
                 " & " +
                 player2.player.game_id +
-                "] <3 Nueva Pareja <3 [Server " +
+                "] <3 Novo Casal <3 [Servidor " +
                 self.gameserver.id +
-                " Room " +
+                " Sala " +
                 self.room.id +
                 "]",
               Types.CHAT_TYPE.LOVE
@@ -4937,9 +4976,9 @@ module.exports = class Account {
                 self.player.game_id +
                 " & " +
                 player2.player.game_id +
-                "] <3<3 Comprometidos <3<3 [Server " +
+                "] <3<3 Noivos <3<3 [Servidor " +
                 self.gameserver.id +
-                " Room " +
+                " Sala " +
                 self.room.id +
                 "]",
               Types.CHAT_TYPE.LOVE
@@ -4968,11 +5007,11 @@ module.exports = class Account {
                   self.player.game_id +
                   " & " +
                   player2.player.game_id +
-                  "] <3<3<3 Casados <3<3<3 Para celebrar su matrimonio a 200% GP & GOLD EVENT empezó por 1 hora en el Server " +
+                  "] <3<3<3 Casados <3<3<3 Para celebrar o casamento, um EVENTO de 200% GP e GOLD começou por 1 hora no Servidor " +
                   self.gameserver.id +
-                  " - [Server " +
+                  " - [Servidor " +
                   self.gameserver.id +
-                  " Room " +
+                  " Sala " +
                   self.room.id +
                   "]",
                 Types.CHAT_TYPE.LOVE
@@ -5013,13 +5052,13 @@ module.exports = class Account {
                   self.player.game_id +
                   " & " +
                   player2.player.game_id +
-                  "] <3<3<3 Casados <3<3<3 Para celebrar su matrimonio a 200% GP & GOLD EVENT empezó por " +
+                  "] <3<3<3 Casados <3<3<3 Para celebrar o casamento, um EVENTO de 200% GP e GOLD começou por " +
                   w +
-                  " en el Server " +
+                  " no Servidor " +
                   self.gameserver.id +
-                  " - [Server " +
+                  " - [Servidor " +
                   self.gameserver.id +
-                  " Room " +
+                  " Sala " +
                   self.room.id +
                   "]",
                 Types.CHAT_TYPE.LOVE
@@ -5535,7 +5574,9 @@ module.exports = class Account {
     let acc = new Bot(plx);
     acc.user_id = botUserId;
     acc.gameserver = self.gameserver;
-    acc.passive = passive === true; // bot de debug: não atira, só passa a vez
+    acc.passive = passive === true; // bot de debug: nao atira
+    // Ja nasce com delay altissimo para nao ser sorteado no inicio da partida.
+    if (acc.passive) plx.delay = (plx.delay || 0) + Bot.DEBUG_DELAY;
     self.gameserver.bots[acc.user_id] = acc;
     self.room.addBot(acc, team);
     let data_bot = {

@@ -38194,7 +38194,7 @@
       $("#TouchBarMsg").hide();
     };
     DangerBound.prototype.StartNextTurn = function () {
-      var a = this;
+      var a = this, c;
       if (this.turn_number == this.sudden_death_at_turn - 20)
         ChatReceived(
           l.t("Sudden Death in %% turns").replace("%%", 20),
@@ -38234,15 +38234,7 @@
             .removeClass("items_locked")
             .addClass("sudden_death")
             .show(),
-          AudioPlayMusic(AUDIO_MUSIC_SUDDEN);
-      else if (this.turn_number > this.sudden_death_at_turn)
-        for (var b = 0; b < this.players.length; b++) {
-          var c = this.players[b];
-          c.ReduceHPby(
-            5 * (this.turn_number - this.sudden_death_at_turn),
-            this.turn_number
-          );
-        }
+          AudioPlayMusic(AUDIO_MUSIC_SUDDEN);;
       this.turn = this.next_turn;
       if (-1 != this.turn && (c = this.GetPlayerByPlayerNumber(this.turn))) {
         c.ChangeMyTurn(!0, this.turn_time);
@@ -47093,6 +47085,22 @@
             "overflow-y": b ? "scroll" : "auto",
           });
         d.addClass("DragonScroll");
+        var g = f[0];
+        if (g && void 0 === g.__stickToBottom) {
+          g.__stickToBottom = !0;
+          g.__userScrollAt = 0;
+          f.on("wheel mousewheel touchstart touchmove keydown", function () {
+            g.__userScrollAt = get_time();
+          });
+          f.on("scroll", function () {
+            if (0 === g.clientHeight) return;
+            var atEnd =
+              g.scrollTop + g.clientHeight >= g.scrollHeight - 16;
+            if (atEnd) g.__stickToBottom = !0;
+            else if (700 > get_time() - g.__userScrollAt)
+              g.__stickToBottom = !1;
+          });
+        }
         if (c)
           f.on("mousewheel", function (a) {
             if (a.originalEvent.wheelDelta && f[0] && f[0].scrollBy) {
@@ -47126,7 +47134,9 @@
     function DragonScrollIsAtEnd(a) {
       return a.hasClass("DragonScroll")
         ? ((a = a.children(".viewport")[0]),
-          a.scrollTop + a.clientHeight >= a.scrollHeight - 16)
+          void 0 !== a.__stickToBottom
+            ? a.__stickToBottom
+            : a.scrollTop + a.clientHeight >= a.scrollHeight - 16)
         : a.tinyscrollbar_isAtLastScrollLine();
     }
     function ShopGUI(a) {
@@ -48522,7 +48532,7 @@
           ";"
         ),
       ROOM_NAMES_ES =
-        "Hola;Mi Sala;ThorBound;Bienvenido;Ven a jugar;A Jugar!;M\u00e1s oro;Y si jugamos?;\u00danete a la sala!".split(
+        "Olá;Minha Sala;ThorBound;Bem-vindo;Vem jogar;Bora jogar!;Mais ouro;E se a gente jogar?;Entra aí!;Só os fortes;Partida rápida;Sem choro;Vem x1;Tiro certo;Chuva de SS;Diversão garantida;Novatos bem-vindos;Quem perder paga;Sala dos campeões;Bora de Aduka?".split(
           ";"
         ),
       g_privateChat;

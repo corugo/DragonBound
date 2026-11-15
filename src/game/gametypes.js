@@ -708,6 +708,8 @@ Types = {
   },
   // Modos em que bots participam (render/turnos/placar). Usado no lugar de checar só BOSS.
   BOT_MODES: [1, 5],
+  // Modos que usam pontuacao + respawn (revive): SCORE e ADUKA.
+  SCORE_MODES: [3, 5],
   RANDOMIZER: [0, 1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 14, 15],
   GAME_ID: ["GM", "DN"],
   MAPS_PLAY: [

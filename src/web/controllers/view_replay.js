@@ -61,11 +61,18 @@ router.get('/:Replay', function (req, res) {
     var tmbuser = Replay;
     var tmusr = tmbuser.toLowerCase();
     if (Buffer.byteLength(Replay, 'utf8') < 10) {
+        // ATENCAO: try/catch so pega erro SINCRONO. Uma rejeicao dentro do .then
+        // (ex.: 'Can't add new command when connection is in closed state', quando
+        // o pool reciclou a conexao) virava unhandled rejection e DERRUBAVA o
+        // processo inteiro do site no Node 18+. Por isso a cadeia tem .catch().
         try {
+            var _conn = null;
             req.db.connection.getConnection().then(conn => {
-                conn.query('SELECT replay_id, view_code, avatars_ids, code_rmd FROM view_replay WHERE view_code = ?', [tmusr])
+                _conn = conn;
+                return conn.query('SELECT replay_id, view_code, avatars_ids, code_rmd FROM view_replay WHERE view_code = ?', [tmusr])
                     .then(rows => {
                     conn.release();
+                    _conn = null;
                     if (rows[0].length > 0) {
                         var rows_length = rows[0];
                         var avatars = "";
@@ -92,6 +99,9 @@ router.get('/:Replay', function (req, res) {
                         fs.readFile('./replays/'+rows_length[0].view_code+'.json', (err, data) => {
                             if(err) {
                                 Logger.debug('error w2 fs: '+err);
+                                // Sem responder aqui a requisicao ficava pendurada
+                                // e o navegador carregava indefinidamente.
+                                res.status(404).send(JSON.stringify('Replay file not found'));
                             } else {
 								let datt = JSON.parse(data);
                                 res.render('replay', {
@@ -105,11 +115,19 @@ router.get('/:Replay', function (req, res) {
                         res.send(JSON.stringify("User not found"));
                     }
                 });
+            }).catch(function (err) {
+                Logger.debug('Replay [DB ERROR]: ' + (err && err.message));
+                if (_conn) { try { _conn.release(); } catch (e2) {} _conn = null; }
+                if (!res.headersSent) res.status(500).send(JSON.stringify('Replay unavailable'));
             });
         } catch (e) {
             Logger.debug("Replay [ERROR]: " + e.stack);
             res.redirect('/');
         }
+    } else {
+        // Codigo com 10+ bytes nao e um view_code valido (sao 8 chars).
+        // Antes caia aqui sem resposta nenhuma.
+        res.status(400).send(JSON.stringify('Invalid replay code'));
     }
 });
 
