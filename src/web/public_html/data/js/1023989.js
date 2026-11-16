@@ -54738,11 +54738,32 @@
     // linhas grandes em 0 e 90 graus, sem marcas intermediarias, e o disco
     // sumindo aos poucos fora do quadrante. Angulos como os do arco: a = mira,
     // desenhado em 180 + a no rotate_container.
+    // Setor de anel entre os raios r1 e r2, de a0 a a1 graus de mira
+    // (desenhado em 180 + a), como poligono com passo de 1 grau: as bordas
+    // ficam exatamente radiais (o arco grosso do PIXI cortava as pontas pelo
+    // segmento, tortas em relacao ao centro).
+    function SetorAnel(g, r1, r2, a0, a1, cor, alfa) {
+      if (!(a1 > a0)) return;
+      var n = Math.max(1, Math.ceil(a1 - a0)),
+        k,
+        t;
+      g.lineStyle(0);
+      g.beginFill(cor, alfa);
+      for (k = 0; k <= n; k++)
+        (t = AngleToRad(180 + a0 + ((a1 - a0) * k) / n)),
+          0 === k
+            ? g.moveTo(Math.cos(t) * r2, Math.sin(t) * r2)
+            : g.lineTo(Math.cos(t) * r2, Math.sin(t) * r2);
+      for (k = n; 0 <= k; k--)
+        (t = AngleToRad(180 + a0 + ((a1 - a0) * k) / n)),
+          g.lineTo(Math.cos(t) * r1, Math.sin(t) * r1);
+      g.endFill();
+    }
     function DesenhaMostradorMira(g, amin, amax) {
-      // Anel de "vidro" do mesmo raio do arco verde (15.5 a 42): miolo vazio,
-      // so no quadrante de 0 a 90 graus (ampliado se a faixa passar dele),
-      // esmaecendo fora do quadrante e no limite interno. Borda e linhas de 0
-      // e 90 graus finas e escuras.
+      // Anel de "vidro" do mesmo raio do arco verde (15.5 a 42), so no
+      // quadrante de 0 a 90 graus (ampliado se a faixa passar dele); aparece
+      // aos poucos de -30 a 0 e some de 90 a 120, e esmaece no limite interno.
+      // Borda e linhas de 0 e 90 graus finas e escuras.
       var R = 42,
         RI = 15.5,
         a0 = Math.min(0, void 0 == amin ? 0 : amin),
@@ -54750,33 +54771,40 @@
         rad = function (a) {
           return AngleToRad(180 + a);
         },
-        anel = function (r1, r2, b0, b1, cor, alfa) {
-          g.lineStyle(r2 - r1, cor, alfa);
-          g.moveTo(Math.cos(rad(b0)) * ((r1 + r2) / 2), Math.sin(rad(b0)) * ((r1 + r2) / 2));
-          g.arc(0, 0, (r1 + r2) / 2, rad(b0), rad(b1));
-        },
         k;
-      for (k = 0; 6 > k; k++) {
-        var alfa = 0.22 * (1 - k / 6);
-        anel(RI, R, a0 - 5 * (k + 1), a0 - 5 * k, 10533064, alfa);
-        anel(RI, R, a1 + 5 * k, a1 + 5 * (k + 1), 10533064, alfa);
+      // o vidro fica meio pixel por dentro da borda (nao vaza para fora)
+      var RV = R - 0.5,
+        BORDA = 0.35;
+      for (k = 0; 15 > k; k++) {
+        var alfa = 0.3 * (1 - (k + 0.5) / 15);
+        SetorAnel(g, RI, RV, a0 - 2 * (k + 1), a0 - 2 * k, 10533064, alfa);
+        SetorAnel(g, RI, RV, a1 + 2 * k, a1 + 2 * (k + 1), 10533064, alfa);
       }
-      anel(RI, R, a0, a1, 10533064, 0.3);
-      // esmaecimento para dentro do limite interno
-      for (k = 0; 3 > k; k++) anel(RI - 2 * (k + 1), RI - 2 * k, a0, a1, 10533064, 0.2 * (1 - k / 3));
-      // brilho do vidro perto da borda
-      anel(R - 6, R - 2, a0, a1, 16777215, 0.14);
-      // borda externa fina e escura
-      g.lineStyle(1, 2105376, 0.85);
-      g.moveTo(Math.cos(rad(a0)) * R, Math.sin(rad(a0)) * R);
-      g.arc(0, 0, R, rad(a0), rad(a1));
+      SetorAnel(g, RI, RV, a0, a1, 10533064, 0.3);
+      for (k = 0; 3 > k; k++) SetorAnel(g, RI - 2 * (k + 1), RI - 2 * k, a0, a1, 10533064, 0.2 * (1 - k / 3));
+      SetorAnel(g, R - 6, R - 2, a0, a1, 16777215, 0.14);
+      // borda externa fina e escura, translucida como o vidro; acompanha o
+      // esmaecimento fora do quadrante
+      var bordaArco = function (b0, b1, al) {
+        g.lineStyle(1, 2105376, al);
+        for (var j = 0; j <= Math.ceil(b1 - b0); j++) {
+          var t = rad(Math.min(b1, b0 + j));
+          j ? g.lineTo(Math.cos(t) * R, Math.sin(t) * R) : g.moveTo(Math.cos(t) * R, Math.sin(t) * R);
+        }
+      };
+      bordaArco(a0, a1, BORDA);
+      for (k = 0; 15 > k; k++) {
+        var ab = BORDA * (1 - (k + 0.5) / 15);
+        bordaArco(a0 - 2 * (k + 1), a0 - 2 * k, ab);
+        bordaArco(a1 + 2 * k, a1 + 2 * (k + 1), ab);
+      }
       // linhas de 0 e 90 graus: finas e escuras, so no anel, esmaecendo
       // para o centro
       for (var ang = 0; 90 >= ang; ang += 90)
         for (k = 0; 5 > k; k++) {
           var q1 = R - 5.3 * k,
             q2 = q1 - 5.3;
-          g.lineStyle(1, 2105376, 0.85 * (1 - k / 5));
+          g.lineStyle(1, 2105376, BORDA * (1 - k / 5));
           g.moveTo(Math.cos(rad(ang)) * q1, Math.sin(rad(ang)) * q1);
           g.lineTo(Math.cos(rad(ang)) * q2, Math.sin(rad(ang)) * q2);
         }
@@ -54795,14 +54823,12 @@
       if (this.trueArea) {
         f && ((this.angMin = f[0]), (this.angMax = f[1]));
         this.greenArea.clear();
-        this.greenArea.lineStyle(25, 56320, 0.25);
-        this.greenArea.arc(0, 0, 28, AngleToRad(180 + this.angMin), AngleToRad(180 + this.angMax));
+        SetorAnel(this.greenArea, 15.5, 40.5, this.angMin, this.angMax, 56320, 0.25);
         var b = a ? Math.max(a[0], this.angMin) : this.angMin,
           c = a ? Math.min(a[1], this.angMax) : this.angMax;
         this.trueArea.clear();
         b <= c &&
-          (this.trueArea.lineStyle(25, 41984, 0.6),
-          this.trueArea.arc(0, 0, 28, AngleToRad(180 + b), AngleToRad(180 + c)));
+          SetorAnel(this.trueArea, 15.5, 40.5, b, c, 41984, 0.6);
       }
     };
     PlayerContainer.prototype.SetAimCircleOffset = function (a, b) {
