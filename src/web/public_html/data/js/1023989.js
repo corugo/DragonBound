@@ -44594,7 +44594,30 @@
         AudioPlay(AUDIO_BUTTON_SELECT2);
         a.SendRoomChangeTeam("A" == a.myPlayerInfo.team ? "B" : "A");
       });
-      var c = [];
+      var c = [],
+        wcMobSel = null;
+      // Classic WC: o clique so marca o mobile e mostra retrato/atributos;
+      // confirma no check (ou duplo clique) e cancela no X
+      function wcMobMostra(j, btn) {
+        wcMobSel = j;
+        $(".mobileSelectBtn").removeClass("wcSel");
+        btn && btn.addClass("wcSel");
+        var m = MOBILES[j] || {};
+        $("#wcMobFoto").removeClass().addClass("mobile" + j);
+        $("#wcMobNome").text(m.name || "");
+        $("#wcMobStatAtk i").css("width", m.statatk || "0%");
+        $("#wcMobStatDef i").css("width", m.statdef || "0%");
+        $("#wcMobStatMov i").css("width", m.statmov || "0%");
+      }
+      $("#wcMobOk").click(function () {
+        null != wcMobSel && a.SendRoomChangeMobile(wcMobSel);
+        b();
+        AudioPlay(AUDIO_BUTTON_SELECT2);
+      });
+      $("#wcMobX").click(function () {
+        b();
+        AudioPlay(AUDIO_BUTTON_SELECT2);
+      });
       $("#roomButtonMobile").click(function () {
         AudioPlay(AUDIO_BUTTON_SELECT2);
         b();
@@ -44622,7 +44645,22 @@
             .click(
               (function (c) {
                 return function () {
+                  if ($("body").hasClass("wc")) {
+                    wcMobMostra(c.j, $(this));
+                    AudioPlay(AUDIO_BUTTON_SELECT2);
+                    return;
+                  }
                   c.nameDiv.text() == c.m.name &&
+                    (a.SendRoomChangeMobile(c.j),
+                    b(),
+                    AudioPlay(AUDIO_BUTTON_SELECT2));
+                };
+              })(f)
+            )
+            .dblclick(
+              (function (c) {
+                return function () {
+                  $("body").hasClass("wc") &&
                     (a.SendRoomChangeMobile(c.j),
                     b(),
                     AudioPlay(AUDIO_BUTTON_SELECT2));
@@ -44658,6 +44696,12 @@
           );
         }
         $(".Alt").is(":visible") && $(".Alt").show();
+        if ($("body").hasClass("wc")) {
+          var wcAtual = a.myPlayerInfo ? a.myPlayerInfo.mobile : 0,
+            wcI = e.indexOf(wcAtual);
+          0 > wcI && ((wcI = 0), (wcAtual = e[0]));
+          wcMobMostra(wcAtual, $(".mobileSelectBtn").eq(wcI));
+        }
         15 == e.length &&
           d.css({
             height: 370,

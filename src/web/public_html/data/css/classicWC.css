@@ -753,3 +753,48 @@ body.th,.th input,body.wc,.wc input{font-family:Emoji,Barlow,Verdana,sans-serif}
 /* rotulo "Tempo" do fork fica por cima do mapa no layout WC (o tempo ja
    aparece no painel da sala) */
 .wc #room_turn_time_text{display:none}
+
+/* ---- selecao de mobile no estilo WC (janela com grade, retrato e atributos) ---- */
+.wcMobTitulo,#wcMobBase{display:none}
+.wc #roomMobileSelect{left:173px;top:116px;width:453px;height:335px !important;box-sizing:border-box;padding:34px 0 0 9px;background:none;border-radius:0;box-shadow:3px 3px 10px 0 #000}
+.wc #roomMobileSelect::before{content:'';position:absolute;left:0;top:0;right:0;bottom:0;box-sizing:border-box;border-style:solid;border-width:28px 51px 4px 3px;border-image-source:url(/static/images/themes/classicWC/popup.avif);border-image-slice:56 102 8 6 fill;border-image-repeat:stretch;z-index:-1;pointer-events:none}
+.wc #roomMobileSelect .wcMobTitulo{display:block;position:absolute;left:10px;top:5px;font-size:14px;font-weight:bold;color:#fff;text-shadow:-1px -1px 0 #08223c,0 -1px 0 #08223c,1px -1px 0 #08223c,-1px 0 0 #08223c,1px 0 0 #08223c,-1px 1px 0 #08223c,0 1px 0 #08223c,1px 1px 0 #08223c}
+.wc #roomMobileSelectCancel{display:none}
+.wc .mobileSelectBtn{width:66px;height:58px;margin:3px;background:none;border:2px solid transparent;border-radius:8px;box-sizing:border-box}
+.wc .mobileSelectBtn:hover{background:rgba(255,255,255,.35)}
+.wc .mobileSelectBtn:active{background:rgba(255,255,255,.55)}
+.wc .mobileSelectBtn.wcSel{background:rgba(255,214,90,.45);border-color:#f0b020}
+.wc .mobileSelectBtn .mobileName{display:none}
+.wc #wcMobBase{display:block;position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none}
+.wc #wcMobFoto{position:absolute;left:12px;top:236px;width:106px;height:85px;border:2px solid #4a6a9a;border-radius:3px;background:#6d84ad url(/static/images/season4/ready_mobile_selected.png?10) no-repeat;background-size:750px 750px}
+.wc #wcMobNome{position:absolute;left:130px;top:236px;font-size:14px;font-weight:bold;color:#fff}
+.wc .wcMobStat{position:absolute;left:130px;width:220px;height:14px}
+.wc #wcMobStatAtk{top:262px}.wc #wcMobStatDef{top:284px}.wc #wcMobStatMov{top:306px}
+.wc .wcMobStat span{position:absolute;left:0;top:0;width:72px;font-size:11px;font-weight:bold;color:#10284a}
+.wc .wcMobStat div{position:absolute;left:74px;top:3px;width:146px;height:8px;background:#34466a;border-radius:4px;overflow:hidden;box-shadow:inset 0 1px 2px #000}
+.wc .wcMobStat i{display:block;height:100%;width:0;border-radius:4px;transition:width .2s}
+.wc #wcMobStatAtk i{background:linear-gradient(#ff9a7a,#d9452a)}
+.wc #wcMobStatDef i{background:linear-gradient(#8ac4ff,#2a6fd6)}
+.wc #wcMobStatMov i{background:linear-gradient(#9fe08a,#3a9e2a)}
+.wc #wcMobOk,.wc #wcMobX{position:absolute;top:286px;width:32px;height:32px;line-height:32px;text-align:center;font-size:28px;font-weight:bold;cursor:pointer;pointer-events:auto}
+.wc #wcMobOk{left:368px;color:#2a6fd6}.wc #wcMobX{left:406px;color:#d43a4a}
+.wc #wcMobOk:hover,.wc #wcMobX:hover{transform:scale(1.15)}
+.wc #wcMobFoto.mobile0{background-position:-12px -28px}
+.wc #wcMobFoto.mobile1{background-position:-12px -248px}
+.wc #wcMobFoto.mobile2{background-position:-421px -248px}
+.wc #wcMobFoto.mobile3{background-position:-285px -138px}
+.wc #wcMobFoto.mobile4{background-position:-558px -28px}
+.wc #wcMobFoto.mobile5{background-position:-421px -138px}
+.wc #wcMobFoto.mobile6{background-position:-558px -138px}
+.wc #wcMobFoto.mobile7{background-position:-421px -358px}
+.wc #wcMobFoto.mobile8{background-position:-285px -358px}
+.wc #wcMobFoto.mobile10{background-position:-149px -358px}
+.wc #wcMobFoto.mobile11{background-position:-285px -28px}
+.wc #wcMobFoto.mobile12{background-position:-421px -28px}
+.wc #wcMobFoto.mobile13{background-position:-149px -28px}
+.wc #wcMobFoto.mobile14{background-position:-149px -248px}
+.wc #wcMobFoto.mobile15{background-position:-12px -138px}
+.wc #wcMobFoto.mobile17{background-position:-285px -248px}
+.wc #wcMobFoto.mobile19{background-position:-149px -138px}
+.wc #wcMobFoto.mobile21{background-position:-12px -358px}
+.wc #wcMobFoto.mobile22{background-position:-558px -248px}
