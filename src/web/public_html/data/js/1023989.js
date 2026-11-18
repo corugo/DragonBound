@@ -32990,7 +32990,7 @@
     // no #container (Lobby Rooms / Room / Game / Shop), como no dragonbound.net.
     function WCTela(c) {
       $("#container")
-        .removeClass("Lobby Rooms Room Game Shop")
+        .removeClass("Lobby Rooms Room Game Shop wcPanel")
         .addClass(c);
     }
     function SwitchToChannelScreen(a) {
@@ -44666,6 +44666,12 @@
       $("#roomButtonItem").click(function () {
         AudioPlay(AUDIO_BUTTON_SELECT2);
         $("#roomItemSelect").fadeIn("fast");
+      });
+      // Classic WC: o botao Item da sala abre/fecha o painel de itens (o css
+      // do WC so mostra #itemsSelection com o #container em "wcPanel")
+      $("#wcRoomItem").click(function () {
+        AudioPlay(AUDIO_BUTTON_SELECT2);
+        $("#container").toggleClass("wcPanel");
       });
       $("#roomItemSelectCancel").click(function () {
         AudioPlay(AUDIO_BUTTON_SELECT2);
