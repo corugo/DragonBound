@@ -1268,6 +1268,23 @@ Types.MOBILES = [
             },
           ],
         },
+        {
+          addtime: 600,
+          damage: null,
+
+          image: Types.BULLETS.ADUKA2,
+          explode: null,
+          weight: 392,
+          friccion: 0,
+          addAtEnd: ["thor"],
+          thor: [
+            {
+              pala_bunge: [30, 20],
+              explode: Types.EXPLODE.ADUKA1_THOR,
+              damage: 80,
+            },
+          ],
+        },
       ],
       [
         {
@@ -2983,6 +3000,7 @@ Types.MOBILES = [
           explode: Types.EXPLODE.TRICOSS,
           weight: 393,
           friccion: 0,
+          ss: true,
           modifiers: {
             ss: true,
           },
@@ -3663,6 +3681,8 @@ Types.MOBILES = [
           image: Types.BULLETS.KALSIDDONSS,
           explode: null,
           weight: 398,
+          // marca de SS: o cliente bloqueia o SS por 4 turnos ao ver ss no tiro
+          ss: true,
           addAtMaxT: ["change", "bulets"],
           change: [
             {

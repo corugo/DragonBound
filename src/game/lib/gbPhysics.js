@@ -190,6 +190,19 @@ function danoExplosao(base, ix, iy, cratera, pl, corpo, tiroBits) {
   dm = Math.trunc((dm * def) / 100);
   return dm > 0 ? dm : 0;
 }
+// Thor do original: nivel pelos limiares 0x5cf1fc (0x4a1530: nivel N quando
+// o XP passa de 0/300/900/1800/3200/6000) e dano do raio por nivel (tabela
+// 0x5cf22c, lida por 0x4a15e0). Cratera A=46/B=150 em todos os niveis; tipo
+// Laser (0x436180 liga a flag +0x144 da explosao).
+const THOR_LIMIAR = [0, 300, 900, 1800, 3200, 6000];
+const THOR_DANO = [100, 120, 140, 160, 180, 200];
+function thorNivel(xp) {
+  let n = 1;
+  for (let i = 0; i < THOR_LIMIAR.length; i++) if (THOR_LIMIAR[i] < (xp || 0)) n = i + 1;
+  return n;
+}
+const thorDano = (xp) => THOR_DANO[thorNivel(xp) - 1];
+
 // Tipo (bits) do tiro do mobile do original.
 const tipoTiroDe = (nome, tipo) =>
   (nome && MOBILES[nome] && MOBILES[nome].tipoTiro && MOBILES[nome].tipoTiro[tipo]) || 0;
@@ -468,6 +481,14 @@ class Homing {
   step(alvo) {
     const s = this.s;
     const antes = this.pts[this.pts.length - 1];
+    // 0x475220: o teleguiado so segue voando enquanto cont < 41 (ticks desde
+    // que o pai caiu) ou se ja travou no ponto de impacto; senao vai direto
+    // para o impacto e explode onde esta (no tornado inclusive). Sem isto o
+    // filho que saia do tornado sem travar seguia reto e lento para sempre.
+    if (!this.carregador && s.cont >= 41 && !s.travado) {
+      this.pts.push({ x: s.x, y: s.y, atras: false });
+      return true;
+    }
     s.x += s.vx;
     s.y += s.vy;
     const px = Math.floor(s.x / 256), py = Math.floor(s.y / 256);
@@ -523,7 +544,34 @@ const anguloFalso = (nome, tipo, ang) => {
 // Parametros da divisao do Kalsiddon por tiro (gunboundDados).
 const kalsDivisao = (tipo) => MOBILES.Kalsiddon.tiros[tipo][0].div;
 
+// Divisor do raio do Thor por projetil (campo +0x328 do projetil, gravado
+// pelas fabricas 0x42f2e0 [S1/S2, parametro 14] e 0x431870 [SS, parametro 13]
+// a partir das funcoes de disparo de cada mobile). 0x436180 aplica no dano do
+// raio gerado por aquele projetil: 0 => x2, senao / divisor. Em geral e' a
+// quantidade de projeteis do tiro, para o raio do clima nao multiplicar o dano.
+// [S1, S2, SS] por mobile do original.
+const THOR_DIV = {
+  Armor: [1, 2, 1], Mage: [1, 2, 1], Nak: [1, 1, 1], Trico: [1, 3, 1],
+  Bigfoot: [4, 6, 8], Boomer: [1, 4, 1], "Raon Launcher": [3, 2, 1],
+  Lightning: [1, 1, 1], "J.D": [1, 1, 1], "A.Sate": [1, 1, 1], Ice: [1, 1, 1],
+  Turtle: [1, 2, 1], Grub: [1, 4, 1], Dragon: [1, 4, 1], Knight: [1, 1, 1],
+  Aduka: [1, 1, 0], Kalsiddon: [1, 1, 1], Frog: [1, 2, 1],
+};
+const thorDivDe = (nome, tipo) => {
+  const t = nome && THOR_DIV[nome];
+  return t && t[tipo] != null ? t[tipo] : 1;
+};
+// Dano do raio ja com o divisor do projetil que o gerou.
+const thorDanoRaio = (xp, div) => {
+  const d = thorDano(xp);
+  return div === 0 ? d * 2 : Math.trunc(d / (div > 0 ? div : 1));
+};
+
 module.exports = {
+  thorNivel,
+  thorDano,
+  thorDivDe,
+  thorDanoRaio,
   tipoTiroDe,
   corpoDe,
   desvioInclinacao,

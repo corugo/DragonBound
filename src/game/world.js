@@ -314,6 +314,8 @@ jumps:[],
     this.chat_complete = false;
     this.nohole = noholea;
     this.shootTicks = 0;
+    // turno atual, para o choque do relampago pegar cada jogador 1x por turno
+    this.turnoChoque = (this.turnoChoque || 0) + 1;
     for (var id in this.shoots) {
       this.shootPushData();
     }
@@ -378,6 +380,8 @@ jumps:[],
         for (const sg of [1, -1])
           filhos.push({ ang: d + sg * div.abertura * i, vel: div.vel, curva: div.curva, image: img, damage: dano });
     }
+    // 0x4365e0: divisor do raio do filho = divisor do pai x numero de filhos
+    for (const f of filhos) f.n = filhos.length;
     for (const f of filhos)
       this.kalsFilho(shoot, { x: p.x, y: p.y }, f, cratera, shoot.stime + tickApice * 24 * 2, tickApice * 24);
     // o pai continua so como alvo: nao fere, nao cava, nao explode
@@ -412,6 +416,12 @@ jumps:[],
       espelhos: pai.espelhos || null,
       tornados: pai.tornados || null,
     });
+    // Divisor do raio do Thor (+0x328) herdado: pai x filhos (0x4365e0).
+    const _divPai =
+      pai.thorDiv != null
+        ? pai.thorDiv
+        : GBPhysics.thorDivDe("Kalsiddon", pai.type === 0 ? 0 : pai.type === 2 ? 2 : 1);
+    sh.thorDiv = _divPai * (f.n || 1);
     sh.homingParent = pai;
     sh.homingOffset = offset || 0;
     sh.homingCarrier = !!f.carregador;
@@ -441,7 +451,7 @@ jumps:[],
         this.kalsFilho(
           shoot,
           { x: p.x, y: p.y },
-          { ang: r + a, vel: 1536, curva: 80, image: Types.BULLETS.KALSIDDONSS_TINY, damage: GBPhysics.danoOriginal("Kalsiddon", 2) || 110 },
+          { n: 2, ang: r + a, vel: 1536, curva: 80, image: Types.BULLETS.KALSIDDONSS_TINY, damage: GBPhysics.danoOriginal("Kalsiddon", 2) || 110 },
           shoot.cratera || [35, 35],
           shoot.stime + 30 * 24 * 2,
           30 * 24
@@ -550,7 +560,7 @@ jumps:[],
           // que os carriers seguintes ja tinham caido, e os 3 acabavam no mesmo
           // ponto. Adiantamos o raio ate a beira do impacto; o passo final fica
           // para o fluxo normal abaixo, que cuida da cratera e do dano.
-          if (shoot.isthor && !shoot._ff) {
+          if (shoot.isthor && !shoot._ff && !shoot.thorAt) {
             shoot._ff = true;
             var _left =
               self.map.field_left != null ? self.map.field_left : 0;
@@ -584,7 +594,15 @@ jumps:[],
             }
           }
           //console.log("Shoot not complete\n");
-          shoot.update();
+          // Raio do Thor do original: explode no ponto do impacto, na hora.
+          if (shoot.thorAt) {
+            if (!shoot._thorAplicado) {
+              shoot._thorAplicado = true;
+              shoot.a = { x: shoot.thorAt.x, y: shoot.thorAt.y };
+              shoot.forceHit = true;
+            }
+            shoot.time++;
+          } else shoot.update();
           // ForceController.cast(shoot, self.game.weather.client.active);
           ////console.log(self.shoots[id]);
           //var ang = shoot.GetAngleAtTime();
@@ -618,6 +636,11 @@ jumps:[],
               // //console.log({id:player.user_id,position:player.position,alive:player.is_alive});
               account.update();
               // console.log(self.game.weather.client.active);
+              // Como no .gme, quem zera o HP no meio do turno continua tomando
+              // os acertos (0x464ab0 so ignora a flag +0x4d8, que o cliente liga
+              // apenas na queda para fora do mapa; a morte por HP vem depois do
+              // turno). O HP segue negativo aqui e o cliente mostra o dano de
+              // cada acerto pela diferenca do HP real (Player2.ChangeHPShield).
               if (player.is_alive === 1) {
                 if (!shoot.canCollide) {
                   /** @WTF is this */
@@ -663,6 +686,29 @@ jumps:[],
                 let shdm = 0;
 
                 if (shoot.canCollide && x11 === 0) fullcollide = true;
+
+                // Varredura do SS da Aduka (OAdukaPSSBullet, 0x4515e0): a cada
+                // tick o projetil testa os 8 jogadores com 0x42a780 - distancia
+                // de (x, y - 10) do jogador ao projetil < A / div, com A = 160 e
+                // div = 4 nos 10 primeiros ticks do original (40 px), 3 depois
+                // (~53 px). So inimigo vivo; um raio por passagem: a marca do
+                // jogador (0x57c) so e' limpa quando ele sai do raio, e o raio
+                // cai NO jogador, nao no projetil.
+                const _varre = shoot.addAtCollide && !shoot.canPlayerCollide && !shoot.isthor;
+                if (_varre) {
+                  const _raio = shoot.time < 10 * 24 ? 160 / 4 : 160 / 3;
+                  const _dentro =
+                    Math.hypot(player.x - shoot.a.x, player.y - 10 - shoot.a.y) < _raio;
+                  if (!shoot._hitPlayers) shoot._hitPlayers = {};
+                  if (!_dentro) shoot._hitPlayers[player.user_id] = false;
+                  else if (
+                    !shoot._hitPlayers[player.user_id] &&
+                    player.team !== shoot.account.player.team
+                  ) {
+                    shoot._hitPlayers[player.user_id] = true;
+                    self.addAtCollide(Object.assign(Object.create(Object.getPrototypeOf(shoot)), shoot, { a: { x: player.x, y: player.y }, thorDiv: 0 }));
+                  }
+                }
 
                 if (shoot.groundCollide || fullcollide || shoot.isComplete) {
                   if (
@@ -712,7 +758,10 @@ jumps:[],
                     // Detalhes em GBPhysics.danoExplosao.
                     const _cr =
                       shoot.bunge_jc && shoot.bunge_jc[1] > 0 ? shoot.bunge_jc : [10, 10];
-                    const _tb = GBPhysics.tipoTiroDe(GBPhysics.nomeOriginalDe(shoot, Types), shoot.type);
+                    const _tb =
+                      shoot.tiroBits != null
+                        ? shoot.tiroBits
+                        : GBPhysics.tipoTiroDe(GBPhysics.nomeOriginalDe(shoot, Types), shoot.type);
                     const _v = GBPhysics.danoExplosao(dm, shoot.a.x, shoot.a.y, _cr, player, corpo, _tb);
                     if (_v > 0) {
                       dm = _v;
@@ -721,14 +770,7 @@ jumps:[],
                   }
                   if (fullcollide || areacollide) {
                     /** @Begin add Shoots */
-                    if (!shoot.canPlayerCollide) {
-                      // UM raio por alvo. O guard antigo (_wait > 50) era um
-                      // contador global do tiro, incrementado uma vez POR JOGADOR
-                      // a cada tick: com o projetil passando devagar sobre alguem
-                      // (perto do apice) o contador estourava os 50 ainda dentro
-                      // da area e o SS da Aduka soltava 2 lasers no mesmo alvo.
-                      // Registrando quem ja foi atingido, cada jogador leva
-                      // exatamente um raio - e o SS segue varrendo os demais.
+                    if (!shoot.canPlayerCollide && !_varre) {
                       if (!shoot._hitPlayers) shoot._hitPlayers = {};
                       if (!shoot._hitPlayers[player.user_id]) {
                         shoot._hitPlayers[player.user_id] = true;
@@ -1034,13 +1076,13 @@ jumps:[],
               shoot.account.player.TELEPORT == 1 ? 10 : shoot.image; //BULLETS
             if (shoot.account.player.TELEPORT == 1) {
               if (!shoot.cancelTele) {
+                const td = this.teleDestino(shoot);
+                // [jogador, chegada x, y, final x, y]: o cliente poe o mobile na
+                // chegada e anda/cai ate o final; o servidor fica com o final.
                 this.shoots_data[this.shoots_complete].tele.push(
-                  shoot.account.player.game_position
+                  shoot.account.player.game_position,
+                  td.x, td.y, td.x, td.yFim
                 );
-                this.shoots_data[this.shoots_complete].tele.push(shoot.a.x);
-                this.shoots_data[this.shoots_complete].tele.push(shoot.a.y);
-                this.shoots_data[this.shoots_complete].tele.push(shoot.a.x);
-                this.shoots_data[this.shoots_complete].tele.push(shoot.a.y);
               }
               shoot.account.player.TELEPORT = 0;
             }
@@ -1289,6 +1331,7 @@ jumps:[],
     let self = this;
     //	console.log({isCollider:self.map.IsPixel(shoot.a.x, shoot.a.y)})
     if (
+      (shoot.forceHit && !shoot.groundCollide) ||
       (self.map.IsPixel(shoot.a.x, shoot.a.y) &&
         !shoot.groundCollide &&
         shoot.canMapCollide &&
@@ -1601,6 +1644,26 @@ jumps:[],
     }
   }
 
+  // Chegada do teleporte (.gme 0x47b390): procura o primeiro pixel de terreno
+  // na coluna do impacto a partir de 15 px acima dele (0x4479d0; 0x5cf170 =
+  // 15). Se for o proprio ponto do impacto (ha 15 px livres em cima), o mobile
+  // chega ali, em pe. Senao (bateu de lado numa parede, no teto ou entrou num
+  // vao apertado) ele volta 1 px no x, para o lado de onde o tiro veio, e
+  // entra em "drop": cai dali ate o chao.
+  teleDestino(shoot) {
+    const m = this.map;
+    const x = Math.round(shoot.a.x), y = Math.round(shoot.a.y);
+    let yt = Math.max(0, y - 15);
+    while (yt < m.h && !m.IsPixel(x, yt)) yt++;
+    if (yt === y) return { x, y, yFim: y };
+    const ant = shoot.getPosAtTime(Math.max(0, shoot.time - 24));
+    const dir = shoot.a.x > ant.x ? 1 : shoot.a.x < ant.x ? -1 : 0;
+    const x2 = x - dir;
+    let yFim = y;
+    while (yFim < m.h && !m.IsPixel(x2, yFim)) yFim++;
+    return { x: x2, y, yFim };
+  }
+
   addGroundHole(shoot) {
     let self = this;
     self.shoots_data[self.shoots_complete].hole.push(shoot.a.x);
@@ -1611,12 +1674,29 @@ jumps:[],
     self.shoots_data[self.shoots_complete].hole.push(
       self.nohole ? 0 : shoot.bunge_jc[1]
     );
+    // Guarda os pixels que esta cratera apagou: o raio do Thor gerado por este
+    // projetil e' tracado no terreno de antes dela (ver addthor).
+    self.map._logCava = [];
     self.map.AddGroundHole(
       shoot.a.x,
       shoot.a.y,
       shoot.bunge_jc[0],
       shoot.bunge_jc[1]
     );
+    shoot._cavou = (shoot._cavou || []).concat(self.map._logCava);
+    self.map._logCava = null;
+  }
+  // Roda fn com os pixels de `cavou` ([indice, alfa antigo]...) restaurados e
+  // apaga de novo em seguida.
+  comTerrenoAntes(cavou, fn) {
+    const d = this.map.data;
+    if (!cavou || !cavou.length) return fn();
+    for (let i = 0; i < cavou.length; i += 2) d[cavou[i]] = cavou[i + 1];
+    try {
+      return fn();
+    } finally {
+      for (let i = 0; i < cavou.length; i += 2) d[cavou[i]] = 0;
+    }
   }
   addAtMaxT(data) {
     let self = this;
@@ -1693,13 +1773,41 @@ jumps:[],
         pala_bunge: [25, 25],
         explode: Types.EXPLODE.ADUKA1_THOR,
       };
-      data.config.stime = 200 + data.stime + data.time * 2;
+      // no .gme o raio sai no mesmo tick do impacto (0x441600 e' chamado
+      // pela colisao do proprio projetil), sem os 200 ms de antes
+      data.config.stime = data.stime + data.time * 2;
       data.config.iD = 0;
       self["addthor"](data);
     }
     if (self.game.weather.current == 4) self._addWeatherLightning(data);
     //console.log("[add Weather]",{current:self.game.weather.current});
   }
+  // Traçado do raio do Thor (.gme 0x448780, chamado por 0x441600 com passo 2,
+  // terreno e jogadores ligados): parte da posicao do Thor, anda de 2 em 2 px
+  // pelo eixo maior da reta ate o alvo e SEGUE alem dele; para no primeiro
+  // pixel de terreno ou corpo de jogador (0x458380 = retangulo do corpo).
+  // Fora do mapa (x < 0, x > largura, y < -500, y > altura) => null.
+  tracaRaioThor(alvoX, alvoY) {
+    const self = this;
+    const x0 = Math.round(self.game.thor.x), y0 = Math.round(self.game.thor.y);
+    const dx = Math.round(alvoX) - x0, dy = Math.round(alvoY) - y0;
+    const passos = Math.max(Math.abs(dx), Math.abs(dy)) + 1;
+    const corpos = [];
+    self.game.room.forPlayers(function (account) {
+      const p = account.player;
+      if (!p || p.is_alive !== 1) return;
+      const mob = Types.MOBILES[p.mobile];
+      corpos.push([p, GBPhysics.corpoDe(mob && mob.name)]);
+    });
+    const W = self.map.w, H = self.map.h;
+    for (let k = 2; ; k += 2) {
+      const x = Math.trunc(x0 + (dx * k) / passos), y = Math.trunc(y0 + (dy * k) / passos);
+      if (x < 0 || x > W || y < -500 || y > H) return null;
+      if (y >= 0 && self.map.IsPixel(x, y)) return { x, y };
+      for (const [p, c] of corpos) if (GBPhysics.acertaCorpo(x, y, p, c)) return { x, y };
+    }
+  }
+
   addthor(data) {
     var self = this;
     // O raio de MOBILE escala com o nivel do Thor, como no jogo original, mas
@@ -1707,15 +1815,27 @@ jumps:[],
     // (damage na config, sem progressao) e o SS usava modifiers, que SOMAM ao
     // thor.damage/2: com o Thor em 2917 isso virou 1658 num unico golpe.
     // Agora ambos vem de RAY_DAMAGE_BY_THOR, interpolado pelo nivel.
-    var cfg = data.config || {};
-    var isSS = !!(cfg.modifiers && cfg.modifiers.damage != null);
-    var isMobileRay = cfg.damage != null || isSS;
-    var mobileRayDamage = isMobileRay
-      ? rayDamageByThor(
-          isSS ? RAY_DAMAGE_BY_THOR.ss : RAY_DAMAGE_BY_THOR.s2,
-          self.game.thor.damage
-        )
-      : null;
+    // Dano do .gme: todo raio (clima, Aduka S2/SS) tira o valor do nivel do
+    // Thor (100/120/140/160/180/200), com o nivel pelos limiares do original.
+    // 0x436180: o dano passa pelo divisor do projetil que gerou o raio (campo
+    // +0x328): 0 => x2, senao / divisor (GBPhysics.thorDivDe).
+    var _div =
+      data.thorDiv != null
+        ? data.thorDiv
+        : GBPhysics.thorDivDe(
+            GBPhysics.nomeOriginalDe(data, Types),
+            data.type === 0 ? 0 : data.type === 2 ? 2 : 1
+          );
+    var rayDamage = GBPhysics.thorDanoRaio(self.game.thor.damage, _div);
+    // 0x441600 traca o raio NA HORA do impacto, antes de a explosao do proprio
+    // projetil cavar (as explosoes so cavam no update delas). Aqui a cratera do
+    // projetil ja foi aberta, entao o tracado desfaz temporariamente os pixels
+    // que ela apagou (data._cavou, gravado em addGroundHole).
+    var acerto = self.comTerrenoAntes(data._cavou, function () {
+      return self.tracaRaioThor(data.a.x, data.a.y);
+    });
+    // Reta saiu do mapa sem tocar em nada: o original nao cria a explosao.
+    if (!acerto) return;
     self.game.thor.angle =
       (-Math.atan2(data.a.y - self.game.thor.y, data.a.x - self.game.thor.x) *
         180) /
@@ -1732,19 +1852,16 @@ jumps:[],
       shootId: data.shootId,
       thorId: data.config.iD,
       isthor: true,
-      damage: isMobileRay ? mobileRayDamage : self.game.thor.damage / 2,
+      damage: rayDamage,
     };
     // Sem isto o merge devolveria o damage fixo (S2) ou somaria o modifier (SS)
     // por cima do valor que acabamos de calcular. Copia rasa: data.config e' o
     // objeto compartilhado do gametypes e nao pode ser mutado.
-    var mergedCfg = data.config;
-    if (isMobileRay) {
-      mergedCfg = { ...data.config };
-      delete mergedCfg.damage;
-      if (mergedCfg.modifiers) {
-        mergedCfg.modifiers = { ...mergedCfg.modifiers };
-        delete mergedCfg.modifiers.damage;
-      }
+    var mergedCfg = { ...data.config };
+    delete mergedCfg.damage;
+    if (mergedCfg.modifiers) {
+      mergedCfg.modifiers = { ...mergedCfg.modifiers };
+      delete mergedCfg.modifiers.damage;
     }
     self.shoots[self.shoots_count] = new Shoot({
       ...shootConfig,
@@ -1755,6 +1872,10 @@ jumps:[],
       // elipse de raio y 23 e raio x 23*150/100 = 34.
       pala_bunge: [34, 23],
     });
+    // 0x441600: a explosao do raio e' criada na hora (sem voo do raio), do
+    // tipo Laser, no primeiro obstaculo da reta Thor -> alvo (0x448780).
+    self.shoots[self.shoots_count].thorAt = acerto;
+    self.shoots[self.shoots_count].tiroBits = 4;
     self.shoots_data[self.shoots_complete].isStage = true;
     self.shoots_count++;
     self.shootPushData();
@@ -1803,8 +1924,58 @@ jumps:[],
     self.shootPushData();
   }
 
+  // Choque do relampago do clima (.gme 0x442a10 + ProcessLightningShock
+  // 0x443320). Na colisao do projetil numa coluna do clima, quem estiver a
+  // menos de 25 px do topo do terreno naquele x leva o choque; ele passa em
+  // cadeia para quem estiver a menos de 25 px de um chocado. Cada um toma
+  // 20 / divisor do projetil (+0x328) + 20 (0x5cf178 = 20) uma vez por turno,
+  // contado como dano no placar.
+  choqueRelampago(data) {
+    const self = this;
+    const x = Math.round(data.a.x);
+    let yc = 0;
+    while (yc < self.map.h && !self.map.IsPixel(x, yc)) yc++;
+    const div =
+      data.thorDiv != null
+        ? data.thorDiv
+        : GBPhysics.thorDivDe(
+            GBPhysics.nomeOriginalDe(data, Types),
+            data.type === 0 ? 0 : data.type === 2 ? 2 : 1
+          );
+    const dano = Math.trunc(20 / (div > 0 ? div : 1)) + 20;
+    const vivos = [];
+    self.game.room.forPlayers(function (account) {
+      const p = account.player;
+      if (p && p.is_alive === 1) vivos.push(p);
+    });
+    const R2 = 25 * 25;
+    const chocados = [];
+    const marca = (p) => {
+      if (p._choque === self.turnoChoque) return;
+      p._choque = self.turnoChoque;
+      chocados.push(p);
+    };
+    for (const p of vivos)
+      if ((p.x - x) * (p.x - x) + (p.y - yc) * (p.y - yc) < R2) marca(p);
+    for (let i = 0; i < chocados.length; i++)
+      for (const p of vivos) {
+        const c = chocados[i];
+        if ((p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) < R2) marca(p);
+      }
+    const sd = self.shoots_data[self.shoots_complete];
+    for (const p of chocados) {
+      p.disHpShield(dano, 0);
+      if (sd) sd.damages.push({ n: p.game_position, damage: dano, hp: p.hp, shield: p.shield });
+      if (p.hp <= 0 && !p.pending_death && self.bonos) {
+        p.pending_death = true;
+        self.bonos.kills.push([p.game_position, true, false]);
+      }
+    }
+  }
+
   addlightning(data) {
     var self = this;
+    if (data.is === "weatherLightning") self.choqueRelampago(data);
     var x = data.config.addx0 ? data.a.x + data.config.addx0 : data.a.x;
     var y = -1000;
     self.game.Lightning.angle =

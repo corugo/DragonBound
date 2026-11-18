@@ -37,9 +37,10 @@ module.exports = class Thor {
 	}
 
 	addDamage(damageAddede){
-		if(this.data.damage < 6000){
+		// O nivel 6 do original exige XP acima de 6000 (0x4a1530 compara com >).
+		if(this.data.damage < 6001){
 			this.data.damage += damageAddede;
-			if(this.data.damage > 6000) this.data.damage = 6000;
+			if(this.data.damage > 6001) this.data.damage = 6001;
 		}
 	}
 

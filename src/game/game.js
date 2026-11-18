@@ -110,8 +110,9 @@ module.exports = class Game {
             self.historical.push(shoot_message);
             if (shoot[0].tele.length > 0) {
               //console.log(acc.player.user_id);
-              acc.player.x = shoot[0].tele[1];
-              acc.player.y = shoot[0].tele[2];
+              // posicao final do teleporte (depois do "drop" do .gme)
+              acc.player.x = shoot[0].tele[3];
+              acc.player.y = shoot[0].tele[4];
               acc.player.move();
             }
             if (Types.BOT_MODES.includes(self.room.game_mode)) {

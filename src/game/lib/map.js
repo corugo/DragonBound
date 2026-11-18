@@ -146,7 +146,12 @@ module.exports = Map = cls.Class.extend({
 
     AddGroundHoleColumn: function (a, b, c) {
         if (!(0 > a || a >= this.w || (0 > b && (b = 0), c >= this.h && (c = this.h - 1), c < b)))
-            for (var d = this.w, e = b; e <= c; e++) b = 4 * (e * d + a), this.data[b + 3] = 0;
+            for (var d = this.w, e = b; e <= c; e++) {
+                b = 4 * (e * d + a);
+                // world.addGroundHole registra o que a cratera apagou (raio do Thor)
+                if (this._logCava && this.data[b + 3] !== 0) this._logCava.push(b + 3, this.data[b + 3]);
+                this.data[b + 3] = 0;
+            }
     },
 
     AddGroundShadowColumn: function (a, b, c) {

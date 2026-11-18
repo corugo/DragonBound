@@ -37028,7 +37028,7 @@
             if (a.damages)
               for (h = 0; h < a.damages.length; h++)
                 (b = f.GetPlayerByPlayerNumber(a.damages[h].n)),
-                  a.damages[h].hp &&
+                  void 0 != a.damages[h].hp &&
                     b.ChangeHPShield(
                       a.damages[h].hp,
                       a.damages[h].shield ? a.damages[h].shield : 0,
@@ -44377,12 +44377,15 @@
       this.MoveTo(a, b);
     };
     CPlayer.prototype.ChangeHPShield = function (a, b, c, d, e) {
-      if (this.hp != a || this.shield != b) {
+      var hpAntes =
+        this.hp <= 0 && void 0 !== this.hpReal && this.hpReal < 0 ? this.hpReal : this.hp;
+      if (hpAntes != a || this.shield != b) {
         void 0 == b && (b = 0);
-        var f = this.hp - a + (this.shield - b);
+        var f = hpAntes - a + (this.shield - b);
+        this.hpReal = a;
         if (!(d && 0 >= f)) {
           var h = this.hp == a;
-          this.hp = a;
+          this.hp = 0 > a ? 0 : a;
           this.shield = b;
           b = this.maxhp + this.maxshield;
           a = (76 * this.hp) / b;
@@ -54353,9 +54356,15 @@
         (this.is_alive = !1));
     };
     Player2.prototype.ChangeHPShield = function (a, b, c, d, e) {
-      if (this.hp != a || this.shield != b) {
+      // Como no .gme, quem zera o HP segue tomando os acertos do turno e cada
+      // um mostra o PROPRIO dano. O HP local para em 0, entao a diferenca vem
+      // do HP real (negativo) que o servidor mandou no acerto anterior.
+      var hpAntes =
+        this.hp <= 0 && void 0 !== this.hpReal && this.hpReal < 0 ? this.hpReal : this.hp;
+      if (hpAntes != a || this.shield != b) {
         void 0 == b && (b = 0);
-        var f = this.hp - a + (this.shield - b);
+        var f = hpAntes - a + (this.shield - b);
+        this.hpReal = a;
         if (!(d && 0 >= f)) {
           d && !this.is_alive && warn("dmg when dead");
           var h = this.hp == a;
