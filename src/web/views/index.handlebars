@@ -21,7 +21,7 @@
         console.log('gaa')
         var d = document.getElementsByTagName('script'),
           _0x539ex2 = d[d.length - 1].getAttribute('v'),
-          _arnulfover = '10',
+          _arnulfover = '13',
           _0x539ex3 = 'onreadyst',
           _0x539ex4 = 'fre',
           _0x539ex5 = 'al',
@@ -108,6 +108,7 @@
     </script>
     <!--<link rel="stylesheet" id="DragonStyle" href="/static/css/ThorBound.min.css?13211" />!-->
     <link rel="stylesheet" href="/static/css/ThorBound.min.css?10">
+    <link rel="stylesheet" href="/static/css/classicWC.css?5">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -579,7 +580,11 @@
         <textarea id="themeFull"></textarea>
       </div>
     </div>
-    <div id="dialogCreateRoom" class="NoSelect">
+    <div id="dialogCreateRoom" class="NoSelect AlertBox">
+      <div class="AlertBoxTitle TH WC" data-text="Criar Sala">Criar Sala</div>
+      <div id="createRoomLabelTitle" class="WC createRoomLabel">Título</div>
+      <div id="createRoomLabelPlayers" class="WC createRoomLabel">Número de Jogadores</div>
+      <div id="createRoomLabelMode" class="WC createRoomLabel">Modo de Jogo</div>
       <input type="text" id="createRoomTitle" value="Hello World" maxlength="30">
       <div id="CreateRoomPrivateCheckbox" class="checkboxOff opacity_button"></div>
       <div id="CreateRoomPassword" class="hide">
@@ -616,7 +621,7 @@
       <br>Drag me <br>to shoot&rArr;
     </div>
     <div id="Dragon2D"></div>
-    <div id="container">
+    <div id="container" class="Lobby Rooms">
       <div class="DialogLayer hide">
         <div id="myDialog">
           <div class="AlertBoxBackground"></div>
@@ -944,22 +949,22 @@
             <div class="Alt">8</div>
           </div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonCreateRoom">
+        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonCreateRoom"><div class="wcLabel">Criar</div>
           <div class="Alt">C</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonMyInfo">
+        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonMyInfo"><div class="wcLabel">Meu Info</div>
           <div class="Alt">I</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonShop">
+        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonShop"><div class="wcLabel">Avatar</div>
           <div class="Alt">H</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton Tip chargeBtn" id="buttonCharge2">
+        <div class="NoSelect opacity_button LobbyButton Tip chargeBtn" id="buttonCharge2"><div class="wcLabel">Recarga</div>
           <div class="Alt">R</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonJoin">
+        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonJoin"><div class="wcLabel">Ir para</div>
           <div class="Alt">J</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonQuickJoin">
+        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonQuickJoin"><div class="wcLabel">Rápido</div>
           <div class="Alt">S</div>
         </div>
         <div class="NoSelect opacity_button LobbyButton newbgimg Tip" id="buttonBuddylist">
@@ -974,18 +979,20 @@
         <div class="NoSelect opacity_button LobbyButton" id="buttonRoomsListDown">
           <div class="Alt">↓</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton blackShadow Tip" id="facebook_post">
+        <div class="NoSelect opacity_button LobbyButton blackShadow Tip" id="facebook_post"><div class="wcLabel">Cash Diário</div>
           <div class="event_button_text"></div>
           <div class="Alt">B</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton blackShadow Tip" id="event_button">
+        <div class="NoSelect opacity_button LobbyButton blackShadow Tip" id="event_button"><div class="wcLabel">Cash 4h</div>
           <div class="event_button_text"></div>
           <div class="Alt">E</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonOptions">
+        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonOptions"><div class="wcLabel">Opções</div>
           <div class="Alt">O</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonChannels">
+        <!-- Classic WC: botao Buddy da barra de baixo (abre a lista de amigos) -->
+        <div class="NoSelect" id="wcLobbyBuddy"><div class="wcLabel">Amigos</div></div>
+        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonChannels"><div class="wcLabel">Sair</div>
           <div class="Alt">Q</div>
         </div>
         <div class="NoSelect light_button buttonAllBuddyList1" id="buttonAllBuddyList1">
@@ -998,14 +1005,14 @@
         <div class="NoSelect light_button buttonAllBuddyList3" id="buttonAllBuddyList3">
           <div class="Alt">G / F10</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="filter_all"><div class="Alt">L</div></div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="filter_waiting"><div class="Alt">T</div></div>
-        <div class="NoSelect opacity_button iconMode0 Tip" id="filter_normal"></div>
-        <div class="NoSelect opacity_button iconMode1 Tip" id="filter_boss"></div>
+        <div class="NoSelect opacity_button LobbyButton Tip" id="filter_all"><div class="wcLabel">Todas</div><div class="Alt">L</div></div>
+        <div class="NoSelect opacity_button LobbyButton Tip" id="filter_waiting"><div class="wcLabel">Esperando</div><div class="Alt">T</div></div>
+        <div class="NoSelect opacity_button iconMode0 Tip" id="filter_normal"><div class="wcLabel">Solo</div></div>
+        <div class="NoSelect opacity_button iconMode1 Tip" id="filter_boss"><div class="wcLabel">Boss</div></div>
         <div class="NoSelect opacity_button iconMode2 Tip" id="filter_same"></div>
-        <div class="NoSelect opacity_button iconMode3 Tip" id="filter_score"></div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="filter_friends"></div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="filter_guild"></div>
+        <div class="NoSelect opacity_button iconMode3 Tip" id="filter_score"><div class="wcLabel">Score</div></div>
+        <div class="NoSelect opacity_button LobbyButton Tip" id="filter_friends"><div class="wcLabel">Amigos</div></div>
+        <div class="NoSelect opacity_button LobbyButton Tip" id="filter_guild"><div class="wcLabel">Guild</div></div>
         <div class="NoSelect glow_button hide StartGame" id="buttonStart1v1">
           <div class="Text"></div>
           <div class="Alt">S</div>
@@ -1038,17 +1045,17 @@
         </div>
         <div id="roomNumber" class="blackShadow"></div>
         <div id="roomTitle" class="blackShadow"></div>
-        <div id="roomButtonBack"></div>
-        <div id="roomButtonReady" class="opacity_button newbgimg">
+        <div id="roomButtonBack"><div class="wcLabel">Sair</div></div>
+        <div id="roomButtonReady" class="opacity_button newbgimg"><div class="wcLabel">Pronto</div>
           <div class="Alt">R</div>
         </div>
-        <div id="roomButtonStart" class="opacity_button newbgimg">
+        <div id="roomButtonStart" class="opacity_button newbgimg"><div class="wcLabel">Iniciar</div>
           <div class="Alt">S</div>
         </div>
-        <div id="roomButtonChangeTeam" class="opacity_button">
+        <div id="roomButtonChangeTeam" class="opacity_button"><div class="wcLabel">Time</div>
           <div class="Alt">T</div>
         </div>
-        <div id="roomButtonMobile" class="roomButtonMobile">
+        <div id="roomButtonMobile" class="roomButtonMobile"><div class="wcLabel">Mobile</div>
           <div class="Alt">M</div>
         </div>
         <div id="roomButtonItem" class="newbgimg buttonItem">
@@ -1204,7 +1211,7 @@
         </div>
         <div id="friendsListExtra"></div>
         <div id="guildRoomTabExtra"></div>
-        <div id="room_options_button" class="opacity_button">
+        <div id="room_options_button" class="opacity_button"><div class="wcLabel">Sala</div>
           <div class="Alt">P</div>
         </div>
         <div id="room_map"></div>
@@ -1214,10 +1221,10 @@
         <div id="no_win_bonus" class="blackShadow"></div>
         <div id="RoomS1Disabled" class="NoSelect imgS1 grayscale"></div>
         <div id="RoomRandomTeams" class="NoSelect blackShadow">Random Teams</div>
-        <div class="NoSelect opacity_button LobbyButton" id="buttonShopFromRoom">
+        <div class="NoSelect opacity_button LobbyButton" id="buttonShopFromRoom"><div class="wcLabel">Avatar</div>
           <div class="Alt">H</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonOptionsRoom">
+        <div class="NoSelect opacity_button LobbyButton Tip" id="buttonOptionsRoom"><div class="wcLabel">Opções</div>
           <div class="Alt">O</div>
         </div>
         <div id="RoomWatchers" class="WatchersBtn"></div>
@@ -1335,7 +1342,7 @@
         <div id="game_back" class="NoSelect"></div>
         <div id="game_front">
           <div id="turn_timer" class="AnimEnterScaleIn"></div>
-          <div id="gameui" class="NoSelect">
+          <div id="gameui" class="NoSelect"><div id="wcMoveLabel">Andar</div>
             <canvas id="MyAngle" width="86" height="30"></canvas>
             <div class="UIGoldDigit" id="UIGoldDigit0"></div>
             <div class="UIGoldDigit" id="UIGoldDigit1"></div>
@@ -1588,23 +1595,23 @@
           <div id="shopInvBox" class="TBGnBorder"></div>
           <div id="shopInvTitle" class="blackShadow NoSelect"></div>
         </div>
-        <div id="buttonShopExit" class="opacity_button NoSelect shopButton">
+        <div id="buttonShopExit" class="opacity_button NoSelect shopButton"><div class="wcLabel">Sair</div>
           <div class="Alt">Q</div>
         </div>
-        <div class="NoSelect opacity_button LobbyButton chargeBtn" id="buttonChargeShop1">
+        <div class="NoSelect opacity_button LobbyButton chargeBtn" id="buttonChargeShop1"><div class="wcLabel">Recarga</div>
           <div class="Alt">R</div>
         </div>
-        <div id="buttonShopBuy" class="opacity_button NoSelect shopButton"></div>
-        <div id="buttonShopHead" class="opacity_button NoSelect shopButton">
+        <div id="buttonShopBuy" class="opacity_button NoSelect shopButton"><div class="wcLabel">Comprar</div></div>
+        <div id="buttonShopHead" class="opacity_button NoSelect shopButton"><div class="wcLabel">Cabeça</div>
           <div class="Alt">H</div>
         </div>
-        <div id="buttonShopBody" class="opacity_button NoSelect shopButton">
+        <div id="buttonShopBody" class="opacity_button NoSelect shopButton"><div class="wcLabel">Corpo</div>
           <div class="Alt">B</div>
         </div>
         <div id="buttonShopEyes" class="opacity_button NoSelect shopButton">
           <div class="Alt">G</div>
         </div>
-        <div id="buttonShopFlag" class="opacity_button NoSelect shopButton">
+        <div id="buttonShopFlag" class="opacity_button NoSelect shopButton"><div class="wcLabel">Bandeira</div>
           <div class="Alt">F</div>
         </div>
         <div id="buttonShopBackground" class="opacity_button NoSelect shopButton">
@@ -1613,7 +1620,7 @@
         <div id="buttonShopForeground" class="opacity_button NoSelect shopButton">
           <div class="Alt">E</div>
         </div>
-        <div id="buttonShopExItem" class="opacity_button NoSelect shopButton">
+        <div id="buttonShopExItem" class="opacity_button NoSelect shopButton"><div class="wcLabel">Ex-Item</div>
           <div class="Alt">X</div>
         </div>
         <div id="shopPages" class="whiteShadow"></div>
@@ -1749,7 +1756,7 @@
           </div>
           <div id="buy_cancel_btn" class="opacity_button shopButton"></div>
           <div id="buy_gift_btn" class="blackShadow"></div>
-          <div class="NoSelect opacity_button LobbyButton chargeBtn" id="buttonChargeShop">
+          <div class="NoSelect opacity_button LobbyButton chargeBtn" id="buttonChargeShop"><div class="wcLabel">Recarga</div>
             <div class="Alt">R</div>
           </div>
           <div class="NoSelect" id="buttonSendGift"></div>

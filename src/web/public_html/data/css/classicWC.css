@@ -1,0 +1,755 @@
+/* Classic WC portado do dragonbound.net. Tudo escopado em body.wc (tema
+   classicWC do DragonTheme). 1) imagens do tema que o gerador do fork nao
+   cobre; 2) regras de layout .wc do style.css do site; 3) animacoes. */
+.wc #roomButtonStart,.wc #roomButtonReady{background-image: url(/static/images/themes/classicWC/stuff_WC.avif?2);background-repeat:no-repeat;background-size:1000px 1720px}
+.wc .Rooms .room,.wc .Rooms #buttonChannels,.wc .Rooms #wcLobbyBuddy,.wc .Rooms #buttonCharge2,.wc .Rooms #MissionsBtnLobby,.wc .Rooms #buttonShop,.wc .Rooms #buttonOptions,.wc .Rooms #buttonMyInfo,.wc .Rooms #lobbyMuteList,.wc .Rooms #filter_normal,.wc .Rooms #filter_score,.wc .Rooms #filter_tag,.wc .Rooms #filter_jewel,.wc .Rooms #buttonRoomsListUp,.wc .Rooms #buttonRoomsListDown,.wc .Rooms #filter_all,.wc .Rooms #filter_waiting,.wc .Rooms #filter_friends,.wc .Rooms #buttonJoin,.wc .Rooms #buttonCreateRoom,.wc .Rooms #buttonQuickJoin,.wc .Rooms #facebook_post,.wc .Rooms #event_button,.wc .Rooms #filter_boss,.wc .Rooms #filter_ffa,.wc .Rooms #filter_guild,.wc .Rooms .room .gameMode{background-image: url(/static/images/themes/classicWC/lobby_WC.avif?4);background-repeat:no-repeat;background-size:1000px 506px}
+.wc #roomButtonBack,.wc #buttonBuddy,.wc #buttonChargeRoom,.wc #roomMuteList,.wc #roomButtonReady,.wc #roomButtonStart,.wc #roomButtonMobile,.wc #wcRoomItem,.wc #room_options_button,.wc #roomButtonChangeTeam,.wc #room_change_title_button,.wc #buttonShopFromRoom,.wc #buttonOptionsRoom,.wc #wcRoomMissions,.wc #buttonShopExit,.wc #wcMyInfoEdit,.wc #wcMyInfoClose,.wc #buttonChargeShop1,.wc #buttonChargeShop,.wc #buttonShopPrev,.wc #buttonShopNext,.wc #buttonShopBuy,.wc #buttonShopHead,.wc #buttonShopBody,.wc #buttonShopGlass,.wc #buttonShopFlag,.wc #buttonShopExItem,.wc #shop_delete_avatar,.wc #buttonSendGift{background-image: url(/static/images/themes/classicWC/lobby_WC.avif?4);background-repeat:no-repeat;background-size:1000px 506px}
+.wc .Rooms #filter_normal:hover,.wc .Rooms #filter_score:hover,.wc .Rooms #filter_tag:hover,.wc .Rooms #filter_jewel:hover,.wc .Rooms #filter_boss:hover,.wc .Rooms #filter_ffa:hover,.wc .Rooms #filter_all:hover,.wc .Rooms #filter_waiting:hover,.wc .Rooms #filter_friends:hover,.wc .Rooms #filter_guild:hover,.wc .Rooms #buttonJoin:hover,.wc .Rooms #buttonCreateRoom:hover,.wc .Rooms #buttonQuickJoin:hover,.wc .Rooms #buttonRoomsListUp:hover,.wc .Rooms #buttonRoomsListDown:hover,.wc .Rooms #buttonChannels:hover,.wc .Rooms #wcLobbyBuddy:hover,.wc .Rooms #lobbyMuteList:hover,.wc .Rooms #buttonCharge2:hover,.wc .Rooms #MissionsBtnLobby:hover,.wc .Rooms #buttonMyInfo:hover,.wc .Rooms #buttonOptions:hover,.wc #roomButtonBack:hover,.wc #buttonBuddy:hover,.wc #buttonChargeRoom:hover,.wc #roomMuteList:hover,.wc #roomButtonReady:hover,.wc #roomButtonStart:hover,.wc #roomButtonMobile:hover,.wc #wcRoomItem:hover,.wc #room_options_button:hover,.wc #roomButtonChangeTeam:hover,.wc #buttonOptionsRoom:hover,.wc #wcRoomMissions:hover,.wc #buttonShopExit:hover,.wc #buttonChargeShop1:hover,.wc #buttonChargeShop:hover,.wc #buttonShopPrev:hover,.wc #buttonShopNext:hover,.wc #buttonShopBuy:hover,.wc #buttonShopHead:hover,.wc #buttonShopBody:hover,.wc #buttonShopGlass:hover,.wc #buttonShopFlag:hover,.wc #buttonShopExItem:hover,.wc #shop_delete_avatar:hover,.wc #buttonSendGift:hover,.wc .Rooms #buttonShop,.wc #buttonShopFromRoom{background-image: url(/static/images/themes/classicWC/lobby_anims.avif?2);background-size:1539px 2043px}
+.wc .Rooms #filter_normal:active,.wc .Rooms #filter_score:active,.wc .Rooms #filter_tag:active,.wc .Rooms #filter_jewel:active,.wc .Rooms #filter_boss:active,.wc .Rooms #filter_ffa:active,.wc .Rooms #filter_all:active,.wc .Rooms #filter_waiting:active,.wc .Rooms #filter_friends:active,.wc .Rooms #filter_guild:active,.wc .Rooms #buttonJoin:active,.wc .Rooms #buttonCreateRoom:active,.wc .Rooms #buttonQuickJoin:active,.wc .Rooms #buttonRoomsListUp:active,.wc .Rooms #buttonRoomsListDown:active,.wc .Rooms #buttonChannels:active,.wc .Rooms #wcLobbyBuddy:active,.wc .Rooms #lobbyMuteList:active,.wc .Rooms #buttonCharge2:active,.wc .Rooms #MissionsBtnLobby:active,.wc .Rooms #buttonMyInfo:active,.wc .Rooms #buttonOptions:active,.wc #roomButtonBack:active,.wc #buttonBuddy:active,.wc #buttonChargeRoom:active,.wc #roomMuteList:active,.wc #roomButtonReady:active,.wc #roomButtonStart:active,.wc #roomButtonMobile:active,.wc #wcRoomItem:active,.wc #room_options_button:active,.wc #roomButtonChangeTeam:active,.wc #buttonOptionsRoom:active,.wc #wcRoomMissions:active,.wc #buttonShopExit:active,.wc #buttonChargeShop1:active,.wc #buttonChargeShop:active,.wc #buttonShopPrev:active,.wc #buttonShopNext:active,.wc #buttonShopBuy:active,.wc #buttonShopHead:active,.wc #buttonShopBody:active,.wc #buttonShopGlass:active,.wc #buttonShopFlag:active,.wc #buttonShopExItem:active,.wc #shop_delete_avatar:active,.wc #buttonSendGift:active,.wc .Rooms #buttonShop:active,.wc #buttonShopFromRoom:active{background-image: url(/static/images/themes/classicWC/lobby_WC.avif?4);background-size:1000px 506px}
+.wc .Rooms #myInfoBox{background-image: url(/static/images/themes/classicHD/lobby_bg.avif)}
+.wc .AlertBox::before,.wc .DragonWindow::before{border-image-source: url(/static/images/themes/classicWC/popup.avif)}
+.wc #tagHud,.wc #btnTag,.wc #wcTurnListBtn,.wc #wcWeatherBtn{background-image: url(/static/images/themes/classicWC/stuff_WC.avif?2) !important;background-repeat:no-repeat;background-size:1000px 1720px}
+.wc #game_over{background-image: url(/static/images/themes/classicWC/scores_WC.avif);background-repeat:no-repeat}
+.wc #scores_lose_a,.wc #scores_lose_b,.wc .score,.wc .scoreA,.wc .scoreB{background-image:url(/static/images/themes/classicWC/scores_WC.avif);background-size:698px 356px}
+/* ---- layout ---- */
+body.th,.th input,body.wc,.wc input{font-family:Emoji,Barlow,Verdana,sans-serif}
+.wc .AlertBox,.wc .DragonWindow{background:none !important;border:0 !important;border-radius:0 !important;box-shadow:3px 3px 10px 0 #000 !important}
+.wc .AlertBox::before,.wc .DragonWindow::before{content:'';position:absolute;left:0;top:0;right:0;bottom:0;box-sizing:border-box;border-style:solid;border-width:28px 51px 4px 3px;border-image-slice:56 102 8 6 fill;border-image-repeat:stretch;z-index:-1;pointer-events:none}
+.wc .AlertBoxTitle,.wc .DragonWindowTitle{font-size:14px;font-weight:bold;color:#fff;text-shadow:-1px -1px 0 #08223c,0 -1px 0 #08223c,1px -1px 0 #08223c,-1px 0 0 #08223c,1px 0 0 #08223c,-1px 1px 0 #08223c,0 1px 0 #08223c,1px 1px 0 #08223c}
+.wc .AlertBoxTitle{left:10px;top:5px}
+.wc .DragonWindowTitleBar{height:28px;line-height:26px;padding:0 10px;border-radius:0;background:0;box-shadow:none}
+.wc .AlertBoxContent,.wc .AlertBoxContent.blackShadow{color:#10284a;text-shadow:none}
+.wc .AlertBox .AlertBold,.wc .DragonWindow .AlertBold{color:#b54800;font-weight:bold}
+.wc .AlertBox a:link,.wc .AlertBox a:visited,.wc .DragonWindow a:link,.wc .DragonWindow a:visited{color:#1d4f9a;text-decoration:underline}
+.wc .createRoomLabel{position:absolute;left:35px;font-size:13px;font-weight:bold;color:#10284a}
+.wc #createRoomLabelTitle{top:40px}
+.wc #createRoomLabelPlayers{top:112px}
+.wc #createRoomLabelMode{top:133px}
+.wc #createRoomTitle,.wc .AlertBox .input_field{background-color:#4a597b;color:#fff}
+.wc .AlertBox #moreSettingsBtn{color:#1d4f9a}
+.WC{display:none}
+.wc .WC{display:block}
+#wcLobbyBuddy,#lobbyMuteList{position:absolute;display:none;cursor:pointer}
+.wc .Rooms #wcLobbyBuddy,.wc .Rooms #lobbyMuteList{display:block}
+.wc #container:not(.Rooms) #channelScreen .wcLabel{display:none}
+.wc .Rooms #filter_normal{left:3px;top:244px;width:39px;height:38px;background-position:-764px 0}
+.wc .Rooms #filter_normal:hover{background-position:-764px 0;animation:wcAnimNormal 1s steps(20) infinite}
+.wc .Rooms #filter_normal:active{background-position:-805px 0;animation:none}
+.wc .Rooms #filter_normal.grayscale{background-position:-764px 0}
+@keyframes wcAnimNormal{from{background-position:0 -121px}to{background-position:-800px -121px}}
+.wc .Rooms #filter_score{left:50px;top:244px;width:39px;height:38px;background-position:-846px 0}
+.wc .Rooms #filter_score:hover{background-position:-846px 0;animation:wcAnimScore 1s steps(20) infinite}
+.wc .Rooms #filter_score:active{background-position:-887px 0;animation:none}
+.wc .Rooms #filter_score.grayscale{background-position:-846px 0}
+@keyframes wcAnimScore{from{background-position:0 -160px}to{background-position:-800px -160px}}
+.wc .Rooms #filter_tag{left:97px;top:244px;width:39px;height:38px;background-position:-928px 0}
+.wc .Rooms #filter_tag:hover{background-position:-928px 0;animation:wcAnimTag 1s steps(20) infinite}
+.wc .Rooms #filter_tag:active{background-position:0 -150px;animation:none}
+.wc .Rooms #filter_tag.grayscale{background-position:-928px 0}
+@keyframes wcAnimTag{from{background-position:0 -199px}to{background-position:-800px -199px}}
+.wc .Rooms #filter_jewel{left:144px;top:244px;width:39px;height:38px;background-position:-41px -150px}
+.wc .Rooms #filter_jewel:hover{background-position:-41px -150px;animation:wcAnimJewel 1s steps(20) infinite}
+.wc .Rooms #filter_jewel:active{background-position:-82px -150px;animation:none}
+.wc .Rooms #filter_jewel.grayscale{background-position:-41px -150px}
+@keyframes wcAnimJewel{from{background-position:0 -238px}to{background-position:-800px -238px}}
+.wc .Rooms #filter_boss{left:191px;top:244px;width:39px;height:38px;background-position:-374px -441px}
+.wc .Rooms #filter_boss:hover{background-position:-374px -441px;animation:wcAnimBoss 1s steps(20) infinite}
+.wc .Rooms #filter_boss:active{background-position:-415px -441px;animation:none}
+.wc .Rooms #filter_boss.grayscale{background-position:-374px -441px}
+@keyframes wcAnimBoss{from{background-position:0 -1925px}to{background-position:-800px -1925px}}
+.wc .Rooms #filter_ffa{left:238px;top:244px;width:39px;height:38px;background-position:-456px -441px}
+.wc .Rooms #filter_ffa:hover{background-position:-456px -441px;animation:wcAnimFfa 1s steps(20) infinite}
+.wc .Rooms #filter_ffa:active{background-position:-497px -441px;animation:none}
+.wc .Rooms #filter_ffa.grayscale{background-position:-456px -441px}
+@keyframes wcAnimFfa{from{background-position:0 -1964px}to{background-position:-800px -1964px}}
+.wc .Rooms #filter_all{left:444px;top:238px;width:42px;height:38px;background-position:-514px 0}
+.wc .Rooms #filter_all:hover{background-position:-514px 0;animation:wcAnimAll 1.5s steps(30) infinite}
+.wc .Rooms #filter_all:active{background-position:-558px 0;animation:none}
+.wc .Rooms #filter_all.grayscale{background-position:-514px 0}
+@keyframes wcAnimAll{from{background-position:0 0}to{background-position:-1290px 0}}
+.wc .Rooms #filter_waiting{left:493px;top:236px;width:39px;height:40px;background-position:-602px 0}
+.wc .Rooms #filter_waiting:hover{background-position:-602px 0;animation:wcAnimWaiting 1.65s steps(33) infinite}
+.wc .Rooms #filter_waiting:active{background-position:-643px 0;animation:none}
+.wc .Rooms #filter_waiting.grayscale{background-position:-602px 0}
+@keyframes wcAnimWaiting{from{background-position:0 -39px}to{background-position:-1320px -39px}}
+.wc .Rooms #filter_friends{left:541px;top:237px;width:38px;height:40px;background-position:-684px 0}
+.wc .Rooms #filter_friends:hover{background-position:-684px 0;animation:wcAnimFriends .95s steps(19) infinite}
+.wc .Rooms #filter_friends:active{background-position:-724px 0;animation:none}
+.wc .Rooms #filter_friends.grayscale{background-position:-684px 0}
+@keyframes wcAnimFriends{from{background-position:0 -80px}to{background-position:-741px -80px}}
+.wc .Rooms #filter_guild{left:587px;top:237px;width:38px;height:40px;background-position:-538px -441px}
+.wc .Rooms #filter_guild:hover{background-position:-538px -441px;animation:wcAnimGuild .95s steps(19) infinite}
+.wc .Rooms #filter_guild:active{background-position:-578px -441px;animation:none}
+.wc .Rooms #filter_guild.grayscale{background-position:-538px -441px}
+@keyframes wcAnimGuild{from{background-position:0 -2003px}to{background-position:-741px -2003px}}
+.wc .Rooms #buttonJoin{left:628px;top:242px;width:42px;height:34px;background-position:-123px -150px}
+.wc .Rooms #buttonJoin:hover{background-position:-123px -150px;animation:wcAnimGoto .85s steps(17) infinite}
+.wc .Rooms #buttonJoin:active{background-position:-167px -150px;animation:none}
+.wc .Rooms #buttonJoin.grayscale{background-position:-123px -150px}
+@keyframes wcAnimGoto{from{background-position:0 -277px}to{background-position:-731px -277px}}
+.wc .Rooms #buttonCreateRoom{left:687px;top:228px;width:48px;height:48px;background-position:-211px -150px}
+.wc .Rooms #buttonCreateRoom:hover{background-position:-211px -150px;animation:wcAnimCreate .9s steps(18) infinite}
+.wc .Rooms #buttonCreateRoom:active{background-position:-261px -150px;animation:none}
+.wc .Rooms #buttonCreateRoom.grayscale{background-position:-211px -150px}
+@keyframes wcAnimCreate{from{background-position:0 -312px}to{background-position:-882px -312px}}
+.wc .Rooms #buttonQuickJoin{left:731px;top:225px;width:60px;height:53px;background-position:-311px -150px}
+.wc .Rooms #buttonQuickJoin:hover{background-position:-311px -150px;animation:wcAnimQuick 1.25s steps(25) infinite}
+.wc .Rooms #buttonQuickJoin:active{background-position:-373px -150px;animation:none}
+.wc .Rooms #buttonQuickJoin.grayscale{background-position:-311px -150px}
+@keyframes wcAnimQuick{from{background-position:0 -361px}to{background-position:-1525px -361px}}
+.wc .Rooms #buttonRoomsListUp{left:293px;top:244px;width:41px;height:32px;background-position:-435px -150px}
+.wc .Rooms #buttonRoomsListUp:hover{background-position:-435px -150px;animation:wcAnimUp 1s steps(20) infinite}
+.wc .Rooms #buttonRoomsListUp:active{background-position:-478px -150px;animation:none}
+.wc .Rooms #buttonRoomsListUp.grayscale{background-position:-435px -150px}
+@keyframes wcAnimUp{from{background-position:0 -415px}to{background-position:-840px -415px}}
+.wc .Rooms #buttonRoomsListDown{left:388px;top:244px;width:41px;height:32px;background-position:-521px -150px}
+.wc .Rooms #buttonRoomsListDown:hover{background-position:-521px -150px;animation:wcAnimDown 1s steps(20) infinite}
+.wc .Rooms #buttonRoomsListDown:active{background-position:-564px -150px;animation:none}
+.wc .Rooms #buttonRoomsListDown.grayscale{background-position:-521px -150px}
+@keyframes wcAnimDown{from{background-position:0 -448px}to{background-position:-840px -448px}}
+.wc .Rooms #buttonChannels{left:738px;top:533px;width:62px;height:64px;background-position:-607px -150px}
+.wc .Rooms #buttonChannels:hover{background-position:-607px -150px;animation:wcAnimExit 1.15s steps(23) infinite}
+.wc .Rooms #buttonChannels:active{background-position:-671px -150px;animation:none}
+.wc .Rooms #buttonChannels.grayscale{background-position:-607px -150px}
+@keyframes wcAnimExit{from{background-position:0 -481px}to{background-position:-1449px -481px}}
+.wc .Rooms #buttonShop{left:414px;top:511px;width:76px;height:77px;background-position:-735px -150px;animation:wcAnimAvatarIdle 1s steps(20) infinite}
+.wc .Rooms #buttonShop:hover{background-position:-735px -150px;animation:wcAnimAvatar 1.6s linear infinite}
+.wc .Rooms #buttonShop:active{background-position:-813px -150px;animation:none}
+.wc .Rooms #buttonShop.grayscale{background-position:-735px -150px}
+@keyframes wcAnimAvatar{0%{background-position:0 -546px;animation-timing-function:steps(16)}49.99%{background-position:-1232px -546px}50%{background-position:0 -624px;animation-timing-function:steps(16)}100%{background-position:-1232px -624px}}
+@keyframes wcAnimAvatarIdle{from{background-position:0 -702px}to{background-position:-1540px -702px}}
+.wc .Rooms #wcLobbyBuddy{left:24px;top:539px;width:57px;height:56px;background-position:-891px -150px}
+.wc .Rooms #wcLobbyBuddy:hover{background-position:-891px -150px;animation:wcAnimBuddy 1s steps(20) infinite}
+.wc .Rooms #wcLobbyBuddy:active{background-position:0 -229px;animation:none}
+.wc .Rooms #wcLobbyBuddy.grayscale{background-position:-891px -150px}
+@keyframes wcAnimBuddy{from{background-position:0 -780px}to{background-position:-1160px -780px}}
+.wc .Rooms #lobbyMuteList{left:108px;top:533px;width:58px;height:55px;background-position:-59px -229px}
+.wc .Rooms #lobbyMuteList:hover{background-position:-59px -229px;animation:wcAnimMute 1s steps(20) infinite}
+.wc .Rooms #lobbyMuteList:active{background-position:-119px -229px;animation:none}
+.wc .Rooms #lobbyMuteList.grayscale{background-position:-59px -229px}
+@keyframes wcAnimMute{from{background-position:0 -837px}to{background-position:-1180px -837px}}
+.wc .Rooms #buttonCharge2{left:189px;top:530px;width:58px;height:62px;background-position:-179px -229px}
+.wc .Rooms #buttonCharge2:hover{background-position:-179px -229px;animation:wcAnimCharge .6s steps(12) infinite}
+.wc .Rooms #buttonCharge2:active{background-position:-239px -229px;animation:none}
+.wc .Rooms #buttonCharge2.grayscale{background-position:-179px -229px}
+@keyframes wcAnimCharge{from{background-position:0 -893px}to{background-position:-708px -893px}}
+.wc .Rooms #MissionsBtnLobby{left:248px;top:523px;width:68px;height:72px;background-position:-299px -229px}
+.wc .Rooms #MissionsBtnLobby:hover{background-position:-299px -229px;animation:wcAnimMissions 1.1s steps(22) infinite}
+.wc .Rooms #MissionsBtnLobby:active{background-position:-369px -229px;animation:none}
+.wc .Rooms #MissionsBtnLobby.grayscale{background-position:-299px -229px}
+@keyframes wcAnimMissions{from{background-position:0 -956px}to{background-position:-1518px -956px}}
+.wc .Rooms #buttonMyInfo{left:584px;top:521px;width:68px;height:68px;background-position:-439px -229px}
+.wc .Rooms #buttonMyInfo:hover{background-position:-439px -229px;animation:wcAnimMyinfo 1s steps(20) infinite}
+.wc .Rooms #buttonMyInfo:active{background-position:-509px -229px;animation:none}
+.wc .Rooms #buttonMyInfo.grayscale{background-position:-439px -229px}
+@keyframes wcAnimMyinfo{from{background-position:0 -1029px}to{background-position:-1380px -1029px}}
+.wc .Rooms #buttonOptions{left:657px;top:523px;width:72px;height:70px;background-position:-579px -229px}
+.wc .Rooms #buttonOptions:hover{background-position:-579px -229px;animation:wcAnimOptions 1.5s linear infinite}
+.wc .Rooms #buttonOptions:active{background-position:-653px -229px;animation:none}
+.wc .Rooms #buttonOptions.grayscale{background-position:-579px -229px}
+@keyframes wcAnimOptions{0%{background-position:0 -1098px;animation-timing-function:steps(15)}49.99%{background-position:-1095px -1098px}50%{background-position:0 -1169px;animation-timing-function:steps(15)}100%{background-position:-1095px -1169px}}
+@media(hover:none){.wc .Rooms #filter_normal:hover,.wc .Rooms #filter_score:hover,.wc .Rooms #filter_tag:hover,.wc .Rooms #filter_jewel:hover,.wc .Rooms #filter_boss:hover,.wc .Rooms #filter_ffa:hover,.wc .Rooms #filter_all:hover,.wc .Rooms #filter_waiting:hover,.wc .Rooms #filter_friends:hover,.wc .Rooms #filter_guild:hover,.wc .Rooms #buttonJoin:hover,.wc .Rooms #buttonCreateRoom:hover,.wc .Rooms #buttonQuickJoin:hover,.wc .Rooms #buttonRoomsListUp:hover,.wc .Rooms #buttonRoomsListDown:hover,.wc .Rooms #buttonChannels:hover,.wc .Rooms #buttonShop:hover,.wc .Rooms #wcLobbyBuddy:hover,.wc .Rooms #lobbyMuteList:hover,.wc .Rooms #buttonCharge2:hover,.wc .Rooms #MissionsBtnLobby:hover,.wc .Rooms #buttonMyInfo:hover,.wc .Rooms #buttonOptions:hover,.wc #roomButtonBack:hover,.wc #buttonBuddy:hover,.wc #buttonChargeRoom:hover,.wc #roomMuteList:hover,.wc #roomButtonReady:hover,.wc #roomButtonStart:hover,.wc #roomButtonMobile:hover,.wc #wcRoomItem:hover,.wc #room_options_button:hover,.wc #roomButtonChangeTeam:hover,.wc #buttonShopFromRoom:hover,.wc #buttonOptionsRoom:hover,.wc #wcRoomMissions:hover,.wc #buttonShopExit:hover,.wc #buttonChargeShop1:hover,.wc #buttonChargeShop:hover,.wc #buttonShopPrev:hover,.wc #buttonShopNext:hover,.wc #buttonShopBuy:hover,.wc #buttonShopHead:hover,.wc #buttonShopBody:hover,.wc #buttonShopGlass:hover,.wc #buttonShopFlag:hover,.wc #buttonShopExItem:hover,.wc #shop_delete_avatar:hover,.wc #buttonSendGift:hover{animation-iteration-count:.999 !important;animation-fill-mode:forwards !important}}
+.wc .Rooms #facebook_post{left:332px;top:532px;width:53px;height:56px;background-position:-618px -441px}
+.wc .Rooms #event_button{left:518px;top:532px;width:55px;height:56px;background-position:-673px -441px}
+.wc .Rooms #roomsPage{left:333px;top:241px}
+.wc .Rooms #roomsPage{width:56px;height:40px;min-width:0;line-height:40px;padding:0;font-weight:bold;font-size:inherit}
+.wc .Rooms #buttonCreateRoom{clip-path:inset(-20px 1px -20px 0)}
+.wc .Rooms #buttonQuickJoin{clip-path:inset(-20px 0 -20px 3px)}
+.wc .Rooms #roomsPage{pointer-events:none}
+.wc .Rooms #buttonShop{border-radius:0;transform:none}
+.wc .Rooms #buttonChannels:hover,.wc .Rooms #buttonChannels:active,.wc .Rooms #buttonCharge2:hover,.wc .Rooms #buttonCharge2:active,.wc .Rooms #MissionsBtnLobby:hover,.wc .Rooms #MissionsBtnLobby:active,.wc .Rooms #buttonShop:hover,.wc .Rooms #buttonShop:active,.wc .Rooms #buttonOptions:hover,.wc .Rooms #buttonOptions:active,.wc .Rooms #buttonMyInfo:hover,.wc .Rooms #buttonMyInfo:active,.wc .Rooms #filter_normal:hover,.wc .Rooms #filter_normal:active,.wc .Rooms #filter_score:hover,.wc .Rooms #filter_score:active,.wc .Rooms #filter_tag:hover,.wc .Rooms #filter_tag:active,.wc .Rooms #filter_jewel:hover,.wc .Rooms #filter_jewel:active,.wc .Rooms #filter_boss:hover,.wc .Rooms #filter_boss:active,.wc .Rooms #filter_ffa:hover,.wc .Rooms #filter_ffa:active,.wc .Rooms #filter_all:hover,.wc .Rooms #filter_all:active,.wc .Rooms #filter_waiting:hover,.wc .Rooms #filter_waiting:active,.wc .Rooms #filter_friends:hover,.wc .Rooms #filter_friends:active,.wc .Rooms #filter_guild:hover,.wc .Rooms #filter_guild:active,.wc .Rooms #buttonJoin:hover,.wc .Rooms #buttonJoin:active,.wc .Rooms #buttonCreateRoom:hover,.wc .Rooms #buttonCreateRoom:active,.wc .Rooms #buttonQuickJoin:hover,.wc .Rooms #buttonQuickJoin:active,.wc .Rooms #buttonRoomsListUp:hover,.wc .Rooms #buttonRoomsListUp:active,.wc .Rooms #buttonRoomsListDown:hover,.wc .Rooms #buttonRoomsListDown:active{filter:var(--btn-filter,)}
+.wc .Rooms #filter_normal,.wc .Rooms #filter_score,.wc .Rooms #filter_tag,.wc .Rooms #filter_jewel,.wc .Rooms #filter_boss,.wc .Rooms #filter_ffa{--btn-filter:brightness(1);filter:var(--btn-filter)}
+.wc .Rooms #filter_normal.selectedFilter,.wc .Rooms #filter_score.selectedFilter,.wc .Rooms #filter_tag.selectedFilter,.wc .Rooms #filter_jewel.selectedFilter,.wc .Rooms #filter_boss.selectedFilter,.wc .Rooms #filter_ffa.selectedFilter{--btn-filter:drop-shadow(0 0 4px yellow) drop-shadow(0 0 4px yellow);filter:var(--btn-filter)}
+.wc .Rooms #buttonChannels .wcLabel{top:51px;bottom:auto}
+.wc .Rooms #wcLobbyBuddy .wcLabel{top:45px;bottom:auto}
+.wc .Rooms #buttonCharge2 .wcLabel{top:54px;bottom:auto}
+.wc .Rooms #MissionsBtnLobby .wcLabel{top:61px;bottom:auto}
+.wc .Rooms #buttonShop .wcLabel{top:73px;bottom:auto}
+.wc .Rooms #buttonOptions .wcLabel{top:61px;bottom:auto}
+.wc .Rooms #buttonMyInfo .wcLabel{top:63px;bottom:auto}
+.wc .Rooms #lobbyMuteList .wcLabel{top:51px;bottom:auto}
+.wc .Rooms #facebook_post .wcLabel{top:52px;bottom:auto}
+.wc .Rooms #event_button .wcLabel{top:52px;bottom:auto}
+.wc .Rooms #facebook_post .event_button_text,.wc .Rooms #event_button .event_button_text{top:-13px;bottom:auto}
+.wc .Rooms #filter_normal .wcLabel{top:28px;bottom:auto}
+.wc .Rooms #filter_boss .wcLabel{top:28px;bottom:auto}
+.wc .Rooms #filter_score .wcLabel{top:28px;bottom:auto}
+.wc .Rooms #filter_tag .wcLabel{top:28px;bottom:auto}
+.wc .Rooms #filter_jewel .wcLabel{top:28px;bottom:auto}
+.wc .Rooms #filter_normal .wcLabel,.wc .Rooms #filter_boss .wcLabel,.wc .Rooms #filter_score .wcLabel,.wc .Rooms #filter_tag .wcLabel,.wc .Rooms #filter_jewel .wcLabel,.wc .Rooms #filter_ffa .wcLabel,.wc .Rooms #filter_all .wcLabel,.wc .Rooms #filter_waiting .wcLabel,.wc .Rooms #filter_friends .wcLabel,.wc .Rooms #filter_guild .wcLabel,.wc .Rooms #buttonJoin .wcLabel,.wc .Rooms #buttonCreateRoom .wcLabel,.wc .Rooms #buttonQuickJoin .wcLabel{font-size:10px}
+.wc .Rooms #filter_ffa .wcLabel{top:28px;bottom:auto;left:0;right:0;white-space:normal;line-height:12px}
+.wc .Rooms #filter_all .wcLabel{top:34px;bottom:auto}
+.wc .Rooms #filter_waiting .wcLabel{top:36px;bottom:auto}
+.wc .Rooms #filter_friends .wcLabel{top:35px;bottom:auto}
+.wc .Rooms #filter_guild .wcLabel{top:35px;bottom:auto}
+.wc .Rooms #buttonJoin .wcLabel{top:30px;bottom:auto}
+.wc .Rooms #buttonCreateRoom .wcLabel{top:44px;bottom:auto}
+.wc .Rooms #buttonQuickJoin .wcLabel{top:47px;bottom:auto}
+.wc .Rooms #roomsList{left:0;top:0;width:800px}
+.wc .Rooms .room{width:232px;height:68px}
+.wc .Rooms #room0{left:16px;top:22px}
+.wc .Rooms #room1{left:285px;top:22px}
+.wc .Rooms #room2{left:554px;top:22px}
+.wc .Rooms #room3{left:16px;top:90px}
+.wc .Rooms #room4{left:285px;top:90px}
+.wc .Rooms #room5{left:554px;top:90px}
+.wc .Rooms #room6{left:16px;top:158px}
+.wc .Rooms #room7{left:285px;top:158px}
+.wc .Rooms .room{background-position:-554px -303px}
+.wc .Rooms .room:hover{background-position:0 -372px}
+.wc .Rooms .room:active{background-position:0 -372px}
+.wc .Rooms .room.powerUserRoom{background-position:-233px -372px}
+.wc .Rooms .room.powerUserRoom:hover{background-position:-466px -372px}
+.wc .Rooms .room.powerUserRoom:active{background-position:-466px -372px}
+.wc .Rooms .room.roomExtraInfo{width:231px;height:148px;background-position:0 0 !important}
+.wc .Rooms .room.roomExtraInfo.powerUserRoom{width:231px;height:148px;background-position:-233px 0 !important}
+.wc .Rooms .room.light_button:hover,.wc .Rooms .room.light_button:active{filter:none}
+.wc .Rooms .roomConnectorA,.wc .Rooms .roomConnectorB{display:none}
+.wc .Rooms .roomNumber{left:4px;top:6px}
+.wc .Rooms .roomTitle{left:36px;top:4px;width:140px}
+.wc .Rooms .numPlayers{left:200px;top:7px;width:11px;text-align:center;font-size:12px}
+.wc .Rooms .maxPlayers{left:217px;top:7px;font-size:12px}
+.wc .Rooms .status{left:5px;top:33px;transform:scale(0.9);transform-origin:0 0}
+.wc .Rooms .roomMap{left:87px;top:28px;transform:scaleX(0.45) scaleY(0.58);transform-origin:0 0}
+.wc .Rooms .roomLock{left:66px;top:36px}
+.wc .Rooms .allowWatch{left:172px;top:5px}
+.wc .Rooms .watchCount{left:152px;top:6px}
+.wc .Rooms .room .gameMode{display:block;left:187px;top:26px;width:39px;height:38px;transform:none;filter:none;background-position:-764px 0}
+.wc .Rooms .room[data-mode="1"] .gameMode{background-position:-374px -441px}
+.wc .Rooms .room[data-mode="3"] .gameMode{background-position:-846px 0}
+.wc .Rooms .room[data-mode="4"] .gameMode{background-position:-41px -150px}
+.wc .Rooms .room[data-mode="5"] .gameMode{background-position:-928px 0}
+.wc .Rooms .room[data-mode="6"] .gameMode{background-position:-456px -441px}
+.wc .Rooms .roomExtraInfoSlot0,.wc .Rooms .roomExtraInfoSlot2,.wc .Rooms .roomExtraInfoSlot4,.wc .Rooms .roomExtraInfoSlot6{left:10px}
+.wc .Rooms .roomExtraInfoSlot1,.wc .Rooms .roomExtraInfoSlot3,.wc .Rooms .roomExtraInfoSlot5,.wc .Rooms .roomExtraInfoSlot7{left:122px}
+.wc .Rooms .roomExtraInfoSlot0,.wc .Rooms .roomExtraInfoSlot1{top:72px}
+.wc .Rooms .roomExtraInfoSlot2,.wc .Rooms .roomExtraInfoSlot3{top:90px}
+.wc .Rooms .roomExtraInfoSlot4,.wc .Rooms .roomExtraInfoSlot5{top:108px}
+.wc .Rooms .roomExtraInfoSlot6,.wc .Rooms .roomExtraInfoSlot7{top:126px}
+.wc .Rooms #room8{left:554px;top:158px}
+.wc .Rooms:not(.wcMyInfo) #myInfoBox,.wc .Rooms:not(.wcMyInfo) #channel_player,.wc .Rooms:not(.wcMyInfo) #myName2,.wc .Rooms:not(.wcMyInfo) #myName3,.wc .Rooms:not(.wcMyInfo) #myRankEffect,.wc .Rooms:not(.wcMyInfo) #myPowerUser,.wc .Rooms:not(.wcMyInfo) #myPhotoDiv,.wc .Rooms:not(.wcMyInfo) #myGP2,.wc .Rooms:not(.wcMyInfo) #myCash2,.wc .Rooms:not(.wcMyInfo) #myGold2,.wc .Rooms:not(.wcMyInfo) #myPlusGP,.wc .Rooms:not(.wcMyInfo) #myPUGP,.wc .Rooms:not(.wcMyInfo) #myPUG,.wc .Rooms:not(.wcMyInfo) #myGFPhotoDiv,.wc .Rooms:not(.wcMyInfo) #myGFStatus,.wc .Rooms:not(.wcMyInfo) #myGFName{visibility:hidden}
+.wc .Rooms #myInfoBox{display:block !important;left:582px;top:90px;width:215px;height:182px;border:0;border-radius:5px;box-shadow:none;background-color:transparent;background-repeat:no-repeat;background-position:-582px -90px;background-size:800px 600px;pointer-events:auto;z-index:30}
+.wc .Rooms #channel_player{z-index:31}
+.wc .Rooms #myName2,.wc .Rooms #myName3,.wc .Rooms #myRankEffect,.wc .Rooms #myPowerUser,.wc .Rooms #myPhotoDiv,.wc .Rooms #myGP2,.wc .Rooms #myCash2,.wc .Rooms #myGold2,.wc .Rooms #myPlusGP,.wc .Rooms #myPUGP,.wc .Rooms #myPUG,.wc .Rooms #myGFPhotoDiv,.wc .Rooms #myGFStatus,.wc .Rooms #myGFName{z-index:32}
+.wc .Rooms #myGFStatus{top:117px}
+.wc .Rooms #myGFPhotoDiv{top:131px}
+.wc .Rooms #myGFName{top:168px}
+#wcMyInfoEdit,#wcMyInfoClose{display:none}
+.wc .Rooms.wcMyInfo #wcMyInfoEdit{display:block;position:absolute;left:754px;top:98px;width:16px;height:16px;z-index:33;background-position:-368px -303px;cursor:pointer}
+.wc .Rooms.wcMyInfo #wcMyInfoClose{display:block;position:absolute;left:774px;top:93px;width:21px;height:21px;z-index:33;background-position:-730px -441px;cursor:pointer}
+.wc .Rooms.wcMyInfo #wcMyInfoClose:hover{background-position:-776px -441px}
+.wc .Rooms.wcMyInfo #wcMyInfoClose:active{background-position:-753px -441px}
+.wc .Rooms.wcMyInfo #wcMyInfoEdit:hover{background-position:-404px -303px}
+.wc .Rooms.wcMyInfo #wcMyInfoEdit:active{background-position:-386px -303px}
+.wc .Rooms.wcMyInfo #myInfoBox,.wc .Rooms.wcMyInfo #wcMyInfoEdit,.wc .Rooms.wcMyInfo #wcMyInfoClose,.wc .Rooms.wcMyInfo #channel_player,.wc .Rooms.wcMyInfo #myName2,.wc .Rooms.wcMyInfo #myName3,.wc .Rooms.wcMyInfo #myRankEffect,.wc .Rooms.wcMyInfo #myPowerUser,.wc .Rooms.wcMyInfo #myPowerTimer,.wc .Rooms.wcMyInfo #myRank2,.wc .Rooms.wcMyInfo #myPhotoDiv,.wc .Rooms.wcMyInfo #myGP2,.wc .Rooms.wcMyInfo #myCash2,.wc .Rooms.wcMyInfo #myGold2,.wc .Rooms.wcMyInfo #myPlusGP,.wc .Rooms.wcMyInfo #myPUGP,.wc .Rooms.wcMyInfo #myPUG,.wc .Rooms.wcMyInfo #myGFPhotoDiv,.wc .Rooms.wcMyInfo #myGFStatus,.wc .Rooms.wcMyInfo #myGFName{transform:translate3d(var(--myinfo-dx,0),var(--myinfo-dy,0),0);touch-action:none;-webkit-user-select:none;user-select:none}
+.wc .Rooms.wcMyInfo #myInfoBox{cursor:move}
+.wc .Rooms.wcMyInfoOpening #myInfoBox,.wc .Rooms.wcMyInfoOpening #wcMyInfoEdit,.wc .Rooms.wcMyInfoOpening #wcMyInfoClose,.wc .Rooms.wcMyInfoOpening #channel_player,.wc .Rooms.wcMyInfoOpening #myName2,.wc .Rooms.wcMyInfoOpening #myName3,.wc .Rooms.wcMyInfoOpening #myRankEffect,.wc .Rooms.wcMyInfoOpening #myPowerUser,.wc .Rooms.wcMyInfoOpening #myPowerTimer,.wc .Rooms.wcMyInfoOpening #myRank2,.wc .Rooms.wcMyInfoOpening #myPhotoDiv,.wc .Rooms.wcMyInfoOpening #myGP2,.wc .Rooms.wcMyInfoOpening #myCash2,.wc .Rooms.wcMyInfoOpening #myGold2,.wc .Rooms.wcMyInfoOpening #myPlusGP,.wc .Rooms.wcMyInfoOpening #myPUGP,.wc .Rooms.wcMyInfoOpening #myPUG,.wc .Rooms.wcMyInfoOpening #myGFPhotoDiv,.wc .Rooms.wcMyInfoOpening #myGFStatus,.wc .Rooms.wcMyInfoOpening #myGFName{animation:wcMyInfoOpen .15s ease-out}
+.wc .Rooms.wcMyInfoClosing #myInfoBox,.wc .Rooms.wcMyInfoClosing #wcMyInfoEdit,.wc .Rooms.wcMyInfoClosing #wcMyInfoClose,.wc .Rooms.wcMyInfoClosing #channel_player,.wc .Rooms.wcMyInfoClosing #myName2,.wc .Rooms.wcMyInfoClosing #myName3,.wc .Rooms.wcMyInfoClosing #myRankEffect,.wc .Rooms.wcMyInfoClosing #myPowerUser,.wc .Rooms.wcMyInfoClosing #myPowerTimer,.wc .Rooms.wcMyInfoClosing #myRank2,.wc .Rooms.wcMyInfoClosing #myPhotoDiv,.wc .Rooms.wcMyInfoClosing #myGP2,.wc .Rooms.wcMyInfoClosing #myCash2,.wc .Rooms.wcMyInfoClosing #myGold2,.wc .Rooms.wcMyInfoClosing #myPlusGP,.wc .Rooms.wcMyInfoClosing #myPUGP,.wc .Rooms.wcMyInfoClosing #myPUG,.wc .Rooms.wcMyInfoClosing #myGFPhotoDiv,.wc .Rooms.wcMyInfoClosing #myGFStatus,.wc .Rooms.wcMyInfoClosing #myGFName{animation:wcMyInfoClose .15s ease-in forwards}
+@keyframes wcMyInfoOpen{from{transform:translate3d(var(--myinfo-dx,0),var(--myinfo-dy,0),0) scaleY(0)}}
+@keyframes wcMyInfoClose{to{transform:translate3d(var(--myinfo-dx,0),var(--myinfo-dy,0),0) scaleY(0)}}
+.wc .Rooms.wcMyInfo #channelScreen{transform:none}
+.wc .Rooms #MissionsBtnLobby .AvNotif{top:14px;right:12px}
+.wc .Rooms #buttonShop .AvNotif{top:8px;right:6px}
+.wc .Rooms #channelName{left:90px;top:314px;font-size:13px;padding:2px}
+.wc .Rooms #channel{left:18px;top:343px;width:490px;height:134px}
+.wc .Rooms #channel .viewport{width:490px !important;height:134px !important}
+.wc .Rooms #lobby_channel{left:36px;top:487px;bottom:auto;width:68px;font-size:10px}
+.wc .Rooms #channelInput{left:108px;top:486px;width:356px}
+.wc .Rooms #channelInputAlt{left:468px;top:488px}
+.wc .Rooms #lobbyBcm{left:488px;top:485px}
+.wc .Rooms #playersList,.wc .Rooms.Lobby #friendsList,.wc .Rooms.Lobby #guildMembersList{left:542px;top:342px;width:246px;height:162px}
+.wc .Rooms #playersList .viewport,.wc .Rooms.Lobby #friendsList .viewport,.wc .Rooms.Lobby #guildMembersList .viewport{width:246px !important;height:162px !important}
+.wc .Rooms.Lobby #friendsList,.wc .Rooms.Lobby #guildMembersList{background-color:transparent}
+.wc .Rooms #buttonAllBuddyList1{left:541px !important;top:309px}
+.wc .Rooms #buttonAllBuddyList2{left:605px !important;top:309px}
+.wc .Rooms #buttonAllBuddyList3{left:687px !important;top:309px}
+#wcLobbyWide{display:none}
+.wc .WideLobby #wcLobbyWide{display:block;position:absolute;left:0;top:0;width:800px;height:600px;margin-left:var(--lobby-l);background-size:0;pointer-events:none}
+#wcLobbyWide div{position:absolute;background-image:inherit;background-repeat:no-repeat}
+.wc .WideLobby #room0,.wc .WideLobby #room3,.wc .WideLobby #room6{margin-left:var(--lobby-room-l)}
+.wc .WideLobby #room2,.wc .WideLobby #room5,.wc .WideLobby #room8{margin-left:var(--lobby-room-r)}
+.wc .WideLobby #filter_normal,.wc .WideLobby #filter_score,.wc .WideLobby #filter_tag,.wc .WideLobby #filter_jewel,.wc .WideLobby #filter_boss,.wc .WideLobby #filter_ffa{margin-left:var(--lobby-filters-l)}
+.wc .WideLobby #filter_all,.wc .WideLobby #filter_waiting,.wc .WideLobby #filter_friends,.wc .WideLobby #filter_guild,.wc .WideLobby #buttonJoin,.wc .WideLobby #buttonCreateRoom,.wc .WideLobby #buttonQuickJoin{margin-left:var(--lobby-filters-r)}
+.wc .WideLobby #channelName,.wc .WideLobby #channel,.wc .WideLobby #lobby_channel,.wc .WideLobby #channelInput{margin-left:var(--lobby-l)}
+.wc .WideLobby #room1,.wc .WideLobby #room4,.wc .WideLobby #room7{margin-left:var(--lobby-c)}
+.wc .WideLobby #buttonRoomsListUp,.wc .WideLobby #roomsPage,.wc .WideLobby #buttonRoomsListDown{margin-left:var(--lobby-pager)}
+.wc .WideLobby #channelInputAlt,.wc .WideLobby #lobbyBcm,.wc .WideLobby #playersList,.wc .WideLobby #friendsList,.wc .WideLobby #guildMembersList,.wc .WideLobby #buttonAllBuddyList1,.wc .WideLobby #buttonAllBuddyList2,.wc .WideLobby #buttonAllBuddyList3,.wc .WideLobby #myInfoBox,.wc .WideLobby #wcMyInfoEdit,.wc .WideLobby #wcMyInfoClose,.wc .WideLobby #channel_player,.wc .WideLobby #myPowerUser,.wc .WideLobby #myPowerTimer,.wc .WideLobby #myRank2,.wc .WideLobby #myGP2,.wc .WideLobby #myName2,.wc .WideLobby #myName3,.wc .WideLobby #myGold2,.wc .WideLobby #myCash2,.wc .WideLobby #myPUGP,.wc .WideLobby #myPUG,.wc .WideLobby #myPlusGP,.wc .WideLobby #myRankEffect,.wc .WideLobby #myPhotoDiv,.wc .WideLobby #myGFPhotoDiv,.wc .WideLobby #myGFStatus,.wc .WideLobby #myGFName{margin-left:var(--lobby-r)}
+.wc .WideLobby #myInfoBox,.wc .WideLobby #channel_player,.wc .WideLobby #myPowerUser,.wc .WideLobby #myPowerTimer,.wc .WideLobby #myRank2,.wc .WideLobby #myGP2,.wc .WideLobby #myName2,.wc .WideLobby #myName3,.wc .WideLobby #myGold2,.wc .WideLobby #myCash2,.wc .WideLobby #myPUGP,.wc .WideLobby #myPUG,.wc .WideLobby #myPlusGP,.wc .WideLobby #myRankEffect,.wc .WideLobby #myPhotoDiv,.wc .WideLobby #myGFPhotoDiv,.wc .WideLobby #myGFStatus,.wc .WideLobby #myGFName{margin-right:var(--lobby-r-neg)}
+.wc .WideLobby #channel,.wc .WideLobby #channel .viewport{width:calc(490px - var(--lobby-grow-neg)) !important}
+.wc .WideLobby #channelInput{width:calc(356px - var(--lobby-grow-neg))}
+.wc .WideLobby #wcLobbyBuddy{margin-left:calc(var(--lobby-l) - var(--lobby-grow-neg) * .065)}
+.wc .WideLobby #lobbyMuteList{margin-left:calc(var(--lobby-l) - var(--lobby-grow-neg) * .17125)}
+.wc .WideLobby #buttonCharge2{margin-left:calc(var(--lobby-l) - var(--lobby-grow-neg) * .2725)}
+.wc .WideLobby #MissionsBtnLobby{margin-left:calc(var(--lobby-l) - var(--lobby-grow-neg) * .3525)}
+.wc .WideLobby #facebook_post{margin-left:calc(var(--lobby-l) - var(--lobby-grow-neg) * .448125)}
+.wc .WideLobby #buttonShop{margin-left:calc(var(--lobby-l) - var(--lobby-grow-neg) * .565)}
+.wc .WideLobby #event_button{margin-left:calc(var(--lobby-l) - var(--lobby-grow-neg) * .681875)}
+.wc .WideLobby #buttonMyInfo{margin-left:calc(var(--lobby-l) - var(--lobby-grow-neg) * .7725)}
+.wc .WideLobby #buttonOptions{margin-left:calc(var(--lobby-l) - var(--lobby-grow-neg) * .86625)}
+.wc .WideLobby #buttonChannels{margin-left:calc(var(--lobby-l) - var(--lobby-grow-neg) * .96125)}
+.wc .TallLobby #wcLobbyWide{display:block;position:absolute;left:0;top:0;width:800px;height:600px;margin-top:var(--tall-t);background-size:0;pointer-events:none}
+.wc .TallLobby #room0,.wc .TallLobby #room1,.wc .TallLobby #room2{margin-top:var(--tall-t)}
+.wc .TallLobby #room3,.wc .TallLobby #room4,.wc .TallLobby #room5,.wc .TallLobby #myInfoBox,.wc .TallLobby #wcMyInfoEdit,.wc .TallLobby #wcMyInfoClose,.wc .TallLobby #channel_player,.wc .TallLobby #myPowerUser,.wc .TallLobby #myPowerTimer,.wc .TallLobby #myRank2,.wc .TallLobby #myGP2,.wc .TallLobby #myName2,.wc .TallLobby #myName3,.wc .TallLobby #myGold2,.wc .TallLobby #myCash2,.wc .TallLobby #myPUGP,.wc .TallLobby #myPUG,.wc .TallLobby #myPlusGP,.wc .TallLobby #myRankEffect,.wc .TallLobby #myPhotoDiv,.wc .TallLobby #myGFPhotoDiv,.wc .TallLobby #myGFStatus,.wc .TallLobby #myGFName{margin-top:var(--tall-r1)}
+.wc .TallLobby #room6,.wc .TallLobby #room7,.wc .TallLobby #room8,.wc .TallLobby #filter_normal,.wc .TallLobby #filter_score,.wc .TallLobby #filter_tag,.wc .TallLobby #filter_jewel,.wc .TallLobby #filter_boss,.wc .TallLobby #filter_ffa,.wc .TallLobby #filter_all,.wc .TallLobby #filter_waiting,.wc .TallLobby #filter_friends,.wc .TallLobby #filter_guild,.wc .TallLobby #buttonJoin,.wc .TallLobby #buttonCreateRoom,.wc .TallLobby #buttonQuickJoin,.wc .TallLobby #buttonRoomsListUp,.wc .TallLobby #roomsPage,.wc .TallLobby #buttonRoomsListDown,.wc .TallLobby #channelName,.wc .TallLobby #buttonAllBuddyList1,.wc .TallLobby #buttonAllBuddyList2,.wc .TallLobby #buttonAllBuddyList3,.wc .TallLobby #channel,.wc .TallLobby #playersList,.wc .TallLobby #friendsList,.wc .TallLobby #guildMembersList{margin-top:var(--tall-r2)}
+.wc .TallLobby #lobby_channel,.wc .TallLobby #channelInput,.wc .TallLobby #channelInputAlt,.wc .TallLobby #lobbyBcm,.wc .TallLobby #wcLobbyBuddy,.wc .TallLobby #lobbyMuteList,.wc .TallLobby #buttonCharge2,.wc .TallLobby #MissionsBtnLobby,.wc .TallLobby #facebook_post,.wc .TallLobby #buttonShop,.wc .TallLobby #event_button,.wc .TallLobby #buttonMyInfo,.wc .TallLobby #buttonOptions,.wc .TallLobby #buttonChannels{margin-top:var(--tall-b)}
+.wc .TallLobby #channel,.wc .TallLobby #channel .viewport{height:calc(134px - var(--tall-grow-neg)) !important}
+.wc .TallLobby #playersList,.wc .Rooms.Lobby.TallLobby #friendsList,.wc .Rooms.Lobby.TallLobby #guildMembersList,.wc .TallLobby #playersList .viewport,.wc .Rooms.Lobby.TallLobby #friendsList .viewport,.wc .Rooms.Lobby.TallLobby #guildMembersList .viewport{height:calc(162px - var(--tall-grow-neg)) !important}
+.wc .WideLobby #channelInput.BigInput{width:356px}
+.wc .WideRoom #roomInput.BigInput{width:336px}
+.th #roomMobileSelect,.wc #roomMobileSelect{height:441px}
+.th #roomMobileSelect .Spacer,.wc #roomMobileSelect .Spacer{margin-bottom:38px}
+#wcRoomItem,#roomMuteList,#buttonChargeRoom,#wcRoomMissions{position:absolute;display:none;cursor:pointer}
+.wc #wcRoomItem,.wc #roomMuteList,.wc #buttonChargeRoom,.wc #wcRoomMissions{display:block}
+.wc #wcRoomMissions.hide{display:none}
+.wc #roomButtonBack{left:15px;top:533px;width:62px;height:64px;background-position:-607px -150px}
+.wc #roomButtonBack:hover{background-position:-607px -150px;animation:wcAnimExit 1.15s steps(23) infinite}
+.wc #roomButtonBack:active{background-position:-671px -150px;animation:none}
+.wc #roomButtonBack.grayscale{background-position:-607px -150px}
+.wc #buttonBuddy{left:95px;top:539px;width:57px;height:56px;background-position:-891px -150px}
+.wc #buttonBuddy:hover{background-position:-891px -150px;animation:wcAnimBuddy 1s steps(20) infinite}
+.wc #buttonBuddy:active{background-position:0 -229px;animation:none}
+.wc #buttonBuddy.grayscale{background-position:-891px -150px}
+.wc #buttonChargeRoom{left:179px;top:530px;width:58px;height:62px;background-position:-179px -229px}
+.wc #buttonChargeRoom:hover{background-position:-179px -229px;animation:wcAnimCharge .6s steps(12) infinite}
+.wc #buttonChargeRoom:active{background-position:-239px -229px;animation:none}
+.wc #buttonChargeRoom.grayscale{background-position:-179px -229px}
+.wc #roomMuteList{left:637px;top:533px;width:58px;height:55px;background-position:-59px -229px}
+.wc #roomMuteList:hover{background-position:-59px -229px;animation:wcAnimMute 1s steps(20) infinite}
+.wc #roomMuteList:active{background-position:-119px -229px;animation:none}
+.wc #roomMuteList.grayscale{background-position:-59px -229px}
+.wc #roomButtonReady{left:724px;top:531px;width:64px;height:64px;background-position:-727px -229px}
+.wc #roomButtonReady:hover{background-position:-727px -229px;animation:wcAnimReady .95s steps(19) infinite}
+.wc #roomButtonReady:active{background-position:-793px -229px;animation:none}
+.wc #roomButtonReady.grayscale{background-position:-727px -229px}
+@keyframes wcAnimReady{from{background-position:0 -1240px}to{background-position:-1235px -1240px}}
+.wc #roomButtonStart{left:724px;top:531px;width:64px;height:64px;background-position:-859px -229px}
+.wc #roomButtonStart:hover{background-position:-859px -229px;animation:wcAnimStart .95s steps(19) infinite}
+.wc #roomButtonStart:active{background-position:-925px -229px;animation:none}
+.wc #roomButtonStart.grayscale{background-position:-859px -229px}
+@keyframes wcAnimStart{from{background-position:0 -1305px}to{background-position:-1235px -1305px}}
+.wc #roomButtonMobile{left:300px;top:342px;width:44px;height:40px;background-position:0 -303px}
+.wc #roomButtonMobile:hover{background-position:0 -303px;animation:wcAnimMobile 1s steps(20) infinite}
+.wc #roomButtonMobile:active{background-position:-46px -303px;animation:none}
+.wc #roomButtonMobile.grayscale{background-position:0 -303px}
+@keyframes wcAnimMobile{from{background-position:0 -1370px}to{background-position:-900px -1370px}}
+.wc #wcRoomItem{left:356px;top:342px;width:44px;height:40px;background-position:-92px -303px}
+.wc #wcRoomItem:hover{background-position:-92px -303px;animation:wcAnimItem .95s steps(19) infinite}
+.wc #wcRoomItem:active{background-position:-138px -303px;animation:none}
+.wc #wcRoomItem.grayscale{background-position:-92px -303px}
+@keyframes wcAnimItem{from{background-position:0 -1411px}to{background-position:-855px -1411px}}
+.wc #room_options_button{left:404px;top:342px;width:44px;height:40px;background-position:-184px -303px}
+.wc #room_options_button:hover{background-position:-184px -303px;animation:wcAnimRoomOption 1.5s steps(30) infinite}
+.wc #room_options_button:active{background-position:-230px -303px;animation:none}
+.wc #room_options_button.grayscale{background-position:-184px -303px}
+@keyframes wcAnimRoomOption{from{background-position:0 -1452px}to{background-position:-1350px -1452px}}
+.wc #roomButtonChangeTeam{left:459px;top:342px;width:44px;height:40px;background-position:-276px -303px}
+.wc #roomButtonChangeTeam:hover{background-position:-276px -303px;animation:wcAnimTeam 1s steps(20) infinite}
+.wc #roomButtonChangeTeam:active{background-position:-322px -303px;animation:none}
+.wc #roomButtonChangeTeam.grayscale{background-position:-276px -303px}
+@keyframes wcAnimTeam{from{background-position:0 -1493px}to{background-position:-900px -1493px}}
+.wc #room_change_title_button{left:299px;top:25px;width:16px;height:16px;background-position:-368px -303px}
+.wc #room_change_title_button:hover{background-position:-404px -303px}
+.wc #room_change_title_button:active{background-position:-386px -303px}
+.wc #room_change_title_button.grayscale{background-position:-368px -303px}
+.wc #buttonShopFromRoom{left:388px;top:516px;width:76px;height:77px;background-position:-735px -150px;animation:wcAnimAvatarIdle 1s steps(20) infinite}
+.wc #buttonShopFromRoom:hover{background-position:-735px -150px;animation:wcAnimAvatar 1.6s linear infinite}
+.wc #buttonShopFromRoom:active{background-position:-813px -150px;animation:none}
+.wc #buttonShopFromRoom.grayscale{background-position:-735px -150px}
+.wc #buttonOptionsRoom{left:541px;top:523px;width:72px;height:70px;background-position:-579px -229px}
+.wc #buttonOptionsRoom:hover{background-position:-579px -229px;animation:wcAnimOptions 1.5s linear infinite}
+.wc #buttonOptionsRoom:active{background-position:-653px -229px;animation:none}
+.wc #buttonOptionsRoom.grayscale{background-position:-579px -229px}
+.wc #wcRoomMissions{left:244px;top:523px;width:68px;height:72px;background-position:-299px -229px}
+.wc #wcRoomMissions:hover{background-position:-299px -229px;animation:wcAnimMissions 1.1s steps(22) infinite}
+.wc #wcRoomMissions:active{background-position:-369px -229px;animation:none}
+.wc #wcRoomMissions.grayscale{background-position:-299px -229px}
+.wc #roomButtonBack,.wc #buttonBuddy,.wc #buttonShopFromRoom{right:auto;bottom:auto}
+.wc #buttonBuddy{display:block}
+.wc #buttonShopFromRoom{border-radius:0;transform:none}
+.wc #buttonBuddy:hover,.wc #buttonBuddy:active,.wc #roomButtonReady:hover,.wc #roomButtonReady:active,.wc #roomButtonStart:hover,.wc #roomButtonStart:active,.wc #room_options_button:hover,.wc #room_options_button:active,.wc #room_change_title_button:hover,.wc #room_change_title_button:active,.wc #buttonShopFromRoom:hover,.wc #buttonShopFromRoom:active,.wc #buttonOptionsRoom:hover,.wc #buttonOptionsRoom:active,.wc #buttonShopExit:hover,.wc #buttonShopExit:active{filter:var(--btn-filter,)}
+.wc #MissionsBtnRoom{display:none !important}
+#wcRoomMissions .AvNotif{top:6px;right:4px}
+.wcLabel{display:none}
+.wc .wcLabel{display:block;position:absolute;left:-20px;right:-20px;bottom:0;text-align:center;font-size:11px;font-weight:bold;color:white;white-space:nowrap;pointer-events:none;text-shadow:-1px 0 1px black,0 1px 1px black,1px 0 1px black,0 -1px 1px black}
+.wc #roomButtonMobile .wcLabel,.wc #wcRoomItem .wcLabel,.wc #room_options_button .wcLabel,.wc #roomButtonChangeTeam .wcLabel{bottom:-12px}
+.wc #roomButtonBack .wcLabel{top:51px;bottom:auto}
+.wc #buttonBuddy .wcLabel{top:45px;bottom:auto}
+.wc #buttonChargeRoom .wcLabel{top:54px;bottom:auto}
+.wc #wcRoomMissions .wcLabel{top:61px;bottom:auto}
+.wc #buttonShopFromRoom .wcLabel{top:68px;bottom:auto}
+.wc #buttonOptionsRoom .wcLabel{top:61px;bottom:auto}
+.wc #roomMuteList .wcLabel{top:51px;bottom:auto}
+.wc #roomButtonStart .wcLabel{top:53px;bottom:auto}
+.wc #roomButtonReady .wcLabel{top:53px;bottom:auto}
+.wc #playerInRoom0,.wc #playerInRoom4{left:13px}
+.wc #playerInRoom2,.wc #playerInRoom6{left:56px}
+.wc #playerInRoom1,.wc #playerInRoom5{left:566px}
+.wc #playerInRoom3,.wc #playerInRoom7{left:523px}
+.wc #playerInRoom0,.wc #playerInRoom1{top:9px}
+.wc #playerInRoom2,.wc #playerInRoom3{top:111px}
+.wc #playerInRoom4,.wc #playerInRoom5{top:213px}
+.wc #playerInRoom6,.wc #playerInRoom7{top:315px}
+.wc #roomPlayersA{left:240px;top:380px}
+.wc #roomPlayersB{left:540px;right:auto;top:380px}
+.wc #team_search{left:300px;top:288px}
+.wc #roomNumber{left:318px;top:27px}
+.wc #roomTitle{left:352px;top:26px;width:150px;overflow:hidden;white-space:nowrap}
+.wc #roomOwner{right:10px;top:3px}
+.wc #room_map{left:296px;top:84px;transform:scale(0.98,0.92);transform-origin:0 0;cursor:pointer}
+.wc #no_win_bonus{left:297px;top:131px;width:202px}
+.wc #room_game_mode,.wc #room_players,.wc #RoomRandomTeams,.wc #room_wind,.wc #room_avatars,.wc #room_turn_time{left:297px;width:208px;text-align:center}
+.wc #room_players,.wc #room_wind,.wc #room_avatars,.wc #room_turn_time,.wc #RoomRandomTeams{font-size:12px;font-weight:bold;text-shadow:-1px 0 2px black,0 1px 2px black,1px 0 2px black,0 -1px 2px black}
+.wc #room_game_mode{top:172px;font-size:15px}
+.wc #room_players{top:196px}
+.wc #room_wind{top:216px}
+.wc #room_avatars{top:236px}
+.wc #room_turn_time{top:256px}
+.wc #RoomRandomTeams{top:276px}
+.wc #room_mobiles.on{display:block;left:401px;right:auto;top:274px;transform:translateX(-50%);white-space:nowrap}
+.wc #roomScreen.panelFull #room_game_mode{top:167px}
+.wc #roomScreen.panelFull #room_players{top:190px}
+.wc #roomScreen.panelFull #room_wind{top:208px}
+.wc #roomScreen.panelFull #room_avatars{top:226px}
+.wc #roomScreen.panelFull #room_turn_time{top:244px}
+.wc #roomScreen.panelFull #RoomRandomTeams{top:262px}
+.wc #roomScreen.panelFull #room_mobiles.on{top:279px}
+.wc #room_mobiles{line-height:18px;padding:2px 6px;border-radius:11px}
+.wc #room_mobiles img.emo{width:16px;height:16px;transform:none;margin:0 1px;vertical-align:middle}
+.wc #RoomS1Disabled{left:470px;top:280px}
+.wc #roomChat{left:12px;top:442px;width:404px;height:52px}
+.wc #roomChat .viewport{width:390px;height:52px}
+.wc #roomChat .overview{width:390px}
+.wc #roomInput{left:42px;top:499px;width:336px}
+.wc #roomBcm{left:12px;top:497px}
+.wc #RoomEmoticonBtn{left:380px;top:488px}
+.wc #RoomEmoticonPicker{left:13px;top:300px}
+.wc #room_timer{left:466px;top:452px}
+.wc #gp_rate{left:428px;width:362px;top:450px}
+.wc #gp_team_a{left:554px;top:472px}
+.wc #gp_team_b{left:609px;right:auto;top:472px}
+.wc #add_bot_button[data-slot="1"]{left:664px;top:50px !important}
+.wc #add_bot_button[data-slot="3"]{left:621px;top:152px !important}
+.wc #add_bot_button[data-slot="5"]{left:664px;top:254px !important}
+.wc #add_bot_button[data-slot="7"]{left:621px;top:356px !important}
+.wc #RoomWatchers{left:733px;right:auto;bottom:156px;white-space:nowrap}
+.wc #readyHintTooltip{left:590px;top:462px}
+.wc #container.Room:not(.wcPanel) #itemsSelection,.wc #container.Room:not(.wcPanel) #friendsList,.wc #container.Room:not(.wcPanel) #guildMembersList,.wc #container.Room:not(.wcPanel) #friendsListExtra,.wc #container.Room:not(.wcPanel) #guildRoomTabExtra,.wc #container.Room:not(.wcPanel) #room_item_buddy_tab1,.wc #container.Room:not(.wcPanel) #room_item_buddy_tab2,.wc #container.Room:not(.wcPanel) #room_item_buddy_tab3{display:none !important}
+.wc #container.Room #friendsListExtra,.wc #container.Room #guildRoomTabExtra{top:248px;border-top:1px solid #39639c;z-index:14}
+.wc #container.Room #itemsSelection.InRoom{top:248px;border-top:8px solid #14306c;background-color:#14306c;border-radius:5px}
+.wc #container.Room #friendsList,.wc #container.Room #guildMembersList{background-color:#14306c;border-radius:5px}
+.wc #dialog_room_options{left:200px}
+#wcRoomWide{display:none}
+.wc .WideRoom #wcRoomWide{display:block;position:absolute;left:0;top:0;width:800px;height:600px;margin-left:var(--room-l);background-size:0;pointer-events:none}
+#wcRoomWide div{position:absolute;background-image:inherit;background-repeat:no-repeat}
+.wc .WideRoom #playerInRoom0,.wc .WideRoom #playerInRoom2,.wc .WideRoom #playerInRoom4,.wc .WideRoom #playerInRoom6,.wc .WideRoom #vortex0,.wc .WideRoom #vortex2,.wc .WideRoom #vortex4,.wc .WideRoom #vortex6,.wc .WideRoom #thslot0,.wc .WideRoom #thslot2,.wc .WideRoom #thslot4,.wc .WideRoom #thslot6,.wc .WideRoom #roomPlayersA{margin-left:var(--room-slots-l)}
+.wc .WideRoom #playerInRoom1,.wc .WideRoom #playerInRoom3,.wc .WideRoom #playerInRoom5,.wc .WideRoom #playerInRoom7,.wc .WideRoom #vortex1,.wc .WideRoom #vortex3,.wc .WideRoom #vortex5,.wc .WideRoom #vortex7,.wc .WideRoom #thslot1,.wc .WideRoom #thslot3,.wc .WideRoom #thslot5,.wc .WideRoom #thslot7,.wc .WideRoom #roomPlayersB,.wc .WideRoom #add_bot_button,.wc .WideRoom #friendsList,.wc .WideRoom #guildMembersList,.wc .WideRoom #itemsSelection,.wc .WideRoom #playersList,.wc .WideRoom #room_item_buddy_tab1,.wc .WideRoom #room_item_buddy_tab2,.wc .WideRoom #room_item_buddy_tab3,.wc .WideRoom #friendsListExtra,.wc .WideRoom #guildRoomTabExtra{margin-left:var(--room-slots-r)}
+.wc .WideRoom #roomNumber,.wc .WideRoom #roomTitle,.wc .WideRoom #roomPass,.wc .WideRoom #room_change_title_button,.wc .WideRoom #room_map,.wc .WideRoom #room_game_mode,.wc .WideRoom #room_players,.wc .WideRoom #room_avatars,.wc .WideRoom #room_wind,.wc .WideRoom #room_turn_time,.wc .WideRoom #roomButtonMobile,.wc .WideRoom #wcRoomItem,.wc .WideRoom #room_options_button,.wc .WideRoom #roomButtonChangeTeam,.wc .WideRoom #team_search,.wc .WideRoom #no_win_bonus,.wc .WideRoom #RoomS1Disabled,.wc .WideRoom #RoomRandomTeams,.wc .WideRoom #dialog_room_options,.wc .WideRoom #buttonShopFromRoom,.wc .WideRoom #room_mobiles{margin-left:var(--room-c)}
+.wc .WideRoom #roomButtonBack,.wc .WideRoom #buttonBuddy,.wc .WideRoom #buttonChargeRoom,.wc .WideRoom #wcRoomMissions,.wc .WideRoom #roomBcm,.wc .WideRoom #roomChat,.wc .WideRoom #roomInput,.wc .WideRoom #RoomEmoticonPicker{margin-left:var(--room-l)}
+.wc .WideRoom #buttonOptionsRoom,.wc .WideRoom #roomMuteList,.wc .WideRoom #roomButtonStart,.wc .WideRoom #roomButtonReady,.wc .WideRoom #readyHintTooltip,.wc .WideRoom #room_timer,.wc .WideRoom #gp_team_a,.wc .WideRoom #gp_team_b,.wc .WideRoom #gp_rate,.wc .WideRoom #RoomWatchers,.wc .WideRoom #RoomEmoticonBtn{margin-left:var(--room-r)}
+.wc .WideRoom #roomOwner,.wc .WideRoom #roomTutorialBack{margin-right:var(--room-r-neg)}
+.wc .WideRoom #roomChat{width:calc(404px - var(--room-grow-neg))}
+.wc .WideRoom #roomChat .viewport,.wc .WideRoom #roomChat .overview{width:calc(390px - var(--room-grow-neg)) !important}
+.wc .WideRoom #roomInput{width:calc(336px - var(--room-grow-neg))}
+.wc .TallRoom #roomScreen,.wc .TallRoom #friendsList,.wc .TallRoom #guildMembersList,.wc .TallRoom #itemsSelection{margin-top:var(--troom-t)}
+.wc .TallRoom #wcRoomWide{display:block;position:absolute;left:0;top:0;width:800px;height:600px;background-size:0;pointer-events:none}
+.wc .TallRoom #roomInput,.wc .TallRoom #roomBcm,.wc .TallRoom #RoomEmoticonBtn,.wc .TallRoom #RoomEmoticonPicker,.wc .TallRoom #roomButtonBack,.wc .TallRoom #buttonBuddy,.wc .TallRoom #roomMuteList,.wc .TallRoom #buttonChargeRoom,.wc .TallRoom #wcRoomMissions,.wc .TallRoom #buttonShopFromRoom,.wc .TallRoom #buttonOptionsRoom,.wc .TallRoom #roomButtonStart,.wc .TallRoom #roomButtonReady{margin-top:var(--troom-b)}
+.wc .TallRoom #roomChat,.wc .TallRoom #roomChat .viewport{height:calc(52px - var(--troom-grow-neg)) !important}
+.wc .TallRoomPanel #room_item_buddy_tab1,.wc .TallRoomPanel #room_item_buddy_tab2,.wc .TallRoomPanel #room_item_buddy_tab3,.wc .TallRoomPanel #friendsListExtra,.wc .TallRoomPanel #guildRoomTabExtra{margin-top:var(--troom-panel)}
+.wc .TallRoomPanel #friendsList,.wc .TallRoomPanel #guildMembersList,.wc .TallRoomPanel #itemsSelection{margin-top:var(--troom-panel-t)}
+.wc .TallRoomPanel #friendsList,.wc .TallRoomPanel #guildMembersList,.wc .TallRoomPanel #friendsList .viewport,.wc .TallRoomPanel #guildMembersList .viewport{height:calc(223px - var(--troom-panel-grow-neg)) !important}
+.wc .TallRoomPanel.wcPanel #RoomWatchers{visibility:hidden}
+.wc #TouchBarMsg{left:320px;top:46px;bottom:auto}
+#slice_drag_button.touch,.wc #slice_drag_button.touch{background:none !important;filter:none;transform:none}
+.wc #gameui{height:84px}
+.wc #btnShot1{left:199px;top:1px;width:36px;height:33px;background-position:-959px -1500px}
+.wc #btnShot2{left:184px;top:18px;width:36px;height:33px;background-position:-152px -1542px}
+.wc #btnShotSS{left:183px;top:48px;width:36px;height:33px;background-position:-342px -1542px}
+.wc #btnShot1{clip-path:polygon(0 10px,15px 3px,22px 0,27px 0,36px 3px,36px 27px,24px 33px,15px 33px,4px 24px,0 20px)}
+.wc #btnShot2{clip-path:polygon(0 0,16px 0,21px 4px,33px 14px,36px 17px,36px 18px,29px 32px,28px 33px,22px 33px,9px 31px,3px 30px,0 29px)}
+.wc #btnShotSS{clip-path:polygon(0 0,19px 0,27px 1px,28px 2px,36px 28px,36px 33px,0 33px)}
+.wc #btnShot1:hover{background-position:0 -1542px}
+.wc #btnShot2:hover{background-position:-190px -1542px}
+.wc #btnShotSS:hover{background-position:-380px -1542px}
+.wc #btnShot1:active{background-position:-38px -1542px !important}
+.wc #btnShot2:active{background-position:-228px -1542px !important}
+.wc #btnShotSS:active{background-position:-418px -1542px !important}
+.wc #btnShot1.Pressed{background-position:-114px -1542px !important}
+.wc #btnShot2.Pressed{background-position:-304px -1542px !important}
+.wc #btnShotSS.Pressed{background-position:-494px -1542px !important}
+.wc #btnShot1.grayscale{background-position:-76px -1542px !important;filter:none}
+.wc #btnShot2.grayscale{background-position:-266px -1542px !important;filter:none}
+.wc #btnShotSS.grayscale{background-position:-456px -1542px !important;filter:none}
+.wc #btnPass{left:287px;top:54px;width:27px;height:29px;background-position:-532px -1542px}
+.wc #btnPass:hover{background-position:-561px -1542px}
+.wc #btnPass:active{background-position:-590px -1542px !important}
+.wc #btnEsc{left:1px;top:49px;width:25px;height:22px;background-position:-648px -1542px}
+.wc #btnEsc:hover{background-position:-675px -1542px}
+.wc #btnEsc:active{background-position:-702px -1542px !important}
+#wcTurnListBtn,#wcWeatherBtn{display:none}
+.wc #wcTurnListBtn,.wc #wcWeatherBtn{display:block;position:absolute;width:25px;height:22px;cursor:pointer}
+.wc #wcTurnListBtn{left:1px;top:3px;background-position:-66px -1655px}
+.wc #wcTurnListBtn:hover{background-position:-93px -1655px}
+.wc #wcTurnListBtn:active{background-position:-120px -1655px !important}
+.wc #wcTurnListBtn.On{background-position:-147px -1655px}
+.wc #wcWeatherBtn{left:1px;top:26px;background-position:-174px -1655px}
+.wc #wcWeatherBtn:hover{background-position:-201px -1655px}
+.wc #wcWeatherBtn:active{background-position:-228px -1655px !important}
+.wc #wcWeatherBtn.On{background-position:-255px -1655px}
+.wc .wcHideTurns #turns_list{display:none !important}
+.wc .wcHideWeather #weatherSlot1,.wc .wcHideWeather #weatherSlot2,.wc .wcHideWeather #weatherSlot3,.wc .wcHideWeather #weatherSlot4{visibility:hidden}
+.wc #slice_drag_button{left:350px;top:42px;width:37px;height:22px;background-position:-729px -1542px}
+.wc #slice_drag_button:hover{background-position:-768px -1542px}
+.wc #slice_drag_button:active{background-position:-807px -1542px}
+.wc #slice_drag_button.drag{top:41px;width:37px;height:24px;background-position:-846px -1542px}
+.wc #slice_drag_button.drag:hover{background-position:-885px -1542px}
+.wc #slice_drag_button.drag:active{background-position:-924px -1542px}
+.wc #btnPass.light_button:hover,.wc #btnPass.light_button:active,.wc #btnEsc.light_button:hover,.wc #btnEsc.light_button:active,.wc #slice_drag_button.light_button:hover,.wc #slice_drag_button.light_button:active{filter:none;transform:none}
+.wc #slice_drag_button::after{content:'Slice';position:absolute;left:-10px;top:18px;width:57px;text-align:center;font:10px/10px Arial,sans-serif;color:#fff;text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000}
+.wc #slice_drag_button.drag::after{content:'Drag';top:19px}
+#wcDamage,#wcMoveLabel{display:none}
+.wc #wcMoveLabel{display:block;position:absolute;left:326px;top:73px;width:60px;text-align:right;font:10px/10px Arial,sans-serif;color:#fff;text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000}
+.wc #wcDamage{display:block;position:absolute;left:34px;top:1px;width:132px;font:bold 11px Arial,sans-serif;pointer-events:none}
+.wc #wcDamageTitle,.wc #wcDamageMax,.wc #wcDamageTotal{text-shadow:1px 0 var(--o),-1px 0 var(--o),0 1px var(--o),0 -1px var(--o),1px 1px var(--o),-1px -1px var(--o),1px -1px var(--o),-1px 1px var(--o)}
+.wc #wcDamageTitle{position:absolute;left:0;top:0;width:132px;text-align:center;color:#e8e8e0;--o:#555}
+.wc #wcDamageMax,.wc #wcDamageTotal{position:absolute;left:40px;width:82px}
+.wc #wcDamageMax{top:19px;color:#e0b048;--o:#6b4a1a}
+.wc #wcDamageTotal{top:33px;color:#a8c8f0;--o:#2a4a78}
+.wc .wcDamageValue{position:absolute;right:0}
+.wc .UIGoldDigit{top:58px}
+.wc #UIGoldDigit0{left:113px}
+.wc #UIGoldDigit1{left:100px}
+.wc #UIGoldDigit2{left:87px}
+.wc #UIGoldDigit3{left:74px}
+.wc #UIGoldDigit4{left:61px}
+.wc #weatherSlot0{display:none}
+.wc #weatherSlot1{left:241px;top:0;width:35px;height:35px}
+.wc #weatherSlot2{left:267px;top:23px;width:20px;height:20px}
+.wc #weatherSlot3{left:273px;top:44px;width:20px;height:20px}
+.wc #weatherSlot4{left:271px;top:65px;width:20px;height:20px}
+.wc #weatherSlot1,.wc #weatherSlot2,.wc #weatherSlot3,.wc #weatherSlot4{filter:none;pointer-events:none}
+.wc #weatherSlot1.weather-0{background-position:0 -1599px}
+.wc #weatherSlot1.weather-1{background-position:-35px -1599px}
+.wc #weatherSlot1.weather-2{background-position:-70px -1599px}
+.wc #weatherSlot1.weather-3{background-position:-105px -1599px}
+.wc #weatherSlot1.weather-4{background-position:-140px -1599px}
+.wc #weatherSlot1.weather-5{background-position:-175px -1599px}
+.wc #weatherSlot1.weather-6{background-position:-210px -1599px}
+.wc #weatherSlot1.weather-7{background-position:-245px -1599px}
+.wc #weatherSlot1.weather-8{background-position:-280px -1599px}
+.wc #weatherSlot1.weather-9{background-position:-315px -1599px}
+.wc #weatherSlot1.weather-10{background-position:-350px -1599px}
+.wc #weatherSlot2.weather-0,.wc #weatherSlot3.weather-0,.wc #weatherSlot4.weather-0{background-position:0 -1577px}
+.wc #weatherSlot2.weather-1,.wc #weatherSlot3.weather-1,.wc #weatherSlot4.weather-1{background-position:-20px -1577px}
+.wc #weatherSlot2.weather-2,.wc #weatherSlot3.weather-2,.wc #weatherSlot4.weather-2{background-position:-40px -1577px}
+.wc #weatherSlot2.weather-3,.wc #weatherSlot3.weather-3,.wc #weatherSlot4.weather-3{background-position:-60px -1577px}
+.wc #weatherSlot2.weather-4,.wc #weatherSlot3.weather-4,.wc #weatherSlot4.weather-4{background-position:-80px -1577px}
+.wc #weatherSlot2.weather-5,.wc #weatherSlot3.weather-5,.wc #weatherSlot4.weather-5{background-position:-100px -1577px}
+.wc #weatherSlot2.weather-6,.wc #weatherSlot3.weather-6,.wc #weatherSlot4.weather-6{background-position:-120px -1577px}
+.wc #weatherSlot2.weather-7,.wc #weatherSlot3.weather-7,.wc #weatherSlot4.weather-7{background-position:-140px -1577px}
+.wc #weatherSlot2.weather-8,.wc #weatherSlot3.weather-8,.wc #weatherSlot4.weather-8{background-position:-160px -1577px}
+.wc #weatherSlot2.weather-9,.wc #weatherSlot3.weather-9,.wc #weatherSlot4.weather-9{background-position:-180px -1577px}
+.wc #weatherSlot2.weather-10,.wc #weatherSlot3.weather-10,.wc #weatherSlot4.weather-10{background-position:-200px -1577px}
+.wc #gameItemSlot0{left:359px;top:6px}
+.wc #gameItemSlot1{left:394px;top:6px}
+.wc #gameItemSlot2{left:429px;top:6px}
+.wc #gameItemSlot3{left:464px;top:6px}
+.wc #gameItemSlot4{left:499px;top:6px}
+.wc #gameItemSlot5{left:534px;top:6px}
+.wc #message_over_items{left:359px;top:6px}
+.wc #powerBar{left:389px;top:47px;bottom:auto;height:22px;background-position:0 -1500px}
+.wc #powerMarks{left:389px;top:47px;bottom:auto}
+.wc #powerMarkArea{left:389px}
+.wc #walkBar{left:389px;top:73px;bottom:auto;background-position:-402px -1500px}
+.wc #last_power_mark{top:69px;width:9px;height:6px;background-position:-477px -1599px}
+.wc .mya{left:287px;top:19px;opacity:1;pointer-events:none}
+.wc .wcla{display:block;position:absolute;left:304px;top:46px;scale:.5;transform-origin:0 0;pointer-events:none}
+.wc #wind_meter2{left:176px;top:512.5px;opacity:1 !important}
+.wc .Wide #wind_meter2{margin-top:var(--wide-extra)}
+.wc #tagHud{left:640px;right:auto;top:1px;width:153px;height:40px;background-position:-804px -1500px}
+.wc #tagHudMobile{left:12px;right:auto;top:-2px}
+.wc #tagHudBar{left:12px;right:auto;top:33px}
+.wc #btnTag{left:113px;top:5px;width:33px;height:30px;background-position:-963px -1542px}
+.wc #game_over{background-image:none}
+.wc #scores_lose_a,.wc #scores_lose_b{width:347px;height:303px;top:100px;background-position:-349px 0}
+.wc #scores_lose_a.win,.wc #scores_lose_b.win{background-position:0 0}
+.wc #scores_lose_a{left:38px}
+.wc #scores_lose_b{left:415px}
+.wc .score{width:337px;height:49px;background-position:0 -305px}
+.wc #score0,.wc #score2,.wc #score4,.wc #score6{left:42px}
+.wc #score1,.wc #score3,.wc #score5,.wc #score7{left:419px}
+.wc #score0,.wc #score1{top:159px}
+.wc #score2,.wc #score3{top:211px}
+.wc #score4,.wc #score5{top:263px}
+.wc #score6,.wc #score7{top:315px}
+.wc .scoreA,.wc .scoreB{display:block;position:absolute;left:2px;top:2px;width:44px;height:45px}
+.wc .scoreA{background-position:-339px -305px}
+.wc .scoreB{background-position:-385px -305px}
+.wc .score_name{left:50px;top:26px;color:white;font-size:10px}
+.wc .score_gp{right:10px;top:12px;left:unset;font-size:12px}
+.wc .score_gold{right:10px;top:30px;left:unset;font-size:12px}
+.wc .score_jewel_pts{left:70px;top:8px}
+.wc .score_bonus_gp{left:121px;top:12px}
+.wc .score_bonus_gold{left:174px;top:12px}
+.wc .score_mvp{left:7px;top:17px;width:34px;height:14px}
+.wc .score_medal{left:16px;top:1px;font-size:15px}
+.wc .score_medal.score_place_number{font-size:14px;left:20px}
+.wc .score_tickets{left:194px;top:31px;font-size:10px}
+.wc .score_wl{left:74px;top:0;font-size:9px}
+.wc .score_mobile{left:76px;top:9px}
+.wc .score_mobile_icon{width:18px;height:14px}
+.wc .score_dmg{left:4px;top:32px;font-size:10px}
+.wc .score_dmg.score_dmg_bar::after{width:40px}
+.wc .score_jewel_pts.on ~ .score_mobile{left:4px;top:32px}
+.wc .score_me{display:none !important}
+.wc .score_mine{box-shadow:0 0 0 2px #ffd700,0 0 12px 2px rgba(255,215,0,0.8)}
+.wc .score_master{left:52px;top:9px;font-size:13px}
+.wc .score_state_computer{left:84px;top:6px;font-size:33px}
+.wc .score_state_left{left:132px;top:2px;font-size:32px}
+.wc .score_state_rankup{left:98px;top:3px;font-size:32px}
+.Wide #gameui,.Wide #turns_list,.Wide #gameInput,.Wide #gameBcm,.Wide #wind_dial,.wc .Wide #wind_meter2,.Wide #game_over{margin-left:var(--wide-ui)}
+.wc #buttonShopExit.shopButton{left:15px;top:533px;width:62px;height:64px;background-position:-607px -150px}
+.wc #buttonShopExit.shopButton:hover{background-position:-607px -150px;animation:wcAnimExit 1.15s steps(23) infinite}
+.wc #buttonShopExit.shopButton:active{background-position:-671px -150px;animation:none}
+.wc #buttonShopExit .wcLabel{top:51px;bottom:auto}
+.wc #GuideShop{left:89px}
+.wc #buttonChargeShop1.chargeBtn{left:162px;top:532px;width:58px;height:62px;background-position:-179px -229px}
+.wc #buttonChargeShop.chargeBtn{left:52px;top:128px;width:58px;height:62px;background-position:-179px -229px}
+.wc #buttonChargeShop1.chargeBtn:hover,.wc #buttonChargeShop.chargeBtn:hover{background-position:-179px -229px;animation:wcAnimCharge .6s steps(12) infinite}
+.wc #buttonChargeShop1.chargeBtn:active,.wc #buttonChargeShop.chargeBtn:active{background-position:-239px -229px;animation:none}
+.wc #buttonChargeShop1 .wcLabel,.wc #buttonChargeShop .wcLabel{top:54px;bottom:auto}
+.wc #buttonShopPrev.shopButton{left:660px;top:496px;width:41px;height:32px;background-position:-435px -150px}
+.wc #buttonShopPrev.shopButton:hover{background-position:-435px -150px;animation:wcAnimUp 1s steps(20) infinite}
+.wc #buttonShopPrev.shopButton:active{background-position:-478px -150px;animation:none}
+.wc #buttonShopNext.shopButton{left:738px;top:496px;width:41px;height:32px;background-position:-521px -150px}
+.wc #buttonShopNext.shopButton:hover{background-position:-521px -150px;animation:wcAnimDown 1s steps(20) infinite}
+.wc #buttonShopNext.shopButton:active{background-position:-564px -150px;animation:none}
+.wc #buttonShopBuy.shopButton{left:584px;top:517px;width:64px;height:58px;background-position:-422px -303px}
+.wc #buttonShopBuy.shopButton:hover{background-position:-422px -303px;animation:wcAnimBuy 2.15s linear infinite}
+.wc #buttonShopBuy.shopButton:active{background-position:-488px -303px;animation:none}
+.wc #buttonShopBuy .wcLabel{top:58px;bottom:auto}
+@keyframes wcAnimBuy{0%{background-position:0 -1534px;animation-timing-function:steps(22)}51.15%{background-position:-1430px -1534px}51.16%{background-position:0 -1593px;animation-timing-function:steps(21)}100%{background-position:-1365px -1593px}}
+.wc #buttonShopHead.shopButton{left:270px;top:495px;width:44px;height:31px;background-position:-699px -372px}
+.wc #buttonShopHead.shopButton:hover{background-position:-699px -372px;animation:wcAnimHead 1s steps(20) infinite}
+.wc #buttonShopHead.shopButton:active{background-position:-745px -372px;animation:none}
+.wc #buttonShopHead .wcLabel{top:25px;bottom:auto;left:-23px;right:-17px}
+.wc #buttonShopHead .AvNotif{top:0;right:1px}
+@keyframes wcAnimHead{from{background-position:0 -1652px}to{background-position:-900px -1652px}}
+.wc #buttonShopBody.shopButton{left:330px;top:492px;width:44px;height:34px;background-position:-791px -372px}
+.wc #buttonShopBody.shopButton:hover{background-position:-791px -372px;animation:wcAnimBody 1s steps(20) infinite}
+.wc #buttonShopBody.shopButton:active{background-position:-837px -372px;animation:none}
+.wc #buttonShopBody .wcLabel{top:28px;bottom:auto}
+.wc #buttonShopBody .AvNotif{top:0;right:-4px}
+@keyframes wcAnimBody{from{background-position:0 -1684px}to{background-position:-900px -1684px}}
+.wc #buttonShopGlass.shopButton{left:391px;top:497px;width:44px;height:31px;background-position:-883px -372px}
+.wc #buttonShopGlass.shopButton:hover{background-position:-883px -372px;animation:wcAnimGlass 1s steps(20) infinite}
+.wc #buttonShopGlass.shopButton:active{background-position:-929px -372px;animation:none}
+.wc #buttonShopGlass .wcLabel{top:23px;bottom:auto}
+.wc #buttonShopGlass .AvNotif{top:-2px;right:-2px}
+@keyframes wcAnimGlass{from{background-position:0 -1719px}to{background-position:-900px -1719px}}
+.wc #buttonShopFlag.shopButton{left:453px;top:491px;width:40px;height:33px;background-position:0 -441px}
+.wc #buttonShopFlag.shopButton:hover{background-position:0 -441px;animation:wcAnimFlag .75s steps(15) infinite}
+.wc #buttonShopFlag.shopButton:active{background-position:-42px -441px;animation:none}
+.wc #buttonShopFlag .wcLabel{top:29px;bottom:auto;left:-16px;right:-24px}
+.wc #buttonShopFlag .AvNotif{top:-2px;right:-5px}
+@keyframes wcAnimFlag{from{background-position:0 -1751px}to{background-position:-615px -1751px}}
+.wc #buttonShopExItem.shopButton{left:520px;top:491px;width:44px;height:33px;background-position:-84px -441px}
+.wc #buttonShopExItem.shopButton:hover{background-position:-84px -441px;animation:wcAnimExitem 1s steps(20) infinite}
+.wc #buttonShopExItem.shopButton:active{background-position:-130px -441px;animation:none}
+.wc #buttonShopExItem .wcLabel{top:29px;bottom:auto}
+.wc #buttonShopExItem .AvNotif{top:-3px;right:0}
+@keyframes wcAnimExitem{from{background-position:0 -1785px}to{background-position:-900px -1785px}}
+.wc #shop_delete_avatar.light_button{left:192px;top:483px;width:44px;height:40px;background-position:-176px -441px}
+.wc #shop_delete_avatar.light_button:hover{background-position:-176px -441px;animation:wcAnimTrash 1.5s steps(30) infinite}
+.wc #shop_delete_avatar.light_button:active{background-position:-222px -441px;animation:none}
+@keyframes wcAnimTrash{from{background-position:0 -1819px}to{background-position:-1350px -1819px}}
+.wc #buttonSendGift.light_button{left:54px;top:50px;width:51px;height:64px;background-position:-268px -441px}
+.wc #buttonSendGift.light_button:hover{width:51px;background-position:-268px -441px;animation:wcAnimGift .75s steps(15) infinite}
+.wc #buttonSendGift.light_button:active{background-position:-321px -441px;animation:none}
+@keyframes wcAnimGift{from{background-position:0 -1860px}to{background-position:-780px -1860px}}
+.wc #buttonChargeShop1:hover,.wc #buttonChargeShop1:active,.wc #buttonChargeShop:hover,.wc #buttonChargeShop:active,.wc #buttonShopPrev:hover,.wc #buttonShopPrev:active,.wc #buttonShopNext:hover,.wc #buttonShopNext:active,.wc #buttonShopBuy:hover,.wc #buttonShopBuy:active,.wc #buttonShopHead:hover,.wc #buttonShopHead:active,.wc #buttonShopBody:hover,.wc #buttonShopBody:active,.wc #buttonShopGlass:hover,.wc #buttonShopGlass:active,.wc #buttonShopFlag:hover,.wc #buttonShopFlag:active,.wc #buttonShopExItem:hover,.wc #buttonShopExItem:active,.wc #shop_delete_avatar:hover,.wc #shop_delete_avatar:active,.wc #buttonSendGift:hover,.wc #buttonSendGift:active{filter:var(--btn-filter,)}
+#wcShopWide{display:none}
+.wc .WideShop #wcShopWide{display:block;position:absolute;left:0;top:0;width:800px;height:600px;margin-left:var(--shop-bg-l);background-size:0;pointer-events:none}
+#wcShopWide div{position:absolute;background-image:inherit;background-repeat:no-repeat}
+.wc .WideShop #shopMyBox,.wc .WideShop #shopInvBox,.wc .WideShop #shopInvTitle,.wc .WideShop #shop_player,.wc .WideShop #shop_my_stats,.wc .WideShop #shop_my_items_container,.wc .WideShop #shop_my_items_number,.wc .WideShop #shop_my_items_stats,.wc .WideShop #shop_delete_avatar,.wc .WideShop #shopFilterMyAvatar,.wc .WideShop #shopSearchBtn,.wc .WideShop #FilterBtnHead,.wc .WideShop #FilterBtnBody,.wc .WideShop #FilterBtnEyes,.wc .WideShop #FilterBtnFlag,.wc .WideShop #FilterBtnBG,.wc .WideShop #FilterBtnFG,.wc .WideShop #FilterBtnEX,.wc .WideShop #FilterBtnAll,.wc .WideShop #SortBtnPop,.wc .WideShop #SortBtnTime,.wc .WideShop #SortBtnAtk,.wc .WideShop #SortBtnDef,.wc .WideShop #SortBtnLife,.wc .WideShop #SortBtnItem,.wc .WideShop #SortBtnDig,.wc .WideShop #SortBtnShld,.wc .WideShop #shopSetBonusActive,.wc .WideShop #buttonShopExit,.wc .WideShop #GuideShop,.wc .WideShop #buttonChargeShop1{margin-left:var(--shop-l)}
+.wc .WideShop #shop_my_cash,.wc .WideShop #shop_my_gold,.wc .WideShop #shop_my_event_points,.wc .WideShop #shop_security_lock,.wc .WideShop #shopSetBonusActiveText{margin-right:var(--shop-l-neg)}
+.wc .WideShop .shop_item0,.wc .WideShop .shop_item3,.wc .WideShop .shop_item6,.wc .WideShop #shopSetName{margin-left:var(--shop-col0)}
+.wc .WideShop .shop_item1,.wc .WideShop .shop_item4,.wc .WideShop .shop_item7,.wc .WideShop #shopTitle,.wc .WideShop #shopNoItems,.wc .WideShop #shop_buy_dialog,.wc .WideShop #dialogGift{margin-left:var(--shop-c)}
+.wc .WideShop .shop_item2,.wc .WideShop .shop_item5,.wc .WideShop .shop_item8,.wc .WideShop #ShopFilterGold,.wc .WideShop #ShopFilterCash,.wc .WideShop #SortBtnPrice,.wc .WideShop #ShopFilterOwned,.wc .WideShop #ShopFilterGender{margin-left:var(--shop-col2)}
+.wc .WideShop .shop_item0:active,.wc .WideShop .shop_item3:active,.wc .WideShop .shop_item6:active{margin-left:var(--shop-col0d)}
+.wc .WideShop .shop_item1:active,.wc .WideShop .shop_item4:active,.wc .WideShop .shop_item7:active{margin-left:var(--shop-col1d)}
+.wc .WideShop .shop_item2:active,.wc .WideShop .shop_item5:active,.wc .WideShop .shop_item8:active{margin-left:var(--shop-col2d)}
+.wc .WideShop #buttonShopHead{margin-left:calc(var(--shop-c) - var(--shop-g) * 1.294)}
+.wc .WideShop #buttonShopBackground{margin-left:calc(var(--shop-c) - var(--shop-g) * 1.246)}
+.wc .WideShop #buttonShopBody{margin-left:calc(var(--shop-c) - var(--shop-g) * .951)}
+.wc .WideShop #buttonShopForeground{margin-left:calc(var(--shop-c) - var(--shop-g) * .789)}
+.wc .WideShop #buttonShopGlass{margin-left:calc(var(--shop-c) - var(--shop-g) * .603)}
+.wc .WideShop #buttonShopDeals{margin-left:calc(var(--shop-c) - var(--shop-g) * .331)}
+.wc .WideShop #buttonShopFlag{margin-left:calc(var(--shop-c) - var(--shop-g) * .26)}
+.wc .WideShop #buttonShopSeason{margin-left:calc(var(--shop-c) - var(--shop-g-neg) * .126)}
+.wc .WideShop #buttonShopExItem{margin-left:calc(var(--shop-c) - var(--shop-g-neg) * .134)}
+.wc .WideShop #buttonShopBuy{margin-left:calc(var(--shop-c) - var(--shop-g-neg) * .557)}
+.wc .WideShop #buttonShopPrev{margin-left:calc(var(--shop-c) - var(--shop-g-neg) * .926)}
+.wc .WideShop #buttonShopEvent{margin-left:calc(var(--shop-c) - var(--shop-g-neg) * .983)}
+.wc .WideShop #shopPages{margin-left:calc(var(--shop-c) - var(--shop-g-neg) * 1.151)}
+.wc .WideShop #buttonShopNext{margin-left:calc(var(--shop-c) - var(--shop-g-neg) * 1.371)}
+.wc .WideShop #buttonShopBack{margin-left:calc(var(--shop-c) - var(--shop-g-neg) * 1.38)}
+.wc .WideShop #next_avatar,.wc .WideShop #next_avatar_particles{margin-right:var(--shop-r-neg)}
+.wc .TallShop #wcShopWide{display:block;position:absolute;left:0;top:0;width:800px;height:600px;margin-top:var(--tshop-t);background-size:0;pointer-events:none}
+.wc .TallShop #shopTitle,.wc .TallShop #shopSetName,.wc .TallShop #ShopFilterGold,.wc .TallShop #ShopFilterCash,.wc .TallShop #SortBtnPrice,.wc .TallShop #ShopFilterOwned,.wc .TallShop #ShopFilterGender,.wc .TallShop #shopSetBonusActive,.wc .TallShop #shopSetBonusActiveText,.wc .TallShop #shopMyBox,.wc .TallShop #shopInvTitle,.wc .TallShop #shopInvBox,.wc .TallShop #shop_my_stats,.wc .TallShop #shop_player,.wc .TallShop #shop_my_cash,.wc .TallShop #shop_my_gold,.wc .TallShop #shop_my_event_points,.wc .TallShop #shop_security_lock,.wc .TallShop #FilterBtnHead,.wc .TallShop #FilterBtnBody,.wc .TallShop #FilterBtnEyes,.wc .TallShop #FilterBtnFlag,.wc .TallShop #FilterBtnBG,.wc .TallShop #FilterBtnFG,.wc .TallShop #FilterBtnEX,.wc .TallShop #FilterBtnAll,.wc .TallShop #shop_my_items_number,.wc .TallShop #shop_my_items_container{margin-top:var(--tshop-t)}
+.wc .TallShop .shop_item0,.wc .TallShop .shop_item1,.wc .TallShop .shop_item2{margin-top:var(--tshop-r0)}
+.wc .TallShop .shop_item3,.wc .TallShop .shop_item4,.wc .TallShop .shop_item5,.wc .TallShop #shopNoItems{margin-top:var(--tshop-r1)}
+.wc .TallShop .shop_item6,.wc .TallShop .shop_item7,.wc .TallShop .shop_item8{margin-top:var(--tshop-r2)}
+.wc .TallShop .shop_item0:active,.wc .TallShop .shop_item1:active,.wc .TallShop .shop_item2:active{margin-top:var(--tshop-r0d)}
+.wc .TallShop .shop_item3:active,.wc .TallShop .shop_item4:active,.wc .TallShop .shop_item5:active{margin-top:var(--tshop-r1d)}
+.wc .TallShop .shop_item6:active,.wc .TallShop .shop_item7:active,.wc .TallShop .shop_item8:active{margin-top:var(--tshop-r2d)}
+.wc .TallShop #shopFilterMyAvatar,.wc .TallShop #shopSearchBtn,.wc .TallShop #shop_my_items_stats,.wc .TallShop #shop_delete_avatar,.wc .TallShop #SortBtnPop,.wc .TallShop #SortBtnTime,.wc .TallShop #SortBtnAtk,.wc .TallShop #SortBtnDef,.wc .TallShop #SortBtnLife,.wc .TallShop #SortBtnItem,.wc .TallShop #SortBtnDig,.wc .TallShop #SortBtnShld,.wc .TallShop #buttonShopHead,.wc .TallShop #buttonShopBackground,.wc .TallShop #buttonShopBody,.wc .TallShop #buttonShopForeground,.wc .TallShop #buttonShopGlass,.wc .TallShop #buttonShopDeals,.wc .TallShop #buttonShopFlag,.wc .TallShop #buttonShopSeason,.wc .TallShop #buttonShopExItem,.wc .TallShop #buttonShopBuy,.wc .TallShop #buttonShopPrev,.wc .TallShop #buttonShopEvent,.wc .TallShop #shopPages,.wc .TallShop #buttonShopNext,.wc .TallShop #buttonShopBack,.wc .TallShop #buttonChargeShop1,.wc .TallShop #buttonShopExit{margin-top:var(--tshop-b)}
+.wc .TallShop #GuideShop,.wc .TallShop #next_avatar,.wc .TallShop #next_avatar_particles{margin-bottom:var(--tshop-b-neg)}
+.wc .TallShop #shop_my_items_container,.wc .TallShop #shop_my_items_container .viewport{height:calc(248px - var(--tshop-grow-neg)) !important}
+/* ---- animacoes ---- */
+@keyframes wcAnimNormal{from{background-position:0 -121px}to{background-position:-800px -121px}}
+@keyframes wcAnimScore{from{background-position:0 -160px}to{background-position:-800px -160px}}
+@keyframes wcAnimTag{from{background-position:0 -199px}to{background-position:-800px -199px}}
+@keyframes wcAnimJewel{from{background-position:0 -238px}to{background-position:-800px -238px}}
+@keyframes wcAnimBoss{from{background-position:0 -1925px}to{background-position:-800px -1925px}}
+@keyframes wcAnimFfa{from{background-position:0 -1964px}to{background-position:-800px -1964px}}
+@keyframes wcAnimAll{from{background-position:0 0}to{background-position:-1290px 0}}
+@keyframes wcAnimWaiting{from{background-position:0 -39px}to{background-position:-1320px -39px}}
+@keyframes wcAnimFriends{from{background-position:0 -80px}to{background-position:-741px -80px}}
+@keyframes wcAnimGuild{from{background-position:0 -2003px}to{background-position:-741px -2003px}}
+@keyframes wcAnimGoto{from{background-position:0 -277px}to{background-position:-731px -277px}}
+@keyframes wcAnimCreate{from{background-position:0 -312px}to{background-position:-882px -312px}}
+@keyframes wcAnimQuick{from{background-position:0 -361px}to{background-position:-1525px -361px}}
+@keyframes wcAnimUp{from{background-position:0 -415px}to{background-position:-840px -415px}}
+@keyframes wcAnimDown{from{background-position:0 -448px}to{background-position:-840px -448px}}
+@keyframes wcAnimExit{from{background-position:0 -481px}to{background-position:-1449px -481px}}
+@keyframes wcAnimAvatar{0%{background-position:0 -546px;animation-timing-function:steps(16)}49.99%{background-position:-1232px -546px}50%{background-position:0 -624px;animation-timing-function:steps(16)}100%{background-position:-1232px -624px}}
+@keyframes wcAnimAvatarIdle{from{background-position:0 -702px}to{background-position:-1540px -702px}}
+@keyframes wcAnimBuddy{from{background-position:0 -780px}to{background-position:-1160px -780px}}
+@keyframes wcAnimMute{from{background-position:0 -837px}to{background-position:-1180px -837px}}
+@keyframes wcAnimCharge{from{background-position:0 -893px}to{background-position:-708px -893px}}
+@keyframes wcAnimMissions{from{background-position:0 -956px}to{background-position:-1518px -956px}}
+@keyframes wcAnimMyinfo{from{background-position:0 -1029px}to{background-position:-1380px -1029px}}
+@keyframes wcAnimOptions{0%{background-position:0 -1098px;animation-timing-function:steps(15)}49.99%{background-position:-1095px -1098px}50%{background-position:0 -1169px;animation-timing-function:steps(15)}100%{background-position:-1095px -1169px}}
+@keyframes wcMyInfoOpen{from{transform:translate3d(var(--myinfo-dx,0),var(--myinfo-dy,0),0) scaleY(0)}}
+@keyframes wcMyInfoClose{to{transform:translate3d(var(--myinfo-dx,0),var(--myinfo-dy,0),0) scaleY(0)}}
+@keyframes wcAnimReady{from{background-position:0 -1240px}to{background-position:-1235px -1240px}}
+@keyframes wcAnimStart{from{background-position:0 -1305px}to{background-position:-1235px -1305px}}
+@keyframes wcAnimMobile{from{background-position:0 -1370px}to{background-position:-900px -1370px}}
+@keyframes wcAnimItem{from{background-position:0 -1411px}to{background-position:-855px -1411px}}
+@keyframes wcAnimRoomOption{from{background-position:0 -1452px}to{background-position:-1350px -1452px}}
+@keyframes wcAnimTeam{from{background-position:0 -1493px}to{background-position:-900px -1493px}}
+@keyframes wcAnimBuy{0%{background-position:0 -1534px;animation-timing-function:steps(22)}51.15%{background-position:-1430px -1534px}51.16%{background-position:0 -1593px;animation-timing-function:steps(21)}100%{background-position:-1365px -1593px}}
+@keyframes wcAnimHead{from{background-position:0 -1652px}to{background-position:-900px -1652px}}
+@keyframes wcAnimBody{from{background-position:0 -1684px}to{background-position:-900px -1684px}}
+@keyframes wcAnimGlass{from{background-position:0 -1719px}to{background-position:-900px -1719px}}
+@keyframes wcAnimFlag{from{background-position:0 -1751px}to{background-position:-615px -1751px}}
+@keyframes wcAnimExitem{from{background-position:0 -1785px}to{background-position:-900px -1785px}}
+@keyframes wcAnimTrash{from{background-position:0 -1819px}to{background-position:-1350px -1819px}}
+@keyframes wcAnimGift{from{background-position:0 -1860px}to{background-position:-780px -1860px}}
+/* ---- ajustes do fork ---- */
+.wcLabel{display:none}
+/* filtro "mesmo modo" so existe no fork: o WC nao tem lugar para ele */
+.wc .Rooms #filter_same{display:none !important}
+/* rotulo "Tempo" do fork fica por cima do mapa no layout WC (o tempo ja
+   aparece no painel da sala) */
+.wc #room_turn_time_text{display:none}

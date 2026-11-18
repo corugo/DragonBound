@@ -32986,7 +32986,15 @@
       ContextMenuClose();
     }
     var g_gui_location_target = GUI_LOCATION_CHANNEL;
+    // Layout Classic WC: o css (classicWC.css) espera a tela atual como classe
+    // no #container (Lobby Rooms / Room / Game / Shop), como no dragonbound.net.
+    function WCTela(c) {
+      $("#container")
+        .removeClass("Lobby Rooms Room Game Shop")
+        .addClass(c);
+    }
     function SwitchToChannelScreen(a) {
+      WCTela("Lobby Rooms");
       g_gui_location_target = GUI_LOCATION_CHANNEL;
       a.location != GUI_LOCATION_CHANNEL &&
         $("#channelScreen, #roomScreen, #gameScreen, #shopScreen")
@@ -33027,6 +33035,7 @@
           });
     }
     function SwitchToRoomScreen(a) {
+      WCTela("Room");
       g_gui_location_target = GUI_LOCATION_ROOM;
       a.location != GUI_LOCATION_ROOM &&
         $("#channelScreen, #roomScreen, #gameScreen, #shopScreen")
@@ -33064,6 +33073,7 @@
     }
     var inGS, g_forceGameUIupdate;
     function SwitchToGameScreen(a, b) {
+      WCTela("Game");
       a.location != GUI_LOCATION_GAME &&
         $("#channelScreen, #roomScreen, #gameScreen, #shopScreen")
           .promise()
@@ -33118,6 +33128,7 @@
           });
     }
     function SwitchToShopScreen(a) {
+      WCTela("Shop");
       a.location != GUI_LOCATION_SHOP &&
         $("#channelScreen, #roomScreen, #gameScreen, #shopScreen")
           .promise()
@@ -34287,6 +34298,21 @@
         css: "",
       };
     CopyMissingProps(ThemeClassic, ThemeClassicHD);
+    // Classic WC (dragonbound.net): a folha stuff_WC e' a stuff_HD redesenhada
+    // nas mesmas coordenadas, com 220 px a mais embaixo (1000x1720). A classe
+    // "wc" no body liga o layout WC (css/classicWC.css).
+    var ThemeClassicWC = {
+      base: "classicHD",
+      stuff_HD: "/static/images/themes/classicWC/stuff_WC.avif?2",
+      stuff_size: "1000px 1720px",
+      lobby_bg: "/static/images/themes/classicWC/lobby_bg.avif?2",
+      room_bg: "/static/images/themes/classicWC/room_bg.avif?2",
+      shop_bg: "/static/images/themes/classicHD/shop_bg.avif",
+      bg_full: "/static/images/themes/classicHD/bg_full.jpg",
+      wc: 1,
+      css: "",
+    };
+    CopyMissingProps(ThemeClassicHD, ThemeClassicWC);
     var ThemeDB = {
         lobby_bg: ".",
         room_bg: ".",
@@ -34735,9 +34761,10 @@
         game_music: "EventMusic1.mp3",
       },
       Themes = {
-        auto: ThemeClassic,
+        auto: ThemeClassicWC,
         classic: ThemeClassic,
         classicHD: ThemeClassicHD,
+        classicWC: ThemeClassicWC,
         thorshammer: ThemeThorsHammer,
         dragonbound: ThemeDB,
         halloween2015: ThemeHalloween2015,
@@ -34915,11 +34942,11 @@
       b.stuff_HD
         ? ((v = !0),
           (f = h = m = a = k = r = p = q = b.stuff_HD),
-          (x = "1000px 1500px"),
+          (x = b.stuff_size || "1000px 1500px"),
           (b.HD = 1),
           (GAME_STUFF = GAME_STUFF_HD))
         : (GAME_STUFF = GAME_STUFF_SD);
-      $("body").toggleClass("SD", !v).toggleClass("HD", !!v);
+      $("body").toggleClass("SD", !v).toggleClass("HD", !!v).toggleClass("wc", !!b.wc);
       v =
         "\n    body {background-image: url(" +
         n +
@@ -44657,6 +44684,10 @@
         AudioPlay(AUDIO_BUTTON_SELECT2);
         $("#buddydiv").fadeOut("fast");
       });
+      // Classic WC: o Buddy da barra de baixo abre a mesma lista
+      $("#wcLobbyBuddy").click(function () {
+        $("#buttonBuddylist").click();
+      });
       $("#buttonBuddylist").click(function () {
         AudioPlay(AUDIO_BUTTON_SELECT2);
         $("#buddydiv").fadeIn("fast");
@@ -45985,9 +46016,11 @@
           (r =
             (q ? 257 - 48 * (Math.floor(n) - 1) : 113) +
             97 * Math.floor(m / 2)),
-          p.css("top", r),
+          // Classic WC: as vagas ficam nas linhas fixas do css (9/111/213/315)
+          $("body").hasClass("wc") && (r = 9 + 102 * Math.floor(m / 2)),
+          p.css("top", $("body").hasClass("wc") ? "" : r),
           (p = $("#vortex" + m)),
-          p.css("top", r - 50),
+          p.css("top", $("body").hasClass("wc") ? "" : r - 50),
           b
             ? p.hide()
             : (Math.floor(m / 2) < n && (0 == m % 2 || 1 != g_server_type) && q
@@ -45999,6 +46032,7 @@
                 a.is_master &&
                 ($("#add_bot_button")
                   .css("top", r + 40)
+                  .attr("data-slot", m)
                   .show(),
                 (g_add_bot_to_slot = m)));
       a =
