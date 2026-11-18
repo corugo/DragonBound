@@ -32992,6 +32992,9 @@
       $("#container")
         .removeClass("Lobby Rooms Room Game Shop wcPanel")
         .addClass(c);
+      // Na partida fica a UI do tema anterior (HD): tira o layout WC
+      var t = typeof dragonTheme != "undefined" && dragonTheme.themeInUse;
+      $("body").toggleClass("wc", !!(t && t.wc) && "Game" != c);
     }
     function SwitchToChannelScreen(a) {
       WCTela("Lobby Rooms");
@@ -34305,6 +34308,8 @@
       base: "classicHD",
       stuff_HD: "/static/images/themes/classicWC/stuff_WC.avif?2",
       stuff_size: "1000px 1720px",
+      // dentro da partida fica a UI do tema HD (pedido do usuario)
+      game_stuff_HD: "/static/images/themes/classicHD/stuff_HD1.png?2",
       lobby_bg: "/static/images/themes/classicWC/lobby_bg.avif?2",
       room_bg: "/static/images/themes/classicWC/room_bg.avif?2",
       shop_bg: "/static/images/themes/classicHD/shop_bg.avif",
@@ -34943,6 +34948,7 @@
         ? ((v = !0),
           (f = h = m = a = k = r = p = q = b.stuff_HD),
           (x = b.stuff_size || "1000px 1500px"),
+          b.game_stuff_HD && (a = b.game_stuff_HD),
           (b.HD = 1),
           (GAME_STUFF = GAME_STUFF_HD))
         : (GAME_STUFF = GAME_STUFF_SD);
@@ -35001,7 +35007,7 @@
         "\n    #powerMark,.DamageDigit,.LastAngleDigit,.UIGoldDigit,#btnShot1,#btnShot2,#btnShotSS,#btnPass,#btnEsc,\n    #last_power_mark,#all_chat,#team_chat,.turn_line_number,#slice_drag_button,.imgS1 {\n        background-image: url(" +
         a +
         ") !important;background-repeat:no-repeat;background-size:" +
-        x +
+        (b.game_stuff_HD ? "1000px 1500px" : x) +
         "}\n\n    #scores_lose_a,#scores_lose_b,.score,.score_me {\n        background-image: url(" +
         k +
         ");background-repeat:no-repeat;background-size:" +
